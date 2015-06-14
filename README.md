@@ -17,7 +17,7 @@ To install it just drag-drop it to your `/Applications` folder.
 
 When you first run Finicky, you'll need to allow it to be set as the default browser.
 
-Create a filed called `.finicky.js` in your home directory.
+Create a file called `.finicky.js` in your home directory.
 
 Example configuration:
 
