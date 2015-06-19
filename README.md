@@ -2,6 +2,8 @@
 
 *Always open the right browser*
 
+Finicky allows you to set up rules that decide which browser is opened for every link that would open the default browser. Open Facebook, Instagram or Reddit in one browser, and Trello, Google Drive or LinkedIn in another.
+
 #### Install
 
 Install XCode and XCode command line tools, then from a terminal:
@@ -19,17 +21,21 @@ When you first run Finicky, you'll need to allow it to be set as the default bro
 
 Create a file called `.finicky.js` in your home directory.
 
-Example configuration:
+#### Configuration
+
+Finicky identifies browsers by their bundle identifier. These are bundle identifiers for common browsers:
+
+| Browser              | Bundle Identifier        |
+|----------------------|--------------------------|
+| Google Chrome        | com.google.Chrome        |
+| Google Chrome Canary | com.google.Chrome.canary |
+| Opera                | com.operasoftware.Opera  |
+| Mozilla Firefox      | org.mozilla.firefox      |
+| Safari               | com.apple.Safari         |
+
+##### Example configuration
 
 ```javascript
-
-/*
-	com.google.Chrome.canary
-	com.google.Chrome
-	com.apple.Safari
-	org.mozilla.firefox
-	com.operasoftware.Opera
-*/
 
 prefix = "^https?:\/\/"
 
