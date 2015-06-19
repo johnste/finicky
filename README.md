@@ -24,8 +24,6 @@ Example configuration:
 ```javascript
 
 /*
-	Bundle identifiers for popular browsers:
-
 	com.google.Chrome.canary
 	com.google.Chrome
 	com.apple.Safari
@@ -33,19 +31,35 @@ Example configuration:
 	com.operasoftware.Opera
 */
 
-api.config({
+prefix = "^https?:\/\/"
+
+var config = {
 	'com.google.Chrome.canary': [
-		"bitbucket.org",
-		"trello.com",
+		"bitbucket\.org",
+		"trello\.com",
+		"build.gooengine\.com",
+		"([a-z]+)?.google\.com",
 	],
 	'com.google.Chrome': [
-		"youtube.com",
-		"facebook.com",
-		"twitter.com",
+		"youtube\.com",
+		"facebook\.com",
+		"twitter\.com",
 	]
-})
+};
+
+var format = function(pattern){
+	return prefix + pattern;
+}
+
+for(browser in config) {
+	var patterns = config[browser]
+	config[browser] = patterns.map(format)
+}
+
+api.config(config)
 
 api.defaultBrowser('com.google.Chrome')
+
 ```
 
 #### Usage

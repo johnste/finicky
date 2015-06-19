@@ -9,7 +9,6 @@
 import Foundation
 import JavaScriptCore
 
-
 var FNConfigPath: String = "~/.finicky.js"
 
 class FNConfigLoader {
@@ -18,7 +17,6 @@ class FNConfigLoader {
     
     init() {
         self.configPaths = NSMutableSet()
-
     }
     
     func resetConfigPaths() {

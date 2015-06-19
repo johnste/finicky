@@ -27,16 +27,24 @@ import JavaScriptCore
     
     class func config(data: [NSObject : AnyObject]!) -> Void {
         //println("Test: \(data)")
-        var config = [String: Array<String>]()
+        let options : NSRegularExpressionOptions = NSRegularExpressionOptions.CaseInsensitive
+        var config = [String: Array<NSRegularExpression>]()
+        var error:NSError?
         for(key, value) in data {
             
-            var browser = key as! String
-            var patterns : Array<String> = Array<String>()
+            let browser = key as! String
+            var patterns = Array<NSRegularExpression>()
             
             let rules : Array = (value as! NSArray) as Array
             for rule in rules {
-                var pattern = rule as! String
-                patterns.append(pattern)
+                let pattern = rule as! String
+                var regex = NSRegularExpression(pattern: pattern, options: options, error: &error)
+            
+                if let theError = error {
+                    print("\(theError.localizedDescription)")
+                } else {
+                    patterns.append(regex!)
+                }
             }
             config.updateValue(patterns, forKey: browser)
         }

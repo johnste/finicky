@@ -18,7 +18,7 @@ class AppDelegate: NSObject, NSApplicationDelegate {
     var statusItem: NSStatusItem!
     var configLoader: FNConfigLoader!
     
-    static var config: [String : Array<String>]!
+    static var config: [String : Array<NSRegularExpression>]!
     static var defaultBrowser: String! = "com.google.Chrome"
     
     func applicationDidFinishLaunching(aNotification: NSNotification) {
@@ -37,7 +37,6 @@ class AppDelegate: NSObject, NSApplicationDelegate {
         statusItem.image = img
         toggleDockIcon(showIcon: false)
         
-
         configLoader = FNConfigLoader()
         configLoader.reload()
     }
@@ -64,17 +63,17 @@ class AppDelegate: NSObject, NSApplicationDelegate {
     }
     
     func handleGetURLEvent(event: NSAppleEventDescriptor?, withReplyEvent: NSAppleEventDescriptor?) {
-        //println("yay");
         
         var url = event!.paramDescriptorForKeyword(AEKeyword(keyDirectObject))!.stringValue
-        
-        //println(url!);
         
         var browserIdentifier : String! = nil
         
         for (browser, patterns) in AppDelegate.config {
             for pattern in patterns {
-                if url!.rangeOfString(pattern, options: NSStringCompareOptions.CaseInsensitiveSearch) != nil {
+                //if url!.rangeOfString(pattern, options: NSStringCompareOptions.CaseInsensitiveSearch) != nil {
+                let match: NSTextCheckingResult? = pattern.firstMatchInString(url!, options: nil, range: NSMakeRange(0, count(url!)))
+                    
+                if match != nil {
                     browserIdentifier = browser
                     break
                 }
