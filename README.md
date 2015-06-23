@@ -42,8 +42,6 @@ prefix = "^https?:\/\/"
 var config = {
 	'com.google.Chrome.canary': [
 		"bitbucket\.org",
-		"trello\.com",
-		"build.gooengine\.com",
 		"([a-z]+)?.google\.com",
 	],
 	'com.google.Chrome': [
@@ -53,19 +51,21 @@ var config = {
 	]
 };
 
-var format = function(pattern){
-	return prefix + pattern;
-}
-
 for(browser in config) {
 	var patterns = config[browser]
-	config[browser] = patterns.map(format)
+	config[browser] = patterns.map(function(pattern){
+		return prefix + pattern;
+	});
 }
 
 api.config(config)
 
 api.defaultBrowser('com.google.Chrome')
 
+api.onUrl(function(url) {
+	// Replace all bing links to google instead
+	url.replace(/^https?:\/\/www\.bing\.com/search', 'https://duckduckgo.com')
+});
 ```
 
 #### Usage
@@ -74,4 +74,4 @@ Click any link that would start your default browser and Finicky starts the one 
 
 #### Documentation
 
-TODO
+[Javascript API Documentation](https://github.com/johnste/finicky/wiki/Javascript-API-Documentation)
