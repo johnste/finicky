@@ -13,9 +13,12 @@ import JavaScriptCore
     static func test(testString: String?) -> Void
     static func defaultBrowser(browser: String?) -> Void
     static func config(data: [NSObject : AnyObject]!) -> Void
+    static func onUrl(handler: JSValue) -> Void
 }
 
 @objc class FinickyAPI : NSObject, FinickyAPIExports {
+    
+    private static var urlHandlers = Array<JSValue>()
     
     class func test(testString: String?) -> Void {
         println("Test: \(testString)")
@@ -50,6 +53,19 @@ import JavaScriptCore
         }
         
         AppDelegate.config = config
-        
     }
+    
+    class func onUrl(handler: JSValue) -> Void {
+        urlHandlers.append(handler)
+    }
+    
+    class func callUrlHandlers(url: String) -> String {
+        var newUrl = url
+        for handler in urlHandlers {
+            var val = handler.callWithArguments([newUrl])
+            newUrl = val.toString()
+        }
+        return newUrl
+    }
+    
 }

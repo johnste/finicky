@@ -81,6 +81,8 @@ class AppDelegate: NSObject, NSApplicationDelegate {
             browserIdentifier  = AppDelegate.defaultBrowser
         }
         
+        url = FinickyAPI.callUrlHandlers(url!)
+        
         openUrlWithBrowser(url!, browser:browserIdentifier)
         
     }
@@ -103,7 +105,6 @@ class AppDelegate: NSObject, NSApplicationDelegate {
         
         var appleEventManager:NSAppleEventManager = NSAppleEventManager.sharedAppleEventManager()
         appleEventManager.setEventHandler(self, andSelector: "handleGetURLEvent:withReplyEvent:", forEventClass: AEEventClass(kInternetEventClass), andEventID: AEEventID(kAEGetURL))
-        
     }
     
     func applicationWillTerminate(aNotification: NSNotification) {
