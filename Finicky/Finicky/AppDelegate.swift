@@ -18,7 +18,7 @@ class AppDelegate: NSObject, NSApplicationDelegate {
     var statusItem: NSStatusItem!
     var configLoader: FNConfigLoader!
     
-    static var config: [String : Array<NSRegularExpression>]!
+    static var config: [String : Array<NSRegularExpression>]! = nil
     static var defaultBrowser: String! = "com.google.Chrome"
     
     func applicationDidFinishLaunching(aNotification: NSNotification) {
@@ -36,11 +36,7 @@ class AppDelegate: NSObject, NSApplicationDelegate {
         statusItem.highlightMode = true
         statusItem.image = img
         toggleDockIcon(showIcon: false)
-        
-        configLoader = FNConfigLoader()
-        configLoader.reload()
     }
-    
     
     @IBAction func reloadConfig(sender: NSMenuItem) {
         configLoader.reload()
@@ -49,7 +45,6 @@ class AppDelegate: NSObject, NSApplicationDelegate {
     @IBAction func showAboutPanel(sender: NSMenuItem) {
         NSApp.orderFrontStandardAboutPanel(sender)
     }
-
 
     func toggleDockIcon(showIcon state: Bool) -> Bool {
         var result: Bool
@@ -63,14 +58,12 @@ class AppDelegate: NSObject, NSApplicationDelegate {
     }
     
     func handleGetURLEvent(event: NSAppleEventDescriptor?, withReplyEvent: NSAppleEventDescriptor?) {
-        
         var url = event!.paramDescriptorForKeyword(AEKeyword(keyDirectObject))!.stringValue
         
         var browserIdentifier : String! = nil
         
         for (browser, patterns) in AppDelegate.config {
             for pattern in patterns {
-                //if url!.rangeOfString(pattern, options: NSStringCompareOptions.CaseInsensitiveSearch) != nil {
                 let match: NSTextCheckingResult? = pattern.firstMatchInString(url!, options: nil, range: NSMakeRange(0, count(url!)))
                     
                 if match != nil {
@@ -78,22 +71,36 @@ class AppDelegate: NSObject, NSApplicationDelegate {
                     break
                 }
             }
+            
             if browserIdentifier != nil {
                 break
             }
         }
-        //println(browserIdentifier)
+        
         if browserIdentifier == nil {
             browserIdentifier  = AppDelegate.defaultBrowser
         }
-        //println(browserIdentifier)
-        var appleEventManager:NSAppleEventManager = NSAppleEventManager.sharedAppleEventManager()
-        var urls = [NSURL(string: url!)!]
-        NSWorkspace.sharedWorkspace().openURLs(urls, withAppBundleIdentifier: browserIdentifier, options: NSWorkspaceLaunchOptions.Default, additionalEventParamDescriptor: nil, launchIdentifiers: nil)
+        
+        openUrlWithBrowser(url!, browser:browserIdentifier)
         
     }
     
+    func openUrlWithBrowser(url: String, browser: String) {
+        
+        var eventDescriptor: NSAppleEventDescriptor? = NSAppleEventDescriptor()
+
+        var errorInfo : NSDictionary? = nil
+    
+        var appleEventManager:NSAppleEventManager = NSAppleEventManager.sharedAppleEventManager()
+        
+        var urls = [NSURL(string: url)!]
+        NSWorkspace.sharedWorkspace().openURLs(urls, withAppBundleIdentifier: browser, options: NSWorkspaceLaunchOptions.Default, additionalEventParamDescriptor: nil, launchIdentifiers: nil)
+    }
+    
     func applicationWillFinishLaunching(aNotification: NSNotification) {
+        configLoader = FNConfigLoader()
+        configLoader.reload()
+        
         var appleEventManager:NSAppleEventManager = NSAppleEventManager.sharedAppleEventManager()
         appleEventManager.setEventHandler(self, andSelector: "handleGetURLEvent:withReplyEvent:", forEventClass: AEEventClass(kInternetEventClass), andEventID: AEEventID(kAEGetURL))
         
@@ -102,7 +109,5 @@ class AppDelegate: NSObject, NSApplicationDelegate {
     func applicationWillTerminate(aNotification: NSNotification) {
         // Insert code here to tear down your application
     }
-
-
 }
 
