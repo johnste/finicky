@@ -63,8 +63,8 @@ api.config(config)
 api.defaultBrowser('com.google.Chrome')
 
 api.onUrl(function(url) {
-	// Rewrite all Bing links to DuckDuckGo instead
-	url.replace(/^https?:\/\/www\.bing\.com/search', 'https://duckduckgo.com')
+    // Rewrite all Bing links to DuckDuckGo instead
+    return url.replace(/^https?:\/\/www\.bing\.com\/search/, 'https://duckduckgo.com')
 });
 ```
 
