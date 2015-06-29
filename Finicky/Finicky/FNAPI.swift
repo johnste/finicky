@@ -1,4 +1,4 @@
-//
+    //
 //  FNAPI.swift
 //  Finicky
 //
@@ -10,9 +10,8 @@ import Foundation
 import JavaScriptCore
 
 @objc protocol FinickyAPIExports : JSExport {
-    static func test(testString: String?) -> Void
     static func defaultBrowser(browser: String?) -> Void
-    static func config(data: [NSObject : AnyObject]!) -> Void
+    static func config(data: [NSObject : AnyObject]!) -> String
     static func onUrl(handler: JSValue) -> Void
 }
 
@@ -20,52 +19,55 @@ import JavaScriptCore
     
     private static var urlHandlers = Array<JSValue>()
     
-    class func test(testString: String?) -> Void {
-        println("Test: \(testString)")
-    }
-    
     class func defaultBrowser(browser: String?) -> Void {
         AppDelegate.defaultBrowser = browser
     }
     
-    class func config(data: [NSObject : AnyObject]!) -> Void {
-        //println("Test: \(data)")
-        let options : NSRegularExpressionOptions = NSRegularExpressionOptions.CaseInsensitive
-        var config = [String: Array<NSRegularExpression>]()
-        var error:NSError?
-        for(key, value) in data {
-            
-            let browser = key as! String
-            var patterns = Array<NSRegularExpression>()
-            
-            let rules : Array = (value as! NSArray) as Array
-            for rule in rules {
-                let pattern = rule as! String
-                var regex = NSRegularExpression(pattern: pattern, options: options, error: &error)
-            
-                if let theError = error {
-                    print("\(theError.localizedDescription)")
-                } else {
-                    patterns.append(regex!)
-                }
-            }
-            config.updateValue(patterns, forKey: browser)
-        }
-        
-        AppDelegate.config = config
+    class func config(data: [NSObject : AnyObject]!) -> String {
+        return "deprecated"
     }
     
     class func onUrl(handler: JSValue) -> Void {
         urlHandlers.append(handler)
     }
     
-    class func callUrlHandlers(url: String) -> String {
-        var newUrl = url
+    class func reset() -> Void {
+        urlHandlers.removeAll(keepCapacity: true)
+    }
+    
+    /**
+        Get strategy from registered handlers
+    
+        @param originalUrl The original url that triggered finicky to start
+    
+        @return A dictionary keyed with "url" and "bundleIdentifier" with 
+            the new url and bundle identifier to spawn
+    */
+    func
+    class func callUrlHandlers(originalUrl: String) -> Dictionary<String, String> {
+        var strategy : Dictionary<String, String> = [
+            "url": originalUrl,
+            "bundleIdentifier": ""
+        ]
+        
         for handler in urlHandlers {
-            var val = handler.callWithArguments([newUrl])
-            newUrl = val.toString()
-        }
-        return newUrl
+            let url = strategy["url"]!
+            var val = handler.callWithArguments([url])
+            
+            if val != nil {
+                let options = val.toDictionary()
+                if options != nil {
+                    if (options["url"] != nil) {
+                        strategy["url"] = (options["url"] as! String)
+                    }
+            
+                    if (options["bundleIdentifier"] != nil) {
+                        strategy["bundleIdentifier"] = (options["bundleIdentifier"] as! String)
+                    }
+                }
+            }
+        }        
+        return strategy
     }
     
 }

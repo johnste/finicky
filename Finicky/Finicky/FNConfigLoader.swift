@@ -20,6 +20,7 @@ class FNConfigLoader {
     }
     
     func resetConfigPaths() {
+        FinickyAPI.reset()
         configPaths.removeAllObjects()
         configPaths.addObject(FNConfigPath)
     }
@@ -52,5 +53,6 @@ class FNConfigLoader {
     
     func setupAPI(ctx: JSContext) {
         ctx.setObject(FinickyAPI.self, forKeyedSubscript: "api")
+        ctx.setObject(FinickyAPI.self, forKeyedSubscript: "finicky")
     }
 }

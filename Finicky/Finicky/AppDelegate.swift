@@ -17,8 +17,8 @@ class AppDelegate: NSObject, NSApplicationDelegate {
     
     var statusItem: NSStatusItem!
     var configLoader: FNConfigLoader!
+    var urlsToLoad = Array<String>()
     
-    static var config: [String : Array<NSRegularExpression>]! = nil
     static var defaultBrowser: String! = "com.google.Chrome"
     
     func applicationDidFinishLaunching(aNotification: NSNotification) {
@@ -60,35 +60,26 @@ class AppDelegate: NSObject, NSApplicationDelegate {
     func handleGetURLEvent(event: NSAppleEventDescriptor?, withReplyEvent: NSAppleEventDescriptor?) {
         var url = event!.paramDescriptorForKeyword(AEKeyword(keyDirectObject))!.stringValue
         
-        var browserIdentifier : String! = nil
+        var bundleIdentifier : String! = AppDelegate.defaultBrowser
         
-        for (browser, patterns) in AppDelegate.config {
-            for pattern in patterns {
-                let match: NSTextCheckingResult? = pattern.firstMatchInString(url!, options: nil, range: NSMakeRange(0, count(url!)))
-                    
-                if match != nil {
-                    browserIdentifier = browser
-                    break
-                }
+        let strategy = FinickyAPI.callUrlHandlers(url!)
+        
+        if strategy["url"] != nil {
+            url = strategy["url"]
+            
+            let bundleId : String! = strategy["bundleIdentifier"] as String!
+
+            if bundleId != nil && !bundleId.isEmpty {
+                bundleIdentifier = strategy["bundleIdentifier"]!
             }
             
-            if browserIdentifier != nil {
-                break
+            if bundleIdentifier != nil && !bundleIdentifier.isEmpty {
+                openUrlWithBrowser(url!, bundleIdentifier:bundleIdentifier)
             }
         }
-        
-        if browserIdentifier == nil {
-            browserIdentifier  = AppDelegate.defaultBrowser
-        }
-        
-        url = FinickyAPI.callUrlHandlers(url!)
-        
-        openUrlWithBrowser(url!, browser:browserIdentifier)
-        
     }
     
-    func openUrlWithBrowser(url: String, browser: String) {
-        
+    func openUrlWithBrowser(url: String, bundleIdentifier: String) {
         var eventDescriptor: NSAppleEventDescriptor? = NSAppleEventDescriptor()
 
         var errorInfo : NSDictionary? = nil
@@ -96,7 +87,7 @@ class AppDelegate: NSObject, NSApplicationDelegate {
         var appleEventManager:NSAppleEventManager = NSAppleEventManager.sharedAppleEventManager()
         
         var urls = [NSURL(string: url)!]
-        NSWorkspace.sharedWorkspace().openURLs(urls, withAppBundleIdentifier: browser, options: NSWorkspaceLaunchOptions.Default, additionalEventParamDescriptor: nil, launchIdentifiers: nil)
+        NSWorkspace.sharedWorkspace().openURLs(urls, withAppBundleIdentifier: bundleIdentifier, options: NSWorkspaceLaunchOptions.Default, additionalEventParamDescriptor: nil, launchIdentifiers: nil)
     }
     
     func applicationWillFinishLaunching(aNotification: NSNotification) {
