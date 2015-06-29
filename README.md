@@ -2,7 +2,7 @@
 
 *Always open the right browser*
 
-Finicky allows you to set up rules that decide which browser is opened for every link that would open the default browser. Open Facebook, Instagram or Reddit in one browser, and Trello, Google Drive or LinkedIn in another.
+Finicky allows you to set up rules that decide which browser is opened for every link that would open the default browser. Open Facebook or Reddit in one browser, and Trello or LinkedIn in another. Or even open Spotify links in the Spotify client.
 
 #### Install
 
@@ -21,56 +21,59 @@ When you first run Finicky, you'll need to allow it to be set as the default bro
 
 Create a file called `.finicky.js` in your home directory.
 
-#### Configuration
-
-Finicky identifies browsers by their bundle identifier. These are bundle identifiers for common browsers:
-
-| Browser              | Bundle Identifier        |
-|----------------------|--------------------------|
-| Google Chrome        | com.google.Chrome        |
-| Google Chrome Canary | com.google.Chrome.canary |
-| Opera                | com.operasoftware.Opera  |
-| Mozilla Firefox      | org.mozilla.firefox      |
-| Safari               | com.apple.Safari         |
-
 ##### Example configuration
 
 ```javascript
 
-prefix = "^https?:\/\/"
+finicky.defaultBrowser('com.google.Chrome')
 
-var config = {
-	'com.google.Chrome.canary': [
-		"bitbucket\.org",
-		"([a-z]+)?.google\.com",
-	],
-	'com.google.Chrome': [
-		"youtube\.com",
-		"facebook\.com",
-		"twitter\.com",
-	]
-};
+// Open work stuff in Canary
+finicky.onUrl(function(url) {
+	if (url.match(/^https?:\/\/\bitbucket\.org|trello\.com|([a-z]+)?.google\.com)/)) {
+		return {
+			bundleIdentifier: 'com.google.Chrome.canary'
+		}
+	}
+});
 
-for(browser in config) {
-	var patterns = config[browser]
-	config[browser] = patterns.map(function(pattern){
-		return prefix + pattern;
-	});
-}
+// Open social network links in Google Chrome
+finicky.onUrl(function(url) {
+	if (url.match(/^https?:\/\/(youtube|facebook|twitter|linkedin)\.com/)) {
+		return {
+			bundleIdentifier: 'com.google.Chrome'
+		}
+	}
+});
 
-api.config(config)
+// Open Spotify links in client
+finicky.onUrl(function(url) {
+	if (url.match(/^https?:\/\/open\.spotify\.com/)) {
+		return {
+			bundleIdentifier: 'com.spotify.client'
+		}
+	}
+});
 
-api.defaultBrowser('com.google.Chrome')
+// Rewrite Twitter status links to open in Twitter client
+finicky.onUrl(function(url) {
+	var matches = url.match(/^https?:\/\/twitter\.com\/.+\/status\/([0-9]+)/)
+	if (matches && matches[1]) {
+		var statusId = matches[1];
+		return {
+			url: 'twitter://status?id=' + statusId,
+			bundleIdentifier: 'com.twitter.twitter-mac'
+		}
+	}
+});
 
-api.onUrl(function(url) {
-    // Rewrite all Bing links to DuckDuckGo instead
-    return url.replace(/^https?:\/\/www\.bing\.com\/search/, 'https://duckduckgo.com')
+// Rewrite all Bing links to DuckDuckGo instead
+finicky.onUrl(function(url) {
+    var url = url.replace(/^https?:\/\/www\.bing\.com\/search/, 'https://duckduckgo.com')
+    return {
+    	url: url
+    }
 });
 ```
-
-#### Usage
-
-Click any link that would start your default browser and Finicky starts the one which pattern matches.
 
 #### Documentation
 
