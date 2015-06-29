@@ -10,8 +10,7 @@ import Foundation
 import JavaScriptCore
 
 @objc protocol FinickyAPIExports : JSExport {
-    static func defaultBrowser(browser: String?) -> Void
-    static func config(data: [NSObject : AnyObject]!) -> String
+    static func setDefaultBrowser(browser: String?) -> Void
     static func onUrl(handler: JSValue) -> Void
 }
 
@@ -19,13 +18,10 @@ import JavaScriptCore
     
     private static var urlHandlers = Array<JSValue>()
     
-    class func defaultBrowser(browser: String?) -> Void {
+    class func setDefaultBrowser(browser: String?) -> Void {
         AppDelegate.defaultBrowser = browser
     }
     
-    class func config(data: [NSObject : AnyObject]!) -> String {
-        return "deprecated"
-    }
     
     class func onUrl(handler: JSValue) -> Void {
         urlHandlers.append(handler)
@@ -43,7 +39,7 @@ import JavaScriptCore
         @return A dictionary keyed with "url" and "bundleIdentifier" with 
             the new url and bundle identifier to spawn
     */
-    func
+
     class func callUrlHandlers(originalUrl: String) -> Dictionary<String, String> {
         var strategy : Dictionary<String, String> = [
             "url": originalUrl,

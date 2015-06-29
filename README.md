@@ -25,16 +25,7 @@ Create a file called `.finicky.js` in your home directory.
 
 ```javascript
 
-finicky.defaultBrowser('com.google.Chrome')
-
-// Open work stuff in Canary
-finicky.onUrl(function(url) {
-	if (url.match(/^https?:\/\/\bitbucket\.org|trello\.com|([a-z]+)?.google\.com)/)) {
-		return {
-			bundleIdentifier: 'com.google.Chrome.canary'
-		}
-	}
-});
+finicky.setDefaultBrowser('com.google.Chrome')
 
 // Open social network links in Google Chrome
 finicky.onUrl(function(url) {
