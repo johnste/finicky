@@ -36,19 +36,25 @@ import JavaScriptCore
     
         @param originalUrl The original url that triggered finicky to start
     
+        @param sourceBundleIdentifier Bundle identifier of the application that triggered the url to open
+    
         @return A dictionary keyed with "url" and "bundleIdentifier" with 
             the new url and bundle identifier to spawn
     */
 
-    class func callUrlHandlers(originalUrl: String) -> Dictionary<String, String> {
+    class func callUrlHandlers(originalUrl: String, sourceBundleIdentifier: String) -> Dictionary<String, String> {
         var strategy : Dictionary<String, String> = [
             "url": originalUrl,
             "bundleIdentifier": ""
         ]
         
+        var options : Dictionary<String, String> = [
+            "sourceBundleIdentifier": sourceBundleIdentifier
+        ]
+        
         for handler in urlHandlers {
             let url = strategy["url"]!
-            var val = handler.callWithArguments([url])
+            var val = handler.callWithArguments([url, options])
             
             if val != nil {
                 let options = val.toDictionary()

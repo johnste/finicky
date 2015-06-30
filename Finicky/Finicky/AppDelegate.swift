@@ -60,9 +60,12 @@ class AppDelegate: NSObject, NSApplicationDelegate {
     func handleGetURLEvent(event: NSAppleEventDescriptor?, withReplyEvent: NSAppleEventDescriptor?) {
         var url = event!.paramDescriptorForKeyword(AEKeyword(keyDirectObject))!.stringValue
         
+        var pid = event!.attributeDescriptorForKeyword(AEKeyword(keySenderPIDAttr))!.int32Value
+        let sourceBundleIdentifier = NSRunningApplication(processIdentifier: pid)?.bundleIdentifier
+        
         var bundleIdentifier : String! = AppDelegate.defaultBrowser
         
-        let strategy = FinickyAPI.callUrlHandlers(url!)
+        let strategy = FinickyAPI.callUrlHandlers(url!, sourceBundleIdentifier: sourceBundleIdentifier!)
         
         if strategy["url"] != nil {
             url = strategy["url"]
