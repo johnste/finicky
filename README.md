@@ -1,4 +1,4 @@
-# Finicky
+# Finicky ![Finicky logo](https://raw.githubusercontent.com/johnste/finicky/master/Finicky/Finicky/statusitem%402x.png)
 
 *Always open the right browser*
 
