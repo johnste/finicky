@@ -30,7 +30,7 @@ When complete you'll find a freshly built **Finicky** app in
 finicky.setDefaultBrowser('com.google.Chrome')
 
 // Open social network links in Google Chrome
-finicky.onUrl(function(url) {
+finicky.onUrl(function(url, opts) {
 	if (url.match(/^https?:\/\/(youtube|facebook|twitter|linkedin)\.com/)) {
 		return {
 			bundleIdentifier: 'com.google.Chrome'
@@ -39,7 +39,7 @@ finicky.onUrl(function(url) {
 });
 
 // Open Spotify links in client
-finicky.onUrl(function(url) {
+finicky.onUrl(function(url, opts) {
 	if (url.match(/^https?:\/\/open\.spotify\.com/)) {
 		return {
 			bundleIdentifier: 'com.spotify.client'
@@ -47,8 +47,8 @@ finicky.onUrl(function(url) {
 	}
 });
 
-// Rewrite Twitter status links to open in Twitter client
-finicky.onUrl(function(url) {
+// Open Twitter links in client
+finicky.onUrl(function(url, opts) {
 	var matches = url.match(/^https?:\/\/twitter\.com\/.+\/status\/([0-9]+)/)
 	if (matches && matches[1]) {
 		var statusId = matches[1];
@@ -60,10 +60,21 @@ finicky.onUrl(function(url) {
 });
 
 // Rewrite all Bing links to DuckDuckGo instead
-finicky.onUrl(function(url) {
+finicky.onUrl(function(url, opts) {
     var url = url.replace(/^https?:\/\/www\.bing\.com\/search/, 'https://duckduckgo.com')
     return {
     	url: url
     }
 });
+
+// Always open links from Mail in Safari
+finicky.onUrl(function(url, opts) {
+	var sourceApplication = opts && opts.sourceBundleIdentifier
+	if (sourceApplication === 'com.apple.mail') {
+		return {
+			bundleIdentifier: 'com.apple.safari'
+		}
+	}
+});
+
 ```
