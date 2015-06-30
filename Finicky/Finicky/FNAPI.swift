@@ -11,6 +11,7 @@ import JavaScriptCore
 
 @objc protocol FinickyAPIExports : JSExport {
     static func setDefaultBrowser(browser: String?) -> Void
+    static func log(message: String?) -> Void
     static func onUrl(handler: JSValue) -> Void
 }
 
@@ -22,6 +23,11 @@ import JavaScriptCore
         AppDelegate.defaultBrowser = browser
     }
     
+    static func log(message: String?) -> Void {
+        if message != nil {
+            NSLog(message!)
+        }
+    }
     
     class func onUrl(handler: JSValue) -> Void {
         urlHandlers.append(handler)
