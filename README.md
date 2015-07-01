@@ -11,7 +11,7 @@ Finicky allows you to set up rules that decide which browser is opened for every
 3. Start finicky. Please allow it to be set as the default browser.
 4. And you're done. All http and https links clicked that would have opened a link in your default browser are now first handled by Finicky.
 
-#### Building
+#### Building from source
 Install XCode and XCode command line tools, then from a terminal:
 
     git clone https://github.com/johnste/finicky.git
