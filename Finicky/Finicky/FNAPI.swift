@@ -73,6 +73,10 @@ import JavaScriptCore
                     if handlerStrategy["bundleIdentifier"] != nil {
                         strategy["bundleIdentifier"] = (handlerStrategy["bundleIdentifier"] as! String)
                     }
+                    
+                    if handlerStrategy["last"] != nil {
+                        break
+                    }
                 }
             }
         }        
