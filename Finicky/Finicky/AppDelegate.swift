@@ -8,6 +8,7 @@
 
 import Cocoa
 import Foundation
+import AppKit
 
 @NSApplicationMain
 class AppDelegate: NSObject, NSApplicationDelegate {
@@ -59,14 +60,12 @@ class AppDelegate: NSObject, NSApplicationDelegate {
     
     func handleGetURLEvent(event: NSAppleEventDescriptor?, withReplyEvent: NSAppleEventDescriptor?) {
         var url = event!.paramDescriptorForKeyword(AEKeyword(keyDirectObject))!.stringValue
-        
-        var pid = event!.attributeDescriptorForKeyword(AEKeyword(keySenderPIDAttr))!.int32Value
+        let pid = event!.attributeDescriptorForKeyword(AEKeyword(keySenderPIDAttr))!.int32Value
         let sourceBundleIdentifier = NSRunningApplication(processIdentifier: pid)?.bundleIdentifier
-        
+        let flags = getFlags()
         var bundleIdentifier : String! = AppDelegate.defaultBrowser
         
-        let strategy = FinickyAPI.callUrlHandlers(url!, sourceBundleIdentifier: sourceBundleIdentifier!)
-        
+        let strategy = FinickyAPI.callUrlHandlers(url!, sourceBundleIdentifier: sourceBundleIdentifier!, flags: flags)
         if strategy["url"] != nil {
             url = strategy["url"]
             
@@ -86,11 +85,20 @@ class AppDelegate: NSObject, NSApplicationDelegate {
         var eventDescriptor: NSAppleEventDescriptor? = NSAppleEventDescriptor()
 
         var errorInfo : NSDictionary? = nil
-    
+        
         var appleEventManager:NSAppleEventManager = NSAppleEventManager.sharedAppleEventManager()
         
         var urls = [NSURL(string: url)!]
         NSWorkspace.sharedWorkspace().openURLs(urls, withAppBundleIdentifier: bundleIdentifier, options: NSWorkspaceLaunchOptions.Default, additionalEventParamDescriptor: nil, launchIdentifiers: nil)
+    }
+    
+    func getFlags() -> Dictionary<String, Bool> {
+        return [
+            "cmd": NSEvent.modifierFlags() & .CommandKeyMask != nil,
+            "ctrl": NSEvent.modifierFlags() & .ControlKeyMask != nil,
+            "shift": NSEvent.modifierFlags() & .ShiftKeyMask != nil,
+            "alt": NSEvent.modifierFlags() & .AlternateKeyMask != nil
+        ]
     }
     
     func applicationWillFinishLaunching(aNotification: NSNotification) {
@@ -102,7 +110,6 @@ class AppDelegate: NSObject, NSApplicationDelegate {
     }
     
     func applicationWillTerminate(aNotification: NSNotification) {
-        // Insert code here to tear down your application
     }
 }
 

@@ -48,29 +48,30 @@ import JavaScriptCore
             the new url and bundle identifier to spawn
     */
 
-    class func callUrlHandlers(originalUrl: String, sourceBundleIdentifier: String) -> Dictionary<String, String> {
+    class func callUrlHandlers(originalUrl: String, sourceBundleIdentifier: String, flags : Dictionary<String, Bool>) -> Dictionary<String, String> {
         var strategy : Dictionary<String, String> = [
             "url": originalUrl,
             "bundleIdentifier": ""
         ]
         
-        var options : Dictionary<String, String> = [
-            "sourceBundleIdentifier": sourceBundleIdentifier
+        var options : Dictionary<String, AnyObject> = [
+            "sourceBundleIdentifier": sourceBundleIdentifier,
+            "flags": flags
         ]
         
         for handler in urlHandlers {
             let url = strategy["url"]!
-            var val = handler.callWithArguments([url, options])
-            
-            if val != nil {
-                let options = val.toDictionary()
-                if options != nil {
-                    if (options["url"] != nil) {
-                        strategy["url"] = (options["url"] as! String)
+            let val = handler.callWithArguments([url, options])
+
+            if !val.isUndefined() {
+                let handlerStrategy = val.toDictionary()
+                if handlerStrategy != nil {
+                    if handlerStrategy["url"] != nil {
+                        strategy["url"] = (handlerStrategy["url"] as! String)
                     }
             
-                    if (options["bundleIdentifier"] != nil) {
-                        strategy["bundleIdentifier"] = (options["bundleIdentifier"] as! String)
+                    if handlerStrategy["bundleIdentifier"] != nil {
+                        strategy["bundleIdentifier"] = (handlerStrategy["bundleIdentifier"] as! String)
                     }
                 }
             }
