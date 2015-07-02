@@ -2,7 +2,7 @@
 
 *Always open the right browser*
 
-Finicky allows you to set up rules that decide which browser is opened for every link that would open the default browser. Open Facebook or Reddit in one browser, and Trello or LinkedIn in another. Or even open Spotify links in the Spotify client.
+Finicky allows you to set up rules that decide which browser is opened for every link that would open the default browser. Open Facebook or Reddit in one browser, and Trello or LinkedIn in another. Or Spotify links in the Spotify client. Or whatever url in whatever app.
 
 #### Install
 
