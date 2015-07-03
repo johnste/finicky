@@ -18,6 +18,7 @@ class AppDelegate: NSObject, NSApplicationDelegate {
     
     var statusItem: NSStatusItem!
     var configLoader: FNConfigLoader!
+    var shortUrlResolver: FNShortUrlResolver!
     var urlsToLoad = Array<String>()
     
     static var defaultBrowser: String! = "com.google.Chrome"
@@ -59,36 +60,45 @@ class AppDelegate: NSObject, NSApplicationDelegate {
     }
     
     func handleGetURLEvent(event: NSAppleEventDescriptor?, withReplyEvent: NSAppleEventDescriptor?) {
-        var url = event!.paramDescriptorForKeyword(AEKeyword(keyDirectObject))!.stringValue
+        var url : NSURL = NSURL(string: event!.paramDescriptorForKeyword(AEKeyword(keyDirectObject))!.stringValue!)!
         let pid = event!.attributeDescriptorForKeyword(AEKeyword(keySenderPIDAttr))!.int32Value
         let sourceBundleIdentifier = NSRunningApplication(processIdentifier: pid)?.bundleIdentifier
+        
+        let callback = callUrlHandlers(sourceBundleIdentifier!)
+        
+        if shortUrlResolver.isShortUrl(url) {
+            shortUrlResolver.resolveUrl(url, callback: callback)
+        } else {
+            callback(url: url)
+        }
+    }
+    
+    func callUrlHandlers(sourceBundleIdentifier: String)(url: NSURL) {
         let flags = getFlags()
         var bundleIdentifier : String! = AppDelegate.defaultBrowser
-        
-        let strategy = FinickyAPI.callUrlHandlers(url!, sourceBundleIdentifier: sourceBundleIdentifier!, flags: flags)
+        var newUrl : NSURL = url
+
+        let strategy = FinickyAPI.callUrlHandlers(newUrl, sourceBundleIdentifier: sourceBundleIdentifier, flags: flags)
         if strategy["url"] != nil {
-            url = strategy["url"]
+            newUrl = NSURL(string: strategy["url"]!)!
             
             let bundleId : String! = strategy["bundleIdentifier"] as String!
-
+            
             if bundleId != nil && !bundleId.isEmpty {
-                bundleIdentifier = strategy["bundleIdentifier"]!
+            bundleIdentifier = strategy["bundleIdentifier"]!
             }
             
             if bundleIdentifier != nil && !bundleIdentifier.isEmpty {
-                openUrlWithBrowser(url!, bundleIdentifier:bundleIdentifier)
+                openUrlWithBrowser(newUrl, bundleIdentifier:bundleIdentifier)
             }
         }
     }
     
-    func openUrlWithBrowser(url: String, bundleIdentifier: String) {
+    func openUrlWithBrowser(url: NSURL, bundleIdentifier: String) {
         var eventDescriptor: NSAppleEventDescriptor? = NSAppleEventDescriptor()
-
         var errorInfo : NSDictionary? = nil
-        
         var appleEventManager:NSAppleEventManager = NSAppleEventManager.sharedAppleEventManager()
-        
-        var urls = [NSURL(string: url)!]
+        var urls = [url]
         NSWorkspace.sharedWorkspace().openURLs(urls, withAppBundleIdentifier: bundleIdentifier, options: NSWorkspaceLaunchOptions.Default, additionalEventParamDescriptor: nil, launchIdentifiers: nil)
     }
     
@@ -104,6 +114,7 @@ class AppDelegate: NSObject, NSApplicationDelegate {
     func applicationWillFinishLaunching(aNotification: NSNotification) {
         configLoader = FNConfigLoader()
         configLoader.reload()
+        shortUrlResolver = FNShortUrlResolver()
         
         var appleEventManager:NSAppleEventManager = NSAppleEventManager.sharedAppleEventManager()
         appleEventManager.setEventHandler(self, andSelector: "handleGetURLEvent:withReplyEvent:", forEventClass: AEEventClass(kInternetEventClass), andEventID: AEEventID(kAEGetURL))

@@ -48,9 +48,9 @@ import JavaScriptCore
             the new url and bundle identifier to spawn
     */
 
-    class func callUrlHandlers(originalUrl: String, sourceBundleIdentifier: String, flags : Dictionary<String, Bool>) -> Dictionary<String, String> {
+    class func callUrlHandlers(originalUrl: NSURL, sourceBundleIdentifier: String, flags : Dictionary<String, Bool>) -> Dictionary<String, String> {
         var strategy : Dictionary<String, String> = [
-            "url": originalUrl,
+            "url": originalUrl.absoluteString!,
             "bundleIdentifier": ""
         ]
         
