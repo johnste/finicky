@@ -14,6 +14,8 @@ var FNConfigPath: String = "~/.finicky.js"
 class FNConfigLoader {
     
     var configPaths: NSMutableSet;
+    var configWatcher: FNPathWatcher?;
+    var monitor : FNPathWatcher!;
     
     init() {
         self.configPaths = NSMutableSet()
@@ -23,6 +25,15 @@ class FNConfigLoader {
         FinickyAPI.reset()
         configPaths.removeAllObjects()
         configPaths.addObject(FNConfigPath)
+    }
+    
+    func setupConfigWatcher() {
+
+        let url = NSURL(fileURLWithPath: FNConfigPath.stringByExpandingTildeInPath)!
+        monitor = FNPathWatcher(url: url, handler: {
+            self.reload()
+        })
+        monitor.start()
     }
     
     func reload() {
@@ -49,6 +60,7 @@ class FNConfigLoader {
     
         self.setupAPI(ctx)
         ctx.evaluateScript(config!)
+        setupConfigWatcher()
     }
     
     func setupAPI(ctx: JSContext) {
