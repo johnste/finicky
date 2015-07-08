@@ -9,18 +9,18 @@
 import Foundation
 
 public class FNPathWatcher {
-    
+
     enum State {
         case On, Off
     }
-    
+
     private let source: dispatch_source_t
     private let descriptor: CInt
     private var state: State = .Off
-    
+
     /// Creates a folder monitor object with monitoring enabled.
     public init(url: NSURL, handler: ()->Void) {
-        
+
         state = .Off
         descriptor = open(url.fileSystemRepresentation, O_EVTONLY)
         let queue = dispatch_get_global_queue(DISPATCH_QUEUE_PRIORITY_DEFAULT, 0)
@@ -35,7 +35,7 @@ public class FNPathWatcher {
         //dispatch_source_set_cancel_handler({})
         start()
     }
-    
+
     /// Starts sending notifications if currently stopped
     public func start() {
         if state == .Off {
@@ -43,7 +43,7 @@ public class FNPathWatcher {
             dispatch_resume(source)
         }
     }
-    
+
     /// Stops sending notifications if currently enabled
     public func stop() {
         if state == .On {
@@ -51,7 +51,7 @@ public class FNPathWatcher {
             dispatch_suspend(source)
         }
     }
-    
+
     deinit {
         close(descriptor)
         dispatch_source_cancel(source)
