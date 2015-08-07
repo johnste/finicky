@@ -53,8 +53,8 @@ import JavaScriptCore
             the new url and bundle identifier to spawn
     */
 
-    class func callUrlHandlers(originalUrl: NSURL, sourceBundleIdentifier: String?, flags : Dictionary<String, Bool>) -> Dictionary<String, String> {
-        var strategy : Dictionary<String, String> = [
+    class func callUrlHandlers(originalUrl: NSURL, sourceBundleIdentifier: String?, flags : Dictionary<String, Bool>) -> Dictionary<String, AnyObject> {
+        var strategy : Dictionary<String, AnyObject> = [
             "url": originalUrl.absoluteString!,
             "bundleIdentifier": ""
         ]
@@ -72,7 +72,7 @@ import JavaScriptCore
         ]
 
         for handler in urlHandlers {
-            let url = strategy["url"]!
+            let url = strategy["url"]! as! String
             let val = handler.callWithArguments([url, options])
 
             if !val.isUndefined() {
@@ -85,6 +85,10 @@ import JavaScriptCore
                     if handlerStrategy["bundleIdentifier"] != nil {
                         strategy["bundleIdentifier"] = (handlerStrategy["bundleIdentifier"] as! String)
                     }
+                    
+                    if handlerStrategy["openInBackground"] != nil {
+                        strategy["openInBackground"] = (handlerStrategy["openInBackground"] as! Bool)
+                    }
 
                     if handlerStrategy["last"] != nil {
                         break
@@ -94,5 +98,4 @@ import JavaScriptCore
         }
         return strategy
     }
-
 }

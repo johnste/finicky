@@ -20,6 +20,7 @@ class AppDelegate: NSObject, NSApplicationDelegate {
     var configLoader: FNConfigLoader!
     var shortUrlResolver: FNShortUrlResolver!
     var urlsToLoad = Array<String>()
+    var isActive: Bool = true
 
     static var defaultBrowser: String! = "com.google.Chrome"
 
@@ -31,7 +32,7 @@ class AppDelegate: NSObject, NSApplicationDelegate {
         var img: NSImage! = NSImage(named: "statusitem")
         img.setTemplate(true)
 
-        let bar = NSStatusBar.systemStatusBar()
+        let bar = NSStatusBar.systemStatusBar()        
         // Workaround for some bug: -1 instead of NSVariableStatusItemLength
         statusItem = bar.statusItemWithLength(CGFloat(-1))
         statusItem.menu = statusItemMenu
@@ -77,29 +78,45 @@ class AppDelegate: NSObject, NSApplicationDelegate {
         let flags = getFlags()
         var bundleIdentifier : String! = AppDelegate.defaultBrowser
         var newUrl : NSURL = url
+        var openInBackground : Bool? = nil
 
         let strategy = FinickyAPI.callUrlHandlers(newUrl, sourceBundleIdentifier: sourceBundleIdentifier, flags: flags)
         if strategy["url"] != nil {
-            newUrl = NSURL(string: strategy["url"]!)!
+            newUrl = NSURL(string: strategy["url"]! as! String)!
 
-            let bundleId : String! = strategy["bundleIdentifier"] as String!
-
+            let bundleId : String! = strategy["bundleIdentifier"] as! String!
             if bundleId != nil && !bundleId.isEmpty {
-            bundleIdentifier = strategy["bundleIdentifier"]!
+                bundleIdentifier = strategy["bundleIdentifier"]! as! String
+            }
+            
+            if strategy["openInBackground"] != nil {
+                openInBackground = (strategy["openInBackground"]! as! Bool)
             }
 
             if bundleIdentifier != nil && !bundleIdentifier.isEmpty {
-                openUrlWithBrowser(newUrl, bundleIdentifier:bundleIdentifier)
+                openUrlWithBrowser(newUrl, bundleIdentifier:bundleIdentifier, openInBackground: openInBackground)
             }
         }
     }
 
-    func openUrlWithBrowser(url: NSURL, bundleIdentifier: String) {
+    func openUrlWithBrowser(url: NSURL, bundleIdentifier: String, openInBackground: Bool?) {
         var eventDescriptor: NSAppleEventDescriptor? = NSAppleEventDescriptor()
         var errorInfo : NSDictionary? = nil
         var appleEventManager:NSAppleEventManager = NSAppleEventManager.sharedAppleEventManager()
         var urls = [url]
-        NSWorkspace.sharedWorkspace().openURLs(urls, withAppBundleIdentifier: bundleIdentifier, options: NSWorkspaceLaunchOptions.Default, additionalEventParamDescriptor: nil, launchIdentifiers: nil)
+
+        var launchInBackground = !isActive
+        if openInBackground != nil {
+            launchInBackground = openInBackground!
+        }
+        
+        NSWorkspace.sharedWorkspace().openURLs(
+            urls,
+            withAppBundleIdentifier: bundleIdentifier,
+            options: launchInBackground ? NSWorkspaceLaunchOptions.WithoutActivation : NSWorkspaceLaunchOptions.Default,
+            additionalEventParamDescriptor: nil,
+            launchIdentifiers: nil
+        )
     }
 
     func getFlags() -> Dictionary<String, Bool> {
@@ -115,12 +132,17 @@ class AppDelegate: NSObject, NSApplicationDelegate {
         configLoader = FNConfigLoader()
         configLoader.reload()
         shortUrlResolver = FNShortUrlResolver()
-
         var appleEventManager:NSAppleEventManager = NSAppleEventManager.sharedAppleEventManager()
         appleEventManager.setEventHandler(self, andSelector: "handleGetURLEvent:withReplyEvent:", forEventClass: AEEventClass(kInternetEventClass), andEventID: AEEventID(kAEGetURL))
     }
 
-    func applicationWillTerminate(aNotification: NSNotification) {
+    func applicationDidBecomeActive(aNotification: NSNotification) {
+        isActive = true
     }
+    
+    func applicationDidResignActive(aNotification: NSNotification) {
+        isActive = false
+    }
+
 }
 
