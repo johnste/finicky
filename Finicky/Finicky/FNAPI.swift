@@ -18,6 +18,7 @@ import JavaScriptCore
 @objc class FinickyAPI : NSObject, FinickyAPIExports {
 
     private static var urlHandlers = Array<JSValue>()
+    private static var context : JSContext! = nil
 
     class func setDefaultBrowser(browser: String?) -> Void {
         AppDelegate.defaultBrowser = browser
@@ -36,6 +37,10 @@ import JavaScriptCore
     class func reset() -> Void {
         urlHandlers.removeAll(keepCapacity: true)
     }
+    
+    class func setContext(context: JSContext) {
+        self.context = context
+    }
 
     /**
         Get strategy from registered handlers
@@ -48,14 +53,21 @@ import JavaScriptCore
             the new url and bundle identifier to spawn
     */
 
-    class func callUrlHandlers(originalUrl: NSURL, sourceBundleIdentifier: String, flags : Dictionary<String, Bool>) -> Dictionary<String, String> {
+    class func callUrlHandlers(originalUrl: NSURL, sourceBundleIdentifier: String?, flags : Dictionary<String, Bool>) -> Dictionary<String, String> {
         var strategy : Dictionary<String, String> = [
             "url": originalUrl.absoluteString!,
             "bundleIdentifier": ""
         ]
-
+        
+        var sourceBundleId : AnyObject
+        if sourceBundleIdentifier != nil {
+            sourceBundleId = sourceBundleIdentifier!
+        } else {
+            sourceBundleId = JSValue(nullInContext: context)
+        }
+    
         var options : Dictionary<String, AnyObject> = [
-            "sourceBundleIdentifier": sourceBundleIdentifier,
+            "sourceBundleIdentifier": sourceBundleId,
             "flags": flags
         ]
 
