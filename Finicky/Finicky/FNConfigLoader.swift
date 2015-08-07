@@ -64,6 +64,7 @@ class FNConfigLoader {
     }
 
     func setupAPI(ctx: JSContext) {
+        FinickyAPI.setContext(ctx)
         ctx.setObject(FinickyAPI.self, forKeyedSubscript: "api")
         ctx.setObject(FinickyAPI.self, forKeyedSubscript: "finicky")
     }

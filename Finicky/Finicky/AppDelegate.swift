@@ -64,7 +64,7 @@ class AppDelegate: NSObject, NSApplicationDelegate {
         let pid = event!.attributeDescriptorForKeyword(AEKeyword(keySenderPIDAttr))!.int32Value
         let sourceBundleIdentifier = NSRunningApplication(processIdentifier: pid)?.bundleIdentifier
 
-        let callback = callUrlHandlers(sourceBundleIdentifier!)
+        let callback = callUrlHandlers(sourceBundleIdentifier)
 
         if shortUrlResolver.isShortUrl(url) {
             shortUrlResolver.resolveUrl(url, callback: callback)
@@ -73,7 +73,7 @@ class AppDelegate: NSObject, NSApplicationDelegate {
         }
     }
 
-    func callUrlHandlers(sourceBundleIdentifier: String)(url: NSURL) {
+    func callUrlHandlers(sourceBundleIdentifier: String?)(url: NSURL) {
         let flags = getFlags()
         var bundleIdentifier : String! = AppDelegate.defaultBrowser
         var newUrl : NSURL = url
