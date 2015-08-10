@@ -11,7 +11,7 @@ Features include:
 
 #### Install
 
-1. Download [the latest release](https://github.com/johnste/finicky/releases), unzip and drop Finicky.app in your application folder.
+1. Download [the latest release](https://github.com/johnste/finicky/releases), unzip and drop Finicky.app in your application folder. Or, if you have [homebrew-cask](https://github.com/caskroom/homebrew-cask) set up, install with `brew cask install finicky`.
 2. Create a file called `.finicky.js` in your home directory and set up a default browser and some url handlers.
 3. Start finicky. Please allow it to be set as the default browser.
 4. And you're done. All http and https links clicked that would have opened a link in your default browser are now first handled by Finicky.
