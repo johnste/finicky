@@ -11,13 +11,14 @@ import JavaScriptCore
 
 var FNConfigPath: String = "~/.finicky.js"
 
-class FNConfigLoader {
+public class FNConfigLoader {
 
-    var configPaths: NSMutableSet;
-    var configWatcher: FNPathWatcher?;
-    var monitor : FNPathWatcher!;
+    var configPaths: NSMutableSet
+    var configWatcher: FNPathWatcher?
+    var monitor : FNPathWatcher!
+    var ctx: JSContext!
 
-    init() {
+    public init() {
         self.configPaths = NSMutableSet()
     }
 
@@ -35,6 +36,22 @@ class FNConfigLoader {
         })
         monitor.start()
     }
+    
+    public func createContext() -> JSContext {
+        ctx = JSContext()
+        
+        ctx.exceptionHandler = {
+            context, exception in
+            println("JS Error: \(exception)")
+        }
+        
+        self.setupAPI(ctx)
+        return ctx
+    }
+    
+    public func parseConfig(config: String) {
+        ctx.evaluateScript(config)
+    }
 
     func reload() {
         self.resetConfigPaths()
@@ -51,19 +68,14 @@ class FNConfigLoader {
             print("\(theError.localizedDescription)")
         }
 
-        var ctx: JSContext = JSContext()
-
-        ctx.exceptionHandler = {
-            context, exception in
-            println("JS Error: \(exception)")
+        ctx = createContext()
+        if config != nil {
+            parseConfig(config!)
         }
-
-        self.setupAPI(ctx)
-        ctx.evaluateScript(config!)
         setupConfigWatcher()
     }
-
-    func setupAPI(ctx: JSContext) {
+    
+    public func setupAPI(ctx: JSContext) {
         FinickyAPI.setContext(ctx)
         ctx.setObject(FinickyAPI.self, forKeyedSubscript: "api")
         ctx.setObject(FinickyAPI.self, forKeyedSubscript: "finicky")
