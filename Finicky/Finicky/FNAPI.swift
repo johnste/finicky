@@ -15,7 +15,7 @@ import JavaScriptCore
     static func onUrl(handler: JSValue) -> Void
 }
 
-@objc class FinickyAPI : NSObject, FinickyAPIExports {
+@objc public class FinickyAPI : NSObject, FinickyAPIExports {
 
     private static var urlHandlers = Array<JSValue>()
     private static var context : JSContext! = nil
@@ -30,11 +30,11 @@ import JavaScriptCore
         }
     }
 
-    class func onUrl(handler: JSValue) -> Void {
+    public class func onUrl(handler: JSValue) -> Void {
         urlHandlers.append(handler)
     }
 
-    class func reset() -> Void {
+    public class func reset() -> Void {
         urlHandlers.removeAll(keepCapacity: true)
     }
     
@@ -53,7 +53,7 @@ import JavaScriptCore
             the new url and bundle identifier to spawn
     */
 
-    class func callUrlHandlers(originalUrl: NSURL, sourceBundleIdentifier: String?, flags : Dictionary<String, Bool>) -> Dictionary<String, AnyObject> {
+    public class func callUrlHandlers(originalUrl: NSURL, sourceBundleIdentifier: String?, flags : Dictionary<String, Bool>) -> Dictionary<String, AnyObject> {
         var strategy : Dictionary<String, AnyObject> = [
             "url": originalUrl.absoluteString!,
             "bundleIdentifier": ""
