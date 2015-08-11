@@ -127,6 +127,12 @@ class AppDelegate: NSObject, NSApplicationDelegate {
             "alt": NSEvent.modifierFlags() & .AlternateKeyMask != nil
         ]
     }
+    
+    func application(sender: NSApplication, openFiles filenames: [AnyObject]) {
+        for filename in filenames {
+            callUrlHandlers(nil)(url: NSURL(fileURLWithPath: filename as! String)!)
+        }
+    }
 
     func applicationWillFinishLaunching(aNotification: NSNotification) {
         configLoader = FNConfigLoader()
