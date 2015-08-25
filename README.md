@@ -7,6 +7,7 @@ Finicky is an OS X application that allows you to set up rules that decide which
 Features include:
 - Url rewriting
 - Opening links in background
+- Opening links in the currently activate browser
 - Resolving short urls before running them through handlers
 
 #### Install
