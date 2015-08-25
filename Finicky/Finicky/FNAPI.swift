@@ -82,8 +82,9 @@ import JavaScriptCore
                         strategy["url"] = (handlerStrategy["url"] as! String)
                     }
 
-                    if handlerStrategy["bundleIdentifier"] != nil {
-                        strategy["bundleIdentifier"] = (handlerStrategy["bundleIdentifier"] as! String)
+                    let bundleId: AnyObject? = handlerStrategy["bundleIdentifier"]
+                    if bundleId != nil {
+                        strategy["bundleIdentifier"] = bundleId!
                     }
                     
                     if handlerStrategy["openInBackground"] != nil {
