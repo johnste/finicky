@@ -74,6 +74,22 @@ class AppDelegate: NSObject, NSApplicationDelegate {
         }
     }
 
+    func getActiveApp(bundleIds: Array<String>) -> String {
+        for bundleId in bundleIds {
+            let apps = NSRunningApplication.runningApplicationsWithBundleIdentifier(bundleId) as! Array<NSRunningApplication>
+            if !apps.isEmpty {
+                let app : NSRunningApplication = apps[0]
+                let bundleIdentifier = app.bundleIdentifier
+                if bundleIdentifier != nil {
+                    return bundleIdentifier!
+                }
+            }
+        }
+
+        // If we are here, no apps are running, so we return the first bundleIds in the array instead.
+        return bundleIds.first!
+    }
+
     func callUrlHandlers(sourceBundleIdentifier: String?)(url: NSURL) {
         let flags = getFlags()
         var bundleIdentifier : String! = AppDelegate.defaultBrowser
@@ -84,9 +100,14 @@ class AppDelegate: NSObject, NSApplicationDelegate {
         if strategy["url"] != nil {
             newUrl = NSURL(string: strategy["url"]! as! String)!
 
-            let bundleId : String! = strategy["bundleIdentifier"] as! String!
-            if bundleId != nil && !bundleId.isEmpty {
-                bundleIdentifier = strategy["bundleIdentifier"]! as! String
+            // If the bundle identifier is a string, open the url with that app. If it's an array, find the first running
+            // app, and open the url with that. If none of the apps are running, use the first available one instead.
+            if let bundleId : String! = strategy["bundleIdentifier"] as? String! {
+                if bundleId != nil && !bundleId.isEmpty {
+                    bundleIdentifier = strategy["bundleIdentifier"]! as! String
+                }
+            } else if let bundleIds = strategy["bundleIdentifier"] as? Array<String>! {
+                bundleIdentifier = getActiveApp(bundleIds)
             }
             
             if strategy["openInBackground"] != nil {
