@@ -48,7 +48,7 @@ class FinickyTests: XCTestCase {
         let bundleId = strategy["bundleIdentifier"] as! String!
         let strategyUrl : String! = strategy["url"] as! String!
         let bool = strategy["openInBackground"] as! Bool?
-        XCTAssertEqual(bundleId, "",  "Bundle ID should not have been set")
+        XCTAssertNil(bundleId,  "Bundle ID should not have been set")
         XCTAssertEqual(strategyUrl, "http://example.com", "URL should not have been changed")
         XCTAssertNil(bool, "openInBackground should not have been set")
     }
