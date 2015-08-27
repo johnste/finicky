@@ -93,3 +93,8 @@ finicky.onUrl(function(url, opts) {
 
 
 ```
+
+#### Thoughts about future features
+- Start browser in private/incognito mode
+- Start browser with specific user profile
+- Save url to pocket or some 'watch later' queue
