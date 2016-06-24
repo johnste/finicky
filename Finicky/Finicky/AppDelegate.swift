@@ -97,6 +97,7 @@ class AppDelegate: NSObject, NSApplicationDelegate {
         var openInBackground : Bool? = nil
 
         let strategy = FinickyAPI.callUrlHandlers(newUrl, sourceBundleIdentifier: sourceBundleIdentifier, flags: flags)
+        print("opening %@ from %@ as %@ in %@", url, bundleIdentifier, strategy["url"], strategy["bundleIdentifier"]);
         if strategy["url"] != nil {
             newUrl = NSURL(string: strategy["url"]! as! String)!
 
