@@ -17,10 +17,10 @@ class ResolveShortUrls: NSObject, NSURLSessionDelegate, NSURLSessionTaskDelegate
         super.init()
     }
 
-    func URLSession(session: NSURLSession, task: NSURLSessionTask, willPerformHTTPRedirection response: NSHTTPURLResponse, newRequest request: NSURLRequest, completionHandler: (NSURLRequest!) -> Void) {
+    func URLSession(session: NSURLSession, task: NSURLSessionTask, willPerformHTTPRedirection response: NSHTTPURLResponse, newRequest request: NSURLRequest, completionHandler: (NSURLRequest?) -> Void) {
         var newRequest : NSURLRequest? = request
 
-        if contains([301, 302, 309], response.statusCode) {
+        if [301, 302, 309].contains(response.statusCode) {
             if let newUrl = NSURL(string: (response.allHeaderFields["Location"] as? String)!) {
                 if !shortUrlResolver!.isShortUrl(newUrl) {
                     newRequest = nil
@@ -52,7 +52,7 @@ class FNShortUrlResolver {
     }
 
     func isShortUrl(url: NSURL) -> Bool {
-        return contains(shortUrlProviders, url.host!)
+        return shortUrlProviders.contains((url.host!))
     }
 
     func resolveUrl(url: NSURL, callback: ((NSURL) -> Void)) -> Void {
@@ -64,7 +64,7 @@ class FNShortUrlResolver {
         var response: NSURLResponse?
         var error: NSError?
 
-        var request = NSURLRequest(URL: url)
+        let request = NSURLRequest(URL: url)
         let myDelegate = ResolveShortUrls(shortUrlResolver: self)
 
         let session = NSURLSession(configuration: NSURLSessionConfiguration.defaultSessionConfiguration(), delegate: myDelegate, delegateQueue: nil)
