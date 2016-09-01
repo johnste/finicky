@@ -32,7 +32,7 @@ class AppDelegate: NSObject, NSApplicationDelegate {
         let img: NSImage! = NSImage(named: "statusitem")
         img.template = true
 
-        let bar = NSStatusBar.systemStatusBar()        
+        let bar = NSStatusBar.systemStatusBar()
         // Workaround for some bug: -1 instead of NSVariableStatusItemLength
         statusItem = bar.statusItemWithLength(CGFloat(-1))
         statusItem.menu = statusItemMenu
@@ -110,7 +110,7 @@ class AppDelegate: NSObject, NSApplicationDelegate {
             } else if let bundleIds = strategy["bundleIdentifier"] as? Array<String>! {
                 bundleIdentifier = getActiveApp(bundleIds)
             }
-            
+
             if strategy["openInBackground"] != nil {
                 openInBackground = (strategy["openInBackground"]! as! Bool)
             }
@@ -131,7 +131,16 @@ class AppDelegate: NSObject, NSApplicationDelegate {
         if openInBackground != nil {
             launchInBackground = openInBackground!
         }
-        
+
+        if !launchInBackground {
+            NSWorkspace.sharedWorkspace().launchAppWithBundleIdentifier(
+                bundleIdentifier,
+                options: NSWorkspaceLaunchOptions.Default,
+                additionalEventParamDescriptor: nil,
+                launchIdentifier: nil
+            )
+        }
+
         NSWorkspace.sharedWorkspace().openURLs(
             urls,
             withAppBundleIdentifier: bundleIdentifier,
@@ -149,7 +158,7 @@ class AppDelegate: NSObject, NSApplicationDelegate {
             "alt": NSEvent.modifierFlags().intersect(.AlternateKeyMask) != []
         ]
     }
-    
+
     func application(sender: NSApplication, openFiles filenames: [String]) {
         for filename in filenames {
             callUrlHandlers(nil)(url: NSURL(fileURLWithPath: filename ))
@@ -167,7 +176,7 @@ class AppDelegate: NSObject, NSApplicationDelegate {
     func applicationDidBecomeActive(aNotification: NSNotification) {
         isActive = true
     }
-    
+
     func applicationDidResignActive(aNotification: NSNotification) {
         isActive = false
     }
