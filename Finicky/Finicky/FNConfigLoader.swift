@@ -30,7 +30,7 @@ public class FNConfigLoader {
 
     func setupConfigWatcher() {
 
-        let url = NSURL(fileURLWithPath: FNConfigPath.stringByExpandingTildeInPath)!
+        let url = NSURL(fileURLWithPath: (FNConfigPath as NSString).stringByExpandingTildeInPath)
         monitor = FNPathWatcher(url: url, handler: {
             self.reload()
         })
@@ -42,7 +42,7 @@ public class FNConfigLoader {
         
         ctx.exceptionHandler = {
             context, exception in
-            println("JS Error: \(exception)")
+            print("JS Error: \(exception)")
         }
         
         self.setupAPI(ctx)
@@ -56,16 +56,22 @@ public class FNConfigLoader {
     func reload() {
         self.resetConfigPaths()
         var error:NSError?
-        let filename: String = FNConfigPath.stringByStandardizingPath
-        var config: String? = String(contentsOfFile: filename, encoding: NSUTF8StringEncoding, error: &error)
+        let filename: String = (FNConfigPath as NSString).stringByStandardizingPath
+        var config: String?
+        do {
+            config = try String(contentsOfFile: filename, encoding: NSUTF8StringEncoding)
+        } catch let error1 as NSError {
+            error = error1
+            config = nil
+        }
 
         if config == nil {
-            println("Config file could not be read or found")
+            print("Config file could not be read or found")
             return
         }
 
         if let theError = error {
-            print("\(theError.localizedDescription)")
+            print("\(theError.localizedDescription)", terminator: "")
         }
 
         ctx = createContext()

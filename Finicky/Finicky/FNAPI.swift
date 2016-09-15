@@ -55,7 +55,7 @@ import JavaScriptCore
 
     public class func callUrlHandlers(originalUrl: NSURL, sourceBundleIdentifier: String?, flags : Dictionary<String, Bool>) -> Dictionary<String, AnyObject> {
         var strategy : Dictionary<String, AnyObject> = [
-            "url": originalUrl.absoluteString!
+            "url": originalUrl.absoluteString
         ]
         
         var sourceBundleId : AnyObject
@@ -65,7 +65,7 @@ import JavaScriptCore
             sourceBundleId = JSValue(nullInContext: context)
         }
     
-        var options : Dictionary<String, AnyObject> = [
+        let options : Dictionary<String, AnyObject> = [
             "sourceBundleIdentifier": sourceBundleId,
             "flags": flags
         ]
@@ -75,7 +75,7 @@ import JavaScriptCore
             let url = strategy["url"]! as! String
             let val = handler.callWithArguments([url, options, previousStrategy])
 
-            if !val.isUndefined() {
+            if !val.isUndefined {
                 let handlerStrategy = val.toDictionary()
                 if handlerStrategy != nil {
                     if handlerStrategy["url"] != nil {
