@@ -90,3 +90,11 @@ finicky.onUrl(function(url, opts) {
 
 #### A note on the current status of finicky
 Finicky is not under active development, and probably won't be for quite some time, since it's covering all my needs at the moment. That being said, I do respond to bug reports and feature requests, so please go ahead and leave one, or ask me on [twitter](https://twitter.com/johnste_)
+
+
+### Alternatives
+
+These are two similar applications, though they are not open source.
+
+- [Choosy](http://choosyosx.com)
+- [Browser Fairy](http://www.browserfairy.com/)
