@@ -8,52 +8,56 @@
 
 import Foundation
 
-public class FNPathWatcher {
+open class FNPathWatcher {
 
     enum State {
-        case On, Off
+        case on, off
     }
 
-    private let source: dispatch_source_t
-    private let descriptor: CInt
-    private var state: State = .Off
+    fileprivate let source: DispatchSource
+    fileprivate let descriptor: CInt
+    fileprivate var state: State = .off
 
     /// Creates a folder monitor object with monitoring enabled.
-    public init(url: NSURL, handler: ()->Void) {
+    public init(url: URL, handler: ()->Void) {
 
-        state = .Off
-        descriptor = open(url.fileSystemRepresentation, O_EVTONLY)
-        let queue = dispatch_get_global_queue(DISPATCH_QUEUE_PRIORITY_DEFAULT, 0)
-        source = dispatch_source_create(
-            DISPATCH_SOURCE_TYPE_VNODE,
-            UInt(descriptor),
-            DISPATCH_VNODE_DELETE | DISPATCH_VNODE_WRITE | DISPATCH_VNODE_EXTEND | DISPATCH_VNODE_ATTRIB | DISPATCH_VNODE_LINK | DISPATCH_VNODE_RENAME | DISPATCH_VNODE_REVOKE,
-            queue
-        )
+        state = .off
+        descriptor = open((url as NSURL).fileSystemRepresentation, O_EVTONLY)
+        let queue = DispatchQueue.global()
+        source = DispatchSource.makeFileSystemObjectSource(fileDescriptor: descriptor, eventMask:
+            DispatchSource.FileSystemEvent(rawValue: UInt(
+                UInt8(DispatchSource.FileSystemEvent.delete.rawValue) |
+                UInt8(DispatchSource.FileSystemEvent.write.rawValue) |
+                UInt8(DispatchSource.FileSystemEvent.extend.rawValue) |
+                UInt8(DispatchSource.FileSystemEvent.attrib.rawValue) |
+                UInt8(DispatchSource.FileSystemEvent.link.rawValue) |
+                UInt8(DispatchSource.FileSystemEvent.rename.rawValue) |
+                UInt8(DispatchSource.FileSystemEvent.revoke.rawValue)
+            )), queue: queue) /*Migrator FIXME: Use DispatchSourceFileSystemObject to avoid the cast*/ as! DispatchSource
 
-        dispatch_source_set_event_handler(source, handler)
+        source.setEventHandler(handler: nil)
         //dispatch_source_set_cancel_handler({})
         start()
     }
 
     /// Starts sending notifications if currently stopped
-    public func start() {
-        if state == .Off {
-            state = .On
-            dispatch_resume(source)
+    open func start() {
+        if state == .off {
+            state = .on
+            source.resume()
         }
     }
 
     /// Stops sending notifications if currently enabled
-    public func stop() {
-        if state == .On {
-            state = .Off
-            dispatch_suspend(source)
+    open func stop() {
+        if state == .on {
+            state = .off
+            source.suspend()
         }
     }
 
     deinit {
         close(descriptor)
-        dispatch_source_cancel(source)
+        source.cancel()
     }
 }

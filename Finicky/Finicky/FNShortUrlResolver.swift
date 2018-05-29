@@ -8,20 +8,20 @@
 
 import Foundation
 
-class ResolveShortUrls: NSObject, NSURLSessionDelegate, NSURLSessionTaskDelegate {
-
-    private var shortUrlResolver : FNShortUrlResolver? = nil
+class ResolveShortUrls: NSObject, URLSessionDelegate, URLSessionTaskDelegate {
+    
+    fileprivate var shortUrlResolver : FNShortUrlResolver? = nil
 
     init(shortUrlResolver: FNShortUrlResolver) {
         self.shortUrlResolver = shortUrlResolver
         super.init()
     }
 
-    func URLSession(session: NSURLSession, task: NSURLSessionTask, willPerformHTTPRedirection response: NSHTTPURLResponse, newRequest request: NSURLRequest, completionHandler: (NSURLRequest?) -> Void) {
-        var newRequest : NSURLRequest? = request
+    func urlSession(_ session: URLSession, task: URLSessionTask, willPerformHTTPRedirection response: HTTPURLResponse, newRequest request: URLRequest, completionHandler: @escaping (URLRequest?) -> Void) {
+        var newRequest : URLRequest? = request
 
         if [301, 302, 309].contains(response.statusCode) {
-            if let newUrl = NSURL(string: (response.allHeaderFields["Location"] as? String)!) {
+            if let newUrl = URL(string: (response.allHeaderFields["Location"] as? String)!) {
                 if !shortUrlResolver!.isShortUrl(newUrl) {
                     newRequest = nil
                 }
@@ -35,7 +35,7 @@ class ResolveShortUrls: NSObject, NSURLSessionDelegate, NSURLSessionTaskDelegate
 
 class FNShortUrlResolver {
 
-    private var shortUrlProviders = [
+    fileprivate var shortUrlProviders = [
         "bit.ly",
         "goo.gl",
         "ow.ly",
@@ -51,27 +51,27 @@ class FNShortUrlResolver {
     init() {
     }
 
-    func isShortUrl(url: NSURL) -> Bool {
+    func isShortUrl(_ url: URL) -> Bool {
         return shortUrlProviders.contains((url.host!))
     }
 
-    func resolveUrl(url: NSURL, callback: ((NSURL) -> Void)) -> Void {
+    func resolveUrl(_ url: URL, callback: @escaping ((URL) -> Void)) -> Void {
         if !self.isShortUrl(url) {
             callback(url)
             return
         }
 
-        var response: NSURLResponse?
+        var response: URLResponse?
         var error: NSError?
 
-        let request = NSURLRequest(URL: url)
+        let request = URLRequest(url: url)
         let myDelegate = ResolveShortUrls(shortUrlResolver: self)
 
-        let session = NSURLSession(configuration: NSURLSessionConfiguration.defaultSessionConfiguration(), delegate: myDelegate, delegateQueue: nil)
+        let session = URLSession(configuration: URLSessionConfiguration.default, delegate: myDelegate, delegateQueue: nil)
 
-        let task = session.dataTaskWithRequest(request, completionHandler: { (data, response, error) -> Void in
-            if let responsy : NSHTTPURLResponse = response as? NSHTTPURLResponse {
-                let newUrl = NSURL(string: (responsy.allHeaderFields["Location"] as? String)!)!
+        let task = session.dataTask(with: request, completionHandler: { (data, response, error) -> Void in
+            if let responsy : HTTPURLResponse = response as? HTTPURLResponse {
+                let newUrl = URL(string: (responsy.allHeaderFields["Location"] as? String)!)!
                 callback(newUrl)
             } else {
                 callback(url)

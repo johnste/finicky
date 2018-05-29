@@ -15,7 +15,7 @@ class FinickyTests: XCTestCase {
     
     var ctx : JSContext!
     var configLoader: FNConfigLoader = FNConfigLoader()
-    let exampleUrl = NSURL(string: "http://example.com")!
+    let exampleUrl = URL(string: "http://example.com")!
     
     override func setUp() {
         super.setUp()
@@ -29,7 +29,7 @@ class FinickyTests: XCTestCase {
         super.tearDown()
     }
     
-    func getFlags(cmd: Bool = false, ctrl: Bool = false, shift: Bool = false, alt: Bool = false) -> Dictionary<String, Bool> {
+    func getFlags(_ cmd: Bool = false, ctrl: Bool = false, shift: Bool = false, alt: Bool = false) -> Dictionary<String, Bool> {
         return [
             "cmd": cmd,
             "ctrl": ctrl,
