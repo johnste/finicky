@@ -28,7 +28,7 @@ When complete you'll find a freshly built **Finicky** app in
 `build/release`.
 
 #### Documentation
-[Javascript API Documentation](https://github.com/johnste/finicky/wiki/Javascript-API-Documentation)
+[Javascript API Documentation](https://github.com/johnste/finicky/wiki#javascript-api)
 
 #### Example configuration
 ```javascript
