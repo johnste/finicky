@@ -11,7 +11,7 @@ import JavaScriptCore
 
 var FNConfigPath: String = "~/.finicky.js"
 
-public class FNConfigLoader {
+open class FNConfigLoader {
 
     var configPaths: NSMutableSet
     var configWatcher: FNPathWatcher?
@@ -25,19 +25,19 @@ public class FNConfigLoader {
     func resetConfigPaths() {
         FinickyAPI.reset()
         configPaths.removeAllObjects()
-        configPaths.addObject(FNConfigPath)
+        configPaths.add(FNConfigPath)
     }
 
     func setupConfigWatcher() {
 
-        let url = NSURL(fileURLWithPath: (FNConfigPath as NSString).stringByExpandingTildeInPath)
+        let url = URL(fileURLWithPath: (FNConfigPath as NSString).expandingTildeInPath)
         monitor = FNPathWatcher(url: url, handler: {
             self.reload()
         })
         monitor.start()
     }
     
-    public func createContext() -> JSContext {
+    open func createContext() -> JSContext {
         ctx = JSContext()
         
         ctx.exceptionHandler = {
@@ -49,17 +49,17 @@ public class FNConfigLoader {
         return ctx
     }
     
-    public func parseConfig(config: String) {
+    open func parseConfig(_ config: String) {
         ctx.evaluateScript(config)
     }
 
     func reload() {
         self.resetConfigPaths()
         var error:NSError?
-        let filename: String = (FNConfigPath as NSString).stringByStandardizingPath
+        let filename: String = (FNConfigPath as NSString).standardizingPath
         var config: String?
         do {
-            config = try String(contentsOfFile: filename, encoding: NSUTF8StringEncoding)
+            config = try String(contentsOfFile: filename, encoding: String.Encoding.utf8)
         } catch let error1 as NSError {
             error = error1
             config = nil
@@ -81,9 +81,9 @@ public class FNConfigLoader {
         setupConfigWatcher()
     }
     
-    public func setupAPI(ctx: JSContext) {
+    open func setupAPI(_ ctx: JSContext) {
         FinickyAPI.setContext(ctx)
-        ctx.setObject(FinickyAPI.self, forKeyedSubscript: "api")
-        ctx.setObject(FinickyAPI.self, forKeyedSubscript: "finicky")
+        ctx.setObject(FinickyAPI.self, forKeyedSubscript: "api" as NSCopying & NSObjectProtocol)
+        ctx.setObject(FinickyAPI.self, forKeyedSubscript: "finicky" as NSCopying & NSObjectProtocol)
     }
 }

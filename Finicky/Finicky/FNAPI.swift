@@ -10,35 +10,35 @@ import Foundation
 import JavaScriptCore
 
 @objc protocol FinickyAPIExports : JSExport {
-    static func setDefaultBrowser(browser: String?) -> Void
-    static func log(message: String?) -> Void
-    static func onUrl(handler: JSValue) -> Void
+    static func setDefaultBrowser(_ browser: String?) -> Void
+    static func log(_ message: String?) -> Void
+    static func onUrl(_ handler: JSValue) -> Void
 }
 
-@objc public class FinickyAPI : NSObject, FinickyAPIExports {
+@objc open class FinickyAPI : NSObject, FinickyAPIExports {
 
-    private static var urlHandlers = Array<JSValue>()
-    private static var context : JSContext! = nil
+    fileprivate static var urlHandlers = Array<JSValue>()
+    fileprivate static var context : JSContext! = nil
 
-    class func setDefaultBrowser(browser: String?) -> Void {
+    class func setDefaultBrowser(_ browser: String?) -> Void {
         AppDelegate.defaultBrowser = browser
     }
 
-    static func log(message: String?) -> Void {
+    static func log(_ message: String?) -> Void {
         if message != nil {
             NSLog(message!)
         }
     }
 
-    public class func onUrl(handler: JSValue) -> Void {
+    open class func onUrl(_ handler: JSValue) -> Void {
         urlHandlers.append(handler)
     }
 
-    public class func reset() -> Void {
-        urlHandlers.removeAll(keepCapacity: true)
+    @objc open class func reset() -> Void {
+        urlHandlers.removeAll(keepingCapacity: true)
     }
     
-    class func setContext(context: JSContext) {
+    @objc class func setContext(_ context: JSContext) {
         self.context = context
     }
 
@@ -53,45 +53,45 @@ import JavaScriptCore
             the new url and bundle identifier to spawn
     */
 
-    public class func callUrlHandlers(originalUrl: NSURL, sourceBundleIdentifier: String?, flags : Dictionary<String, Bool>) -> Dictionary<String, AnyObject> {
+    @objc open class func callUrlHandlers(_ originalUrl: URL, sourceBundleIdentifier: String?, flags : Dictionary<String, Bool>) -> Dictionary<String, AnyObject> {
         var strategy : Dictionary<String, AnyObject> = [
-            "url": originalUrl.absoluteString
+            "url": originalUrl.absoluteString as AnyObject
         ]
         
         var sourceBundleId : AnyObject
         if sourceBundleIdentifier != nil {
-            sourceBundleId = sourceBundleIdentifier!
+            sourceBundleId = sourceBundleIdentifier! as AnyObject
         } else {
-            sourceBundleId = JSValue(nullInContext: context)
+            sourceBundleId = JSValue(nullIn: context)
         }
     
         let options : Dictionary<String, AnyObject> = [
             "sourceBundleIdentifier": sourceBundleId,
-            "flags": flags
+            "flags": flags as AnyObject
         ]
 
-        var previousStrategy : [NSObject : AnyObject]! = strategy
+        var previousStrategy : [AnyHashable: Any]! = strategy
         for handler in urlHandlers {
             let url = strategy["url"]! as! String
-            let val = handler.callWithArguments([url, options, previousStrategy])
+            let val = handler.call(withArguments: [url, options, previousStrategy])
 
-            if !val.isUndefined {
-                let handlerStrategy = val.toDictionary()
+            if !(val?.isUndefined)! {
+                let handlerStrategy = val?.toDictionary()
                 if handlerStrategy != nil {
-                    if handlerStrategy["url"] != nil {
-                        strategy["url"] = (handlerStrategy["url"] as! String)
+                    if handlerStrategy?["url"] != nil {
+                        strategy["url"] = (handlerStrategy?["url"] as! String as AnyObject)
                     }
 
-                    let bundleId: AnyObject? = handlerStrategy["bundleIdentifier"]
+                    let bundleId: AnyObject? = handlerStrategy?["bundleIdentifier"] as AnyObject
                     if bundleId != nil {
                         strategy["bundleIdentifier"] = bundleId!
                     }
                     
-                    if handlerStrategy["openInBackground"] != nil {
-                        strategy["openInBackground"] = (handlerStrategy["openInBackground"] as! Bool)
+                    if handlerStrategy?["openInBackground"] != nil {
+                        strategy["openInBackground"] = (handlerStrategy?["openInBackground"] as! Bool as AnyObject)
                     }
 
-                    if handlerStrategy["last"] != nil {
+                    if handlerStrategy?["last"] != nil {
                         break
                     }
                 }
