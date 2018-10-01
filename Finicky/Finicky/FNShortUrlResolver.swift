@@ -59,10 +59,7 @@ class FNShortUrlResolver {
         if !self.isShortUrl(url) {
             callback(url)
             return
-        }
-
-        var response: URLResponse?
-        var error: NSError?
+        }             
 
         let request = URLRequest(url: url)
         let myDelegate = ResolveShortUrls(shortUrlResolver: self)

@@ -42,7 +42,7 @@ open class FNConfigLoader {
         
         ctx.exceptionHandler = {
             context, exception in
-            print("JS Error: \(exception)")
+            print("JS Error: \(String(describing: exception))")
         }
         
         self.setupAPI(ctx)

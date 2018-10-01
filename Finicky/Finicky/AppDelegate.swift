@@ -38,7 +38,7 @@ class AppDelegate: NSObject, NSApplicationDelegate {
         statusItem.menu = statusItemMenu
         statusItem.highlightMode = true
         statusItem.image = img
-        toggleDockIcon(showIcon: false)
+        _ = toggleDockIcon(showIcon: false)
     }
 
     @IBAction func reloadConfig(_ sender: NSMenuItem) {
@@ -97,17 +97,17 @@ class AppDelegate: NSObject, NSApplicationDelegate {
         var openInBackground : Bool? = nil
 
         let strategy = FinickyAPI.callUrlHandlers(newUrl, sourceBundleIdentifier: sourceBundleIdentifier, flags: flags)
-        print("opening %@ from %@ as %@ in %@", url, bundleIdentifier, strategy["url"], strategy["bundleIdentifier"]);
+        print("opening %@ from %@ as %@ in %@", url, bundleIdentifier, strategy["url"] as Any, strategy["bundleIdentifier"] as Any);
         if strategy["url"] != nil {
             newUrl = URL(string: strategy["url"]! as! String)!
 
             // If the bundle identifier is a string, open the url with that app. If it's an array, find the first running
             // app, and open the url with that. If none of the apps are running, use the first available one instead.
-            if let bundleId : String? = strategy["bundleIdentifier"] as? String! {
-                if bundleId != nil && !(bundleId?.isEmpty)! {
-                    bundleIdentifier = strategy["bundleIdentifier"]! as! String
+            if let bundleId : String = strategy["bundleIdentifier"] as? String {
+                if !bundleId.isEmpty {
+                    bundleIdentifier = (strategy["bundleIdentifier"]! as! String)
                 }
-            } else if let bundleIds = strategy["bundleIdentifier"] as? Array<String>! {
+            } else if let bundleIds = strategy["bundleIdentifier"] as? Array<String> {
                 bundleIdentifier = getActiveApp(bundleIds)
             }
 
@@ -122,9 +122,6 @@ class AppDelegate: NSObject, NSApplicationDelegate {
     }
 
     func openUrlWithBrowser(_ url: URL, bundleIdentifier: String, openInBackground: Bool?) {
-        var eventDescriptor: NSAppleEventDescriptor? = NSAppleEventDescriptor()
-        var errorInfo : NSDictionary? = nil
-        var appleEventManager:NSAppleEventManager = NSAppleEventManager.shared()
         let urls = [url]
 
         var launchInBackground = !isActive
