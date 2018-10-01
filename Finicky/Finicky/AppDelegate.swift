@@ -22,7 +22,7 @@ class AppDelegate: NSObject, NSApplicationDelegate {
     @objc var urlsToLoad = Array<String>()
     @objc var isActive: Bool = true
 
-    @objc static var defaultBrowser: String! = "com.google.Chrome"
+    @objc static var defaultBrowser: String = "com.google.Chrome"
 
     func applicationDidFinishLaunching(_ aNotification: Notification) {
         let bundleId = "net.kassett.Finicky"
@@ -74,48 +74,28 @@ class AppDelegate: NSObject, NSApplicationDelegate {
         }
     }
 
-    @objc func getActiveApp(_ bundleIds: Array<String>) -> String {
-        for bundleId in bundleIds {
-            let apps = NSRunningApplication.runningApplications(withBundleIdentifier: bundleId)
-            if !apps.isEmpty {
-                let app : NSRunningApplication = apps[0]
-                let bundleIdentifier = app.bundleIdentifier
-                if bundleIdentifier != nil {
-                    return bundleIdentifier!
-                }
-            }
-        }
-
-        // If we are here, no apps are running, so we return the first bundleIds in the array instead.
-        return bundleIds.first!
-    }
-
     @objc func callUrlHandlers(_ sourceBundleIdentifier: String?, url: URL) {
         let flags = getFlags()
-        var bundleIdentifier : String! = AppDelegate.defaultBrowser
+        var bundleIdentifier : String = AppDelegate.defaultBrowser
         var newUrl : URL = url
         var openInBackground : Bool? = nil
 
         let strategy = FinickyAPI.callUrlHandlers(newUrl, sourceBundleIdentifier: sourceBundleIdentifier, flags: flags)
-        print("opening %@ from %@ as %@ in %@", url, bundleIdentifier, strategy["url"] as Any, strategy["bundleIdentifier"] as Any);
+        print("opening \"\(url as Any)\" from \(bundleIdentifier) as \(strategy["url"] as Any) in \(strategy["bundleIdentifier"] as Any)");
         if strategy["url"] != nil {
             newUrl = URL(string: strategy["url"]! as! String)!
-
-            // If the bundle identifier is a string, open the url with that app. If it's an array, find the first running
-            // app, and open the url with that. If none of the apps are running, use the first available one instead.
+            
             if let bundleId : String = strategy["bundleIdentifier"] as? String {
                 if !bundleId.isEmpty {
                     bundleIdentifier = (strategy["bundleIdentifier"]! as! String)
                 }
-            } else if let bundleIds = strategy["bundleIdentifier"] as? Array<String> {
-                bundleIdentifier = getActiveApp(bundleIds)
             }
 
             if strategy["openInBackground"] != nil {
                 openInBackground = (strategy["openInBackground"]! as! Bool)
             }
 
-            if bundleIdentifier != nil && !bundleIdentifier.isEmpty {
+            if !bundleIdentifier.isEmpty {
                 openUrlWithBrowser(newUrl, bundleIdentifier:bundleIdentifier, openInBackground: openInBackground)
             }
         }
