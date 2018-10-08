@@ -1,17 +1,9 @@
-//
-//  AppDelegate.swift
-//  Finicky
-//
-//  Created by John Sterling on 04/06/15.
-//  Copyright (c) 2015 John Sterling. All rights reserved.
-//
-
 import Cocoa
 import Foundation
 import AppKit
 
 @NSApplicationMain
-class AppDelegate: NSObject, NSApplicationDelegate {
+class AppDelegate: NSObject, NSApplicationDelegate, NSUserNotificationCenterDelegate {
 
     @IBOutlet weak var window: NSWindow!
     @IBOutlet var statusItemMenu: NSMenu!
@@ -81,10 +73,10 @@ class AppDelegate: NSObject, NSApplicationDelegate {
         var openInBackground : Bool? = nil
 
         let strategy = FinickyAPI.callUrlHandlers(newUrl, sourceBundleIdentifier: sourceBundleIdentifier, flags: flags)
-        print("opening \"\(url as Any)\" from \(bundleIdentifier) as \(strategy["url"] as Any) in \(strategy["bundleIdentifier"] as Any)");
+        print("opening \"\(url as Any)\" from \(String(describing: sourceBundleIdentifier!)) as \(strategy["url"]! as Any) in \(strategy["bundleIdentifier"] as Any)");
         if strategy["url"] != nil {
             newUrl = URL(string: strategy["url"]! as! String)!
-            
+
             if let bundleId : String = strategy["bundleIdentifier"] as? String {
                 if !bundleId.isEmpty {
                     bundleIdentifier = (strategy["bundleIdentifier"]! as! String)
@@ -101,9 +93,14 @@ class AppDelegate: NSObject, NSApplicationDelegate {
         }
     }
 
+    func userNotificationCenter(_ center: NSUserNotificationCenter, shouldPresent notification: NSUserNotification) -> Bool {
+        return true
+    }
+
     func openUrlWithBrowser(_ url: URL, bundleIdentifier: String, openInBackground: Bool?) {
         let urls = [url]
 
+        // Launch in background by default if finicky isn't active to avoid something..
         var launchInBackground = !isActive
         if openInBackground != nil {
             launchInBackground = openInBackground!
@@ -157,6 +154,5 @@ class AppDelegate: NSObject, NSApplicationDelegate {
     func applicationDidResignActive(_ aNotification: Notification) {
         isActive = false
     }
-
 }
 

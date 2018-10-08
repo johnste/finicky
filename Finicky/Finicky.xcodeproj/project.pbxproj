@@ -9,6 +9,7 @@
 /* Begin PBXBuildFile section */
 		544B57891B28B87900812908 /* statusitem.png in Resources */ = {isa = PBXBuildFile; fileRef = 544B57871B28B87900812908 /* statusitem.png */; };
 		544B578A1B28B87900812908 /* statusitem@2x.png in Resources */ = {isa = PBXBuildFile; fileRef = 544B57881B28B87900812908 /* statusitem@2x.png */; };
+		5479FDD421655A3400D15A3C /* Notifications.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5479FDD321655A3400D15A3C /* Notifications.swift */; };
 		54899CD61B20D5BC00647101 /* AppDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = 54899CD51B20D5BC00647101 /* AppDelegate.swift */; };
 		54899CD81B20D5BC00647101 /* Images.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 54899CD71B20D5BC00647101 /* Images.xcassets */; };
 		54899CDB1B20D5BC00647101 /* MainMenu.xib in Resources */ = {isa = PBXBuildFile; fileRef = 54899CD91B20D5BC00647101 /* MainMenu.xib */; };
@@ -35,6 +36,7 @@
 /* Begin PBXFileReference section */
 		544B57871B28B87900812908 /* statusitem.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = statusitem.png; sourceTree = "<group>"; };
 		544B57881B28B87900812908 /* statusitem@2x.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = "statusitem@2x.png"; sourceTree = "<group>"; };
+		5479FDD321655A3400D15A3C /* Notifications.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Notifications.swift; sourceTree = "<group>"; };
 		54899CD01B20D5BC00647101 /* Finicky.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = Finicky.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		54899CD41B20D5BC00647101 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
 		54899CD51B20D5BC00647101 /* AppDelegate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppDelegate.swift; sourceTree = "<group>"; };
@@ -105,6 +107,7 @@
 				548F11CD1B2A43F700FDDC3C /* FNAPI.swift */,
 				54B0E7021B4678CE003F8AEE /* FNShortUrlResolver.swift */,
 				54F2EEE31B4C68E300638DAE /* FNPathWatcher.swift */,
+				5479FDD321655A3400D15A3C /* Notifications.swift */,
 			);
 			path = Finicky;
 			sourceTree = "<group>";
@@ -249,6 +252,7 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				5479FDD421655A3400D15A3C /* Notifications.swift in Sources */,
 				54E33FD71B24E27000998E13 /* FNConfigLoader.swift in Sources */,
 				54899CD61B20D5BC00647101 /* AppDelegate.swift in Sources */,
 				54F2EEE41B4C68E300638DAE /* FNPathWatcher.swift in Sources */,

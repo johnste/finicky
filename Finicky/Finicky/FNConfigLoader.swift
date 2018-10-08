@@ -1,11 +1,3 @@
-//
-//  ConfigLoader.swift
-//  Finicky
-//
-//  Created by John Sterling on 07/06/15.
-//  Copyright (c) 2015 John Sterling. All rights reserved.
-//
-
 import Foundation
 import JavaScriptCore
 
@@ -36,19 +28,19 @@ open class FNConfigLoader {
         })
         monitor.start()
     }
-    
+
     open func createContext() -> JSContext {
         ctx = JSContext()
-        
+
         ctx.exceptionHandler = {
             context, exception in
             print("JS Error: \(String(describing: exception))")
         }
-        
+
         self.setupAPI(ctx)
         return ctx
     }
-    
+
     open func parseConfig(_ config: String) {
         ctx.evaluateScript(config)
     }
@@ -80,7 +72,7 @@ open class FNConfigLoader {
         }
         setupConfigWatcher()
     }
-    
+
     open func setupAPI(_ ctx: JSContext) {
         FinickyAPI.setContext(ctx)
         ctx.setObject(FinickyAPI.self, forKeyedSubscript: "api" as NSCopying & NSObjectProtocol)

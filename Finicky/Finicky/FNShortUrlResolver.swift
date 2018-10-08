@@ -1,15 +1,7 @@
-//
-//  ShortUrlResolver.swift
-//  Finicky
-//
-//  Created by John Sterling on 03/07/15.
-//  Copyright (c) 2015 John sterling. All rights reserved.
-//
-
 import Foundation
 
 class ResolveShortUrls: NSObject, URLSessionDelegate, URLSessionTaskDelegate {
-    
+
     fileprivate var shortUrlResolver : FNShortUrlResolver? = nil
 
     init(shortUrlResolver: FNShortUrlResolver) {
@@ -59,7 +51,7 @@ class FNShortUrlResolver {
         if !self.isShortUrl(url) {
             callback(url)
             return
-        }             
+        }
 
         let request = URLRequest(url: url)
         let myDelegate = ResolveShortUrls(shortUrlResolver: self)
