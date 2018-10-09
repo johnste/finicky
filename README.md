@@ -89,7 +89,7 @@ finicky.onUrl(function(url, opts) {
 ```
 
 #### A note on the current status of finicky
-Finicky is not under active development, and probably won't be for quite some time, since it's covering all my needs at the moment. That being said, I do respond to bug reports and feature requests, so please go ahead and leave one, or ask me on [twitter](https://twitter.com/johnste_)
+Finicky is, as of October 2018, under active development. I plan to have a larger release out sometime later this year, with focus on making it simpler to configure. Feel free to leave bug reports and feature requests, so please go ahead and add an issue on github, or ask me on [twitter](https://twitter.com/johnste_)
 
 
 ### Alternatives
