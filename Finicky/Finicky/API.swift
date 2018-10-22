@@ -6,8 +6,8 @@ import JavaScriptCore
     static func log(_ message: String?) -> Void
     static func notify(_ title: JSValue, _ subtitle: JSValue) -> Void
     static func onUrl(_ handler: JSValue) -> Void
-    static func isDomain(_ url: String, _ domain: Any ) -> JSValue
-    static func onDomain(_ domain: Any, _ bundleIdentifier: JSValue) -> Void
+    static func isDomain(_ url: String, _ domain: JSValue ) -> JSValue
+    static func onDomain(_ domain: JSValue, _ bundleIdentifier: JSValue) -> Void
 }
 
 struct URLHandler {
@@ -67,31 +67,45 @@ struct URLHandler {
         self.context = context
     }
 
-    open class func isDomain(_ url: String, _ maybeDomains: Any ) -> JSValue {
+    open class func isDomain(_ url: String, _ maybeDomains: JSValue ) -> JSValue {
         let isMatch = self.matchesDomain(url, maybeDomains)
         return JSValue(bool: isMatch, in: self.context)
     }
 
-    open class func matchesDomain(_ url: String, _ maybeDomains: Any ) -> Bool {
+    class func match(value: JSValue, match: String ) -> Bool {
+        if value.isString {
+            let matchesHost = value.toString() == match
+            return matchesHost
+
+        }
+
+//        else if value.isObject {
+//            let matchesHost = value == match
+//            return matchesHost
+//        }
+
+        return false
+    }
+
+    open class func matchesDomain(_ url: String, _ maybeDomains: JSValue ) -> Bool {
         let urlObj = URL(string: url)
 
         if urlObj == nil || urlObj!.host == nil{
             return false
         }
 
-        if let domains = maybeDomains as? [String] {
-            let matchesHost = domains.contains(urlObj!.host!)
-            return matchesHost
+        if maybeDomains.isArray {
+//            let matchesHost = domains.contains(urlObj!.host!)
+//            return matchesHost
 
-        } else if let domain = maybeDomains as? String {
-            let matchesHost = domain == (urlObj!.host!)
-            return matchesHost
+        } else {
+            return match(value: maybeDomains, match: urlObj!.host!)
         }
 
         return false
     }
 
-    open class func onDomain(_ domain: Any, _ bundleIdentifier: JSValue) -> Void {
+    open class func onDomain(_ domain: JSValue, _ bundleIdentifier: JSValue) -> Void {
 
         func predicate(_ url: String) -> Bool {
             return self.matchesDomain(url, domain)
