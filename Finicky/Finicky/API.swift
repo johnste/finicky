@@ -3,10 +3,13 @@ import JavaScriptCore
 
 @objc protocol FinickyAPIExports : JSExport {
     static func setDefaultBrowser(_ browser: String) -> Void
+
     static func log(_ message: String?) -> Void
     static func notify(_ title: JSValue, _ subtitle: JSValue) -> Void
-    static func onUrl(_ handler: JSValue) -> Void
+
     static func isDomain(_ url: String, _ domain: JSValue ) -> JSValue
+
+    static func onUrl(_ handler: JSValue) -> Void
     static func onDomain(_ domain: JSValue, _ bundleIdentifier: JSValue) -> Void
 }
 
@@ -34,7 +37,7 @@ struct URLHandler {
     fileprivate static var context : JSContext! = nil
 
     class func setDefaultBrowser(_ browser: String) -> Void {
-        AppDelegate.defaultBrowser = browser
+        // AppDelegate.defaultBrowser = browser
     }
 
     static func log(_ message: String?) -> Void {
@@ -58,7 +61,6 @@ struct URLHandler {
         urlHandlers.append(URLHandler(callback: handler))
     }
 
-
     @objc open class func reset() -> Void {
         urlHandlers.removeAll(keepingCapacity: true)
     }
@@ -76,13 +78,7 @@ struct URLHandler {
         if value.isString {
             let matchesHost = value.toString() == match
             return matchesHost
-
         }
-
-//        else if value.isObject {
-//            let matchesHost = value == match
-//            return matchesHost
-//        }
 
         return false
     }
@@ -94,12 +90,16 @@ struct URLHandler {
             return false
         }
 
-        if maybeDomains.isArray {
-//            let matchesHost = domains.contains(urlObj!.host!)
-//            return matchesHost
+        let host = urlObj!.host!
 
+        if maybeDomains.isArray {
+            for maybe in maybeDomains.toArray() {
+                if match(value: maybe as! JSValue, match: host) {
+                    return true
+                }
+            }
         } else {
-            return match(value: maybeDomains, match: urlObj!.host!)
+            return match(value: maybeDomains, match: host)
         }
 
         return false

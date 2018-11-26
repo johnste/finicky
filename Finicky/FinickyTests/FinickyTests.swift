@@ -6,7 +6,7 @@ import JavaScriptCore
 class FinickyTests: XCTestCase {
 
     var ctx : JSContext!
-    var configLoader: FNConfigLoader = FNConfigLoader()
+    var configLoader: FinickyConfig = FinickyConfig()
     let exampleUrl = URL(string: "http://example.com")!
 
     override func setUp() {

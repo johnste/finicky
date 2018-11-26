@@ -9,12 +9,12 @@ class AppDelegate: NSObject, NSApplicationDelegate, NSUserNotificationCenterDele
     @IBOutlet var statusItemMenu: NSMenu!
 
     @objc var statusItem: NSStatusItem!
-    var configLoader: FNConfigLoader!
+    var configLoader: FinickyConfig!
     var shortUrlResolver: FNShortUrlResolver!
     @objc var urlsToLoad = Array<String>()
     @objc var isActive: Bool = true
 
-    @objc static var defaultBrowser: String = "com.google.Chrome"
+    // @objc static var defaultBrowser: String = "com.google.Chrome"
 
     func applicationDidFinishLaunching(_ aNotification: Notification) {
         let bundleId = "net.kassett.Finicky"
@@ -34,7 +34,7 @@ class AppDelegate: NSObject, NSApplicationDelegate, NSUserNotificationCenterDele
     }
 
     @IBAction func reloadConfig(_ sender: NSMenuItem) {
-        configLoader.reload()
+        configLoader.reload()        
     }
 
     @IBAction func showAboutPanel(_ sender: NSMenuItem) {
@@ -68,29 +68,39 @@ class AppDelegate: NSObject, NSApplicationDelegate, NSUserNotificationCenterDele
 
     @objc func callUrlHandlers(_ sourceBundleIdentifier: String?, url: URL) {
         let flags = getFlags()
-        var bundleIdentifier : String = AppDelegate.defaultBrowser
+        // var bundleIdentifier : String = AppDelegate.defaultBrowser
         var newUrl : URL = url
         var openInBackground : Bool? = nil
+        
 
-        let strategy = FinickyAPI.callUrlHandlers(newUrl, sourceBundleIdentifier: sourceBundleIdentifier, flags: flags)
-        print("opening \"\(url as Any)\" from \(String(describing: sourceBundleIdentifier!)) as \(strategy["url"]! as Any) in \(strategy["bundleIdentifier"] as Any)");
-        if strategy["url"] != nil {
-            newUrl = URL(string: strategy["url"]! as! String)!
+        let app = configLoader.determineOpeningApp(url: url)
 
-            if let bundleId : String = strategy["bundleIdentifier"] as? String {
-                if !bundleId.isEmpty {
-                    bundleIdentifier = (strategy["bundleIdentifier"]! as! String)
-                }
-            }
+        print(app)
 
-            if strategy["openInBackground"] != nil {
-                openInBackground = (strategy["openInBackground"]! as! Bool)
-            }
-
-            if !bundleIdentifier.isEmpty {
-                openUrlWithBrowser(newUrl, bundleIdentifier:bundleIdentifier, openInBackground: openInBackground)
-            }
-        }
+//        let strategy = FinickyAPI.callUrlHandlers(newUrl, sourceBundleIdentifier: sourceBundleIdentifier, flags: flags)
+//        print("opening \"\(url as Any)\" from \(String(describing: sourceBundleIdentifier!)) as \(strategy["url"]! as Any) in \(strategy["bundleIdentifier"] as Any)");
+//        if strategy["url"] != nil {
+//            newUrl = URL(string: strategy["url"]! as! String)!
+//
+//            if let bundleId : String = strategy["bundleIdentifier"] as? String {
+//                if !bundleId.isEmpty {
+//                    bundleIdentifier = (strategy["bundleIdentifier"]! as! String)
+//                }
+//            }
+//
+//            if strategy["openInBackground"] != nil {
+//                openInBackground = (strategy["openInBackground"]! as! Bool)
+//            }
+//
+//            if !bundleIdentifier.isEmpty {
+//
+//                let s = NSWorkspace.shared.fullPath(forApplication: "Sublime Text")
+//                let y = Bundle(path: s!)
+//                NSLog(y!.bundleIdentifier!)
+//
+//                openUrlWithBrowser(newUrl, bundleIdentifier:bundleIdentifier, openInBackground: openInBackground)
+//            }
+//        }
     }
 
     func userNotificationCenter(_ center: NSUserNotificationCenter, shouldPresent notification: NSUserNotification) -> Bool {
@@ -105,7 +115,7 @@ class AppDelegate: NSObject, NSApplicationDelegate, NSUserNotificationCenterDele
         if openInBackground != nil {
             launchInBackground = openInBackground!
         }
-
+        
         if !launchInBackground {
             NSWorkspace.shared.launchApplication(
                 withBundleIdentifier: bundleIdentifier,
@@ -140,7 +150,7 @@ class AppDelegate: NSObject, NSApplicationDelegate, NSUserNotificationCenterDele
     }
 
     func applicationWillFinishLaunching(_ aNotification: Notification) {
-        configLoader = FNConfigLoader()
+        configLoader = FinickyConfig()
         configLoader.reload()
         shortUrlResolver = FNShortUrlResolver()
         let appleEventManager:NSAppleEventManager = NSAppleEventManager.shared()

@@ -2,10 +2,7 @@ import Foundation
 import AppKit
 
 func showNotification(title: String, subtitle: String? = nil, informativeText: String? = nil) -> Void {
-    NSLog("Show nitification")
-    NSLog(title)
     let notification = NSUserNotification()
-
 
     notification.title = title
     if subtitle != nil {
