@@ -94,24 +94,22 @@ open class FinickyConfig {
         let _protocol = url.scheme ?? nil
         let username = url.user ?? nil
         let password = url.password ?? nil
-        let hostname = url.host ?? nil
+        let host = url.host ?? nil
         let port = url.port ?? nil
         let pathname = url.path
         let search = url.query ?? nil
         let hash = url.fragment ?? nil
 
-
         let urlDict = [
+            "hash": hash as Any,
+            "host": host as Any,
             "protocol": _protocol as Any,
+            "port": port as Any,
             "username": username as Any,
             "password": password as Any,
-            "hostname": hostname as Any,
-            "port": port as Any,
             "pathname": pathname as Any,
             "search": search as Any,
-            "hash": hash as Any
-        ]
-
+        ]        
 
         let result = ctx.evaluateScript(javascript!)?.call(withArguments: [url.absoluteString, urlDict])
 
