@@ -11,10 +11,8 @@
     }
 
     if (typeof value === "object") {
-      const hasBundleId =
-        Reflect.has(value, "bundleId") && typeof value.bundleId === "string";
-      const hasName =
-        Reflect.has(value, "name") && typeof value.name === "string";
+      const hasBundleId = typeof value.bundleId === "string";
+      const hasName = typeof value.name === "string";
 
       if (!hasBundleId && !hasName) {
         throw new Error(
@@ -30,9 +28,9 @@
     }
   }
 
-  function validateMatch(match, handlerNum) {
-    const isArray = Array.isArray(match);
-    const matchers = isArray ? match : [match];
+  function validateMatch(matchers, handlerNum) {
+    const isArray = Array.isArray(matchers);
+    matchers = isArray ? matchers : [matchers];
 
     matchers.forEach((matcher, index) => {
       const preamble =
@@ -54,11 +52,7 @@
   }
 
   function validateHandler(handler, index) {
-    if (
-      typeof handler !== "object" ||
-      !Reflect.has(handler, "match") ||
-      !Reflect.has(handler, "value")
-    ) {
+    if (typeof handler !== "object" || !handler.match || !handler.value) {
       throw new Error(
         `Handler #${index}: Must be an object with a properties: [match, value]`
       );
@@ -78,5 +72,7 @@
     }
 
     module.exports.handlers.forEach(validateHandler);
+
+    return true;
   };
 })();

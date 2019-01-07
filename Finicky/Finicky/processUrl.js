@@ -1,14 +1,22 @@
 (function() {
-  function resolveMatch(urlString, urlObject, match) {
-    if (!match) {
+  function isBundleIdentifier(value) {
+    // Regular expression to match Uniform Type Identifiers
+    // Adapted from https://stackoverflow.com/a/34241710/1698327
+    const bundleIdRegex = /^[A-Za-z]{2,6}((?!-)\.[A-Za-z0-9-]{1,63})+$/;
+    if (bundleIdRegex.test(value)) {
+      return true;
+    }
+    return false;
+  }
+
+  function resolveMatchers(matchers, urlString, urlObject) {
+    if (!matchers) {
       return false;
     }
 
-    if (!Array.isArray(match)) {
-      match = [match];
-    }
+    matchers = Array.isArray(matchers) ? matchers : [matchers]
 
-    return match.some(matcher => {
+    return matchers.some(matcher => {
       if (matcher instanceof RegExp) {
         return matcher.test(urlString);
       }
@@ -24,60 +32,49 @@
       return false;
     });
   }
-  function isBundleIdentifier(value) {
-    // Regular expression to match Uniform Type Identifiers
-    // Adapted from https://stackoverflow.com/a/34241710/1698327
-    const bundleIdRegex = /^[A-Za-z]{2,6}((?!-)\.[A-Za-z0-9-]{1,63})+$/;
-    if (bundleIdRegex.test(value)) {
-      return true;
-    }
-    return false;
-  }
 
-  function processResult(value, urlString, urlObject) {
-
-    if (typeof value === "function") {
-      value = processResult(urlString, urlObject)
+  function processResult(result, urlString, urlObject) {
+    if (typeof result === "function") {
+      result = result(urlString, urlObject)
     }
 
-    if (typeof value !== "string" && typeof value !== "object") {
+    if (typeof result !== "string" && typeof result !== "object") {
       throw new Error(
-        `Handler result invalid, expected one of [string, object], found ${typeof value}`
+        `Handler result invalid, expected one of [string, object], found ${typeof result}`
       );
     }
 
     // If all we got was a string, try to figure out if it's a bundle identifier or an application name
-    if (typeof value === "string") {
-      const type = isBundleIdentifier(value) ? "bundleId" : "name";
+    if (typeof result === "string") {
+      const type = isBundleIdentifier(result) ? "bundleId" : "appName";
+
       return {
-        [type]: value
+        value: result,
+        type
       };
     }
 
-    if (typeof value === "object") {
-      const hasBundleId =
-        Reflect.has(value, "bundleId") && typeof value.bundleId === "string";
-      const hasName =
-        Reflect.has(value, "name") && typeof value.name === "string";
-
-      if (!hasBundleId && !hasName) {
-        throw new Error("Missing bundleId and name from handler result")
+    if (typeof result === "object") {
+      if (typeof result.type !== "string" || typeof result.value !== "string") {
+        throw new Error("Missing valid type and/or value from result")
       }
 
-      if (hasBundleId && hasName) {
-        throw new Error("Handler result contains both bundleId and name")
-      }
+      return result;
     }
+
+    throw new Error("Unrecognized result value " + JSON.stringify(result));
   }
 
   return function processUrl(urlString, urlObject) {
-    finicky.log(JSON.stringify(urlObject));
-
-    for (handler in module.exports.handler) {
-      const match = resolveMatch(urlString, urlObject, handler.match);
+    for (handler of module.exports.handlers) {
+      const match = resolveMatchers(handler.match, urlString, urlObject);
       if (match) {
-        return processResult(matches[0].value, urlString, urlObject);
+        return processResult(handler.value, urlString, urlObject);
       }
+    }
+
+    if (module.exports.defaultBrowser) {
+      return processResult(module.exports.defaultBrowser, urlString, urlObject);
     }
   };
 })();

@@ -3,22 +3,43 @@ import JavaScriptCore
 
 var FNConfigPath: String = "~/.finicky.js"
 
+
+enum AppDescriptorType: String {
+    case bundleId
+    case appName
+}
+
+public struct AppDescriptor {
+    var value: String
+    var type: AppDescriptorType?
+
+
+    init(value: String, type: String) {
+        self.value = value
+        self.type = AppDescriptorType(rawValue: type)
+
+        if (self.type == nil) {
+            showNotification(title: "Unrecognized app type \"\(String(describing: type))\"")
+        }
+    }
+}
+
 open class FinickyConfig {
 
     var configPaths: NSMutableSet
     var ctx: JSContext!
-    var defaultBrowser : String?;
-    var javascript : String?;
+    var validateConfigJS : String?;
+    var processUrlJS : String?;
 
-    public init() {
+    public init() throws {
         self.configPaths = NSMutableSet()
 
-        if let path = Bundle.main.path(forResource: "getConfiguredApp.js", ofType: nil ) {
-            do {
-                javascript = try String(contentsOfFile: path, encoding: String.Encoding.utf8)
-            } catch {
+        if let path = Bundle.main.path(forResource: "validateConfig.js", ofType: nil ) {
+            validateConfigJS = try String(contentsOfFile: path, encoding: String.Encoding.utf8)
+        }
 
-            }
+        if let path = Bundle.main.path(forResource: "processUrl.js", ofType: nil ) {
+            processUrlJS = try String(contentsOfFile: path, encoding: String.Encoding.utf8)
         }
     }
 
@@ -33,10 +54,11 @@ open class FinickyConfig {
 
         ctx.exceptionHandler = {
             context, exception in
-            showNotification(title: "Parse error when reading config file", subtitle: String(describing: exception))
+                print("Error when reading config file: \"\(String(describing: exception!))\"")
+                showNotification(title: "Error when reading config file", subtitle: String(describing: exception!))
         }
 
-        ctx.evaluateScript("var module = {}")
+        ctx.evaluateScript("const module = {}")
 
         self.setupAPI(ctx)
         return ctx
@@ -45,7 +67,18 @@ open class FinickyConfig {
     open func parseConfig(_ config: String) {
         ctx.evaluateScript(config)
 
-        defaultBrowser = ctx.evaluateScript("module.exports.defaultApp").toString()
+        let validConfig = ctx.evaluateScript(validateConfigJS!)?.call(withArguments: [])
+        if let isBoolean = validConfig?.isBoolean {
+            if (isBoolean) {
+                let result = validConfig?.toBool()
+                if (!result!) {
+                    print("Invalid config")
+                    showNotification(title: "Invalid config")
+                }
+            }
+
+        }
+
     }
 
     func reload() {
@@ -75,22 +108,18 @@ open class FinickyConfig {
         }
     }
 
-    open func determineOpeningApp(url: URL) -> String {
-        var app = getConfiguredApp(url: url)
+    open func determineOpeningApp(url: URL) -> AppDescriptor? {
+        let appValue = getConfiguredAppValue(url: url)
 
-        if (app == nil) {
-            app = defaultBrowser
+        if ((appValue?.isObject)!) {
+            let dict = appValue?.toDictionary()
+            return AppDescriptor(value: dict!["value"] as! String, type: dict!["type"] as! String)
         }
 
-        return "hej"
+        return nil
     }
 
-    func getConfiguredApp(url: URL) -> String? {
-
-        if (javascript == nil) {
-            return nil;
-        }
-
+    func getConfiguredAppValue(url: URL) -> JSValue? {
         let _protocol = url.scheme ?? nil
         let username = url.user ?? nil
         let password = url.password ?? nil
@@ -111,13 +140,9 @@ open class FinickyConfig {
             "search": search as Any,
         ]        
 
-        let result = ctx.evaluateScript(javascript!)?.call(withArguments: [url.absoluteString, urlDict])
+        let result = ctx.evaluateScript(processUrlJS!)?.call(withArguments: [url.absoluteString, urlDict])
 
-        if ((result?.isString)!) {
-            return (result?.toString())!
-        }
-
-        return nil
+        return result
     }
 
     open func setupAPI(_ ctx: JSContext) {

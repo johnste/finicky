@@ -12,9 +12,7 @@ class AppDelegate: NSObject, NSApplicationDelegate, NSUserNotificationCenterDele
     var configLoader: FinickyConfig!
     var shortUrlResolver: FNShortUrlResolver!
     @objc var urlsToLoad = Array<String>()
-    @objc var isActive: Bool = true
-
-    // @objc static var defaultBrowser: String = "com.google.Chrome"
+    @objc var isActive: Bool = true    
 
     func applicationDidFinishLaunching(_ aNotification: Notification) {
         let bundleId = "net.kassett.Finicky"
@@ -150,7 +148,12 @@ class AppDelegate: NSObject, NSApplicationDelegate, NSUserNotificationCenterDele
     }
 
     func applicationWillFinishLaunching(_ aNotification: Notification) {
-        configLoader = FinickyConfig()
+        do {
+            configLoader = try FinickyConfig()
+        }
+        catch let exception as NSError  {
+            showNotification(title: "Error when reading js interaction layer", subtitle: String(describing: exception))
+        }
         configLoader.reload()
         shortUrlResolver = FNShortUrlResolver()
         let appleEventManager:NSAppleEventManager = NSAppleEventManager.shared()
