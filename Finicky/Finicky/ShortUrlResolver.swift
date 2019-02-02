@@ -68,7 +68,6 @@ class FNShortUrlResolver {
 
         })
 
-
         task.resume()
         return
     }

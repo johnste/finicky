@@ -32,10 +32,11 @@ class AppDelegate: NSObject, NSApplicationDelegate, NSUserNotificationCenterDele
     }
 
     @IBAction func reloadConfig(_ sender: NSMenuItem) {
-        configLoader.reload()        
+        configLoader.reload(showSuccess: true)
     }
 
     @IBAction func showAboutPanel(_ sender: NSMenuItem) {
+        NSApp.activate(ignoringOtherApps: true)
         NSApp.orderFrontStandardAboutPanel(sender)
     }
 
@@ -60,15 +61,12 @@ class AppDelegate: NSObject, NSApplicationDelegate, NSUserNotificationCenterDele
                 self.callUrlHandlers(sourceBundleIdentifier, url: url)
             })
         } else {
-            callUrlHandlers(sourceBundleIdentifier, url: url)
+            self.callUrlHandlers(sourceBundleIdentifier, url: url)
         }
     }
 
     @objc func callUrlHandlers(_ sourceBundleIdentifier: String?, url: URL) {
-        let flags = getFlags()
         // var bundleIdentifier : String = AppDelegate.defaultBrowser
-        var newUrl : URL = url
-        var openInBackground : Bool? = nil
         
 
         let app = configLoader.determineOpeningApp(url: url)
@@ -132,18 +130,9 @@ class AppDelegate: NSObject, NSApplicationDelegate, NSUserNotificationCenterDele
         )
     }
 
-    @objc func getFlags() -> Dictionary<String, Bool> {
-        return [
-            "cmd": NSEvent.modifierFlags.intersection(.command) != [],
-            "ctrl": NSEvent.modifierFlags.intersection(.control) != [],
-            "shift": NSEvent.modifierFlags.intersection(.shift) != [],
-            "alt": NSEvent.modifierFlags.intersection(.option) != []
-        ]
-    }
-
     func application(_ sender: NSApplication, openFiles filenames: [String]) {
         for filename in filenames {
-            callUrlHandlers(nil, url: URL(fileURLWithPath: filename ))
+            self.callUrlHandlers(nil, url: URL(fileURLWithPath: filename ))
         }
     }
 
@@ -152,9 +141,9 @@ class AppDelegate: NSObject, NSApplicationDelegate, NSUserNotificationCenterDele
             configLoader = try FinickyConfig()
         }
         catch let exception as NSError  {
-            showNotification(title: "Error when reading js interaction layer", subtitle: String(describing: exception))
+            showNotification(title: "Error when parsing bundled JavaScriptCore API", informativeText: String(describing: exception))
         }
-        configLoader.reload()
+        configLoader.reload(showSuccess: false)
         shortUrlResolver = FNShortUrlResolver()
         let appleEventManager:NSAppleEventManager = NSAppleEventManager.shared()
         appleEventManager.setEventHandler(self, andSelector: #selector(AppDelegate.handleGetURLEvent(_:withReplyEvent:)), forEventClass: AEEventClass(kInternetEventClass), andEventID: AEEventID(kAEGetURL))

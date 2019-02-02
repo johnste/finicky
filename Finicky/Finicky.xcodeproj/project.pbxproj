@@ -98,12 +98,8 @@
 		54899CD21B20D5BC00647101 /* Finicky */ = {
 			isa = PBXGroup;
 			children = (
-				548F11CB1B2A39F800FDDC3C /* finicky.icns */,
-				544B57871B28B87900812908 /* statusitem.png */,
-				544B57881B28B87900812908 /* statusitem@2x.png */,
 				543EC33C21DE54DD004789DF /* processUrl.js */,
 				54899CD51B20D5BC00647101 /* AppDelegate.swift */,
-				54899CD71B20D5BC00647101 /* Images.xcassets */,
 				54899CD91B20D5BC00647101 /* MainMenu.xib */,
 				54899CD31B20D5BC00647101 /* Supporting Files */,
 				54E33FD61B24E27000998E13 /* Config.swift */,
@@ -118,6 +114,10 @@
 		54899CD31B20D5BC00647101 /* Supporting Files */ = {
 			isa = PBXGroup;
 			children = (
+				54899CD71B20D5BC00647101 /* Images.xcassets */,
+				548F11CB1B2A39F800FDDC3C /* finicky.icns */,
+				544B57871B28B87900812908 /* statusitem.png */,
+				544B57881B28B87900812908 /* statusitem@2x.png */,
 				54899CD41B20D5BC00647101 /* Info.plist */,
 			);
 			name = "Supporting Files";

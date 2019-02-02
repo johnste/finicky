@@ -688,6 +688,7 @@
                     </connections>
                 </menuItem>
                 <menuItem title="About Finicky..." id="B8m-5i-1Ii">
+                    <attributedString key="attributedTitle"/>
                     <modifierMask key="keyEquivalentModifierMask"/>
                     <connections>
                         <action selector="showAboutPanel:" target="Voe-Tx-rLC" id="Rdk-lx-hnl"/>
