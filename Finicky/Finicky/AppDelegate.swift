@@ -11,14 +11,14 @@ class AppDelegate: NSObject, NSApplicationDelegate, NSUserNotificationCenterDele
     @objc var statusItem: NSStatusItem!
     var configLoader: FinickyConfig!
     var shortUrlResolver: FNShortUrlResolver!
-    @objc var urlsToLoad = Array<String>()
-    @objc var isActive: Bool = true    
+    @objc var isActive: Bool = true
 
     func applicationDidFinishLaunching(_ aNotification: Notification) {
         let bundleId = "net.kassett.Finicky"
         LSSetDefaultHandlerForURLScheme("http" as CFString, bundleId as CFString)
         LSSetDefaultHandlerForURLScheme("https" as CFString, bundleId as CFString)
 
+        NSUserNotificationCenter.default.delegate = self
         let img: NSImage! = NSImage(named: NSImage.Name(rawValue: "statusitem"))
         img.isTemplate = true
 
@@ -66,37 +66,26 @@ class AppDelegate: NSObject, NSApplicationDelegate, NSUserNotificationCenterDele
     }
 
     @objc func callUrlHandlers(_ sourceBundleIdentifier: String?, url: URL) {
-        // var bundleIdentifier : String = AppDelegate.defaultBrowser
-        
+        if let appDescriptor = configLoader.determineOpeningApp(url: url) {
+            var bundleId : String?
 
-        let app = configLoader.determineOpeningApp(url: url)
+            if (appDescriptor.type == AppDescriptorType.bundleId) {
+                bundleId = appDescriptor.value
+            } else {
+                if let path = NSWorkspace.shared.fullPath(forApplication: appDescriptor.value) {
+                    if let bundle = Bundle(path: path) {
+                        bundleId = bundle.bundleIdentifier
+                    }
+                }
+            }
 
-        print(app)
-
-//        let strategy = FinickyAPI.callUrlHandlers(newUrl, sourceBundleIdentifier: sourceBundleIdentifier, flags: flags)
-//        print("opening \"\(url as Any)\" from \(String(describing: sourceBundleIdentifier!)) as \(strategy["url"]! as Any) in \(strategy["bundleIdentifier"] as Any)");
-//        if strategy["url"] != nil {
-//            newUrl = URL(string: strategy["url"]! as! String)!
-//
-//            if let bundleId : String = strategy["bundleIdentifier"] as? String {
-//                if !bundleId.isEmpty {
-//                    bundleIdentifier = (strategy["bundleIdentifier"]! as! String)
-//                }
-//            }
-//
-//            if strategy["openInBackground"] != nil {
-//                openInBackground = (strategy["openInBackground"]! as! Bool)
-//            }
-//
-//            if !bundleIdentifier.isEmpty {
-//
-//                let s = NSWorkspace.shared.fullPath(forApplication: "Sublime Text")
-//                let y = Bundle(path: s!)
-//                NSLog(y!.bundleIdentifier!)
-//
-//                openUrlWithBrowser(newUrl, bundleIdentifier:bundleIdentifier, openInBackground: openInBackground)
-//            }
-//        }
+            if bundleId != nil {
+                openUrlWithBrowser(appDescriptor.url, bundleIdentifier:bundleId!, openInBackground: appDescriptor.openInBackground)
+            } else {
+                print ("Finicky was unable to find the application \"" + appDescriptor.value + "\"")
+                showNotification(title: "Unable to find application", informativeText: "Finicky was unable to find the application \"" + appDescriptor.value + "\"")
+            }
+        }
     }
 
     func userNotificationCenter(_ center: NSUserNotificationCenter, shouldPresent notification: NSUserNotification) -> Bool {
@@ -111,7 +100,7 @@ class AppDelegate: NSObject, NSApplicationDelegate, NSUserNotificationCenterDele
         if openInBackground != nil {
             launchInBackground = openInBackground!
         }
-        
+
         if !launchInBackground {
             NSWorkspace.shared.launchApplication(
                 withBundleIdentifier: bundleIdentifier,
@@ -137,12 +126,7 @@ class AppDelegate: NSObject, NSApplicationDelegate, NSUserNotificationCenterDele
     }
 
     func applicationWillFinishLaunching(_ aNotification: Notification) {
-        do {
-            configLoader = try FinickyConfig()
-        }
-        catch let exception as NSError  {
-            showNotification(title: "Error when parsing bundled JavaScriptCore API", informativeText: String(describing: exception))
-        }
+        configLoader = FinickyConfig()
         configLoader.reload(showSuccess: false)
         shortUrlResolver = FNShortUrlResolver()
         let appleEventManager:NSAppleEventManager = NSAppleEventManager.shared()

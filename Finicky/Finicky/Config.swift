@@ -3,24 +3,22 @@ import JavaScriptCore
 
 var FNConfigPath: String = "~/.finicky.js"
 
-enum AppDescriptorType: String {
+public enum AppDescriptorType: String {
     case bundleId
     case appName
 }
 
 public struct AppDescriptor {
-    var value: String
-    var type: AppDescriptorType?
-    var url: String?
+    public var value: String
+    public var type: AppDescriptorType
+    public var url: URL
+    public var openInBackground: Bool?
 
-    init(value: String, type: String, url: String?) {
+    public init(value: String, type: AppDescriptorType, url: URL, openInBackground: Bool?) {
         self.value = value
-        self.type = AppDescriptorType(rawValue: type)
+        self.type = type
         self.url = url
-
-        if (self.type == nil) {
-            showNotification(title: "Unrecognized app type \"\(String(describing: type))\"")
-        }
+        self.openInBackground = openInBackground
     }
 }
 
@@ -31,16 +29,25 @@ open class FinickyConfig {
     var processUrlJS : String?;
     var hasError: Bool;
 
-    public init() throws {
+    public init() {
         self.configPaths = NSMutableSet()
         self.hasError = false;
 
         if let path = Bundle.main.path(forResource: "validateConfig.js", ofType: nil ) {
-            validateConfigJS = try String(contentsOfFile: path, encoding: String.Encoding.utf8)
+            do {
+                validateConfigJS = try String(contentsOfFile: path, encoding: String.Encoding.utf8)
+            }
+            catch {
+                validateConfigJS = nil
+            }
         }
 
         if let path = Bundle.main.path(forResource: "processUrl.js", ofType: nil ) {
-            processUrlJS = try String(contentsOfFile: path, encoding: String.Encoding.utf8)
+            do {
+                processUrlJS = try String(contentsOfFile: path, encoding: String.Encoding.utf8)}
+            catch {
+                processUrlJS = nil
+            }
         }
     }
 
@@ -124,8 +131,20 @@ open class FinickyConfig {
 
         if ((appValue?.isObject)!) {
             let dict = appValue?.toDictionary()
-            let finalUrl = dict!["url"] as? String ?? url.absoluteString;
-            return AppDescriptor(value: dict!["value"] as! String, type: dict!["type"] as! String, url: finalUrl)
+
+            let type = AppDescriptorType(rawValue: dict!["type"] as! String)
+
+
+            var finalUrl = url
+            if let newUrl = dict!["url"] as? String {
+                finalUrl = URL.init(string: newUrl) ?? url
+            }
+
+            if (type == nil) {
+                showNotification(title: "Unrecognized app type \"\(String(describing: type))\"")
+            } else {
+                return AppDescriptor(value: dict!["value"] as! String, type: type!, url: finalUrl, openInBackground: dict!["openInBackground"] as! Bool?)
+            }
         }
 
         return nil

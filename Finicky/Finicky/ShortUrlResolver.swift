@@ -21,7 +21,6 @@ class ResolveShortUrls: NSObject, URLSessionDelegate, URLSessionTaskDelegate {
         }
 
         completionHandler(newRequest)
-
     }
 }
 

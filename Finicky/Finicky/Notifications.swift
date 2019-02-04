@@ -14,5 +14,5 @@ func showNotification(title: String, subtitle: String? = nil, informativeText: S
     }
 
     notification.soundName = NSUserNotificationDefaultSoundName
-    NSUserNotificationCenter.default.deliver(notification)
+    NSUserNotificationCenter.default.deliver(notification)    
 }

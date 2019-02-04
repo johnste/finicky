@@ -6,12 +6,13 @@ import JavaScriptCore
 class FinickyTests: XCTestCase {
 
     var ctx : JSContext!
-    var configLoader: FinickyConfig = FinickyConfig()
+    var configLoader = FinickyConfig()
     let exampleUrl = URL(string: "http://example.com")!
+
 
     override func setUp() {
         super.setUp()
-        configLoader.createContext()
+        _ = configLoader.createContext()
         FinickyAPI.reset()
         // Put setup code here. This method is called before the invocation of each test method in the class.
     }
@@ -21,67 +22,76 @@ class FinickyTests: XCTestCase {
         super.tearDown()
     }
 
-    func getFlags(_ cmd: Bool = false, ctrl: Bool = false, shift: Bool = false, alt: Bool = false) -> Dictionary<String, Bool> {
-        return [
-            "cmd": cmd,
-            "ctrl": ctrl,
-            "shift": shift,
-            "alt": alt
-        ]
+    func generateConfig(defaultBrowser : String = "net.kassett.defaultBrowser", handlers: String) -> String {
+        return """
+            module.exports = {
+                defaultBrowser: "\(defaultBrowser)",
+                handlers: [\(handlers)]
+            }
+        """
     }
 
-    func testDefaults() {
-        configLoader.parseConfig(
-            "finicky.onUrl(function(url, opts) {}); " +
-            "finicky.onUrl(function(url, opts) {}); "
-        )
+    func testStringMatcher() {
+        _ = configLoader.parseConfig(generateConfig(handlers:
+            """
+                {
+                    match: "http://example.com",
+                    value: "Test Success"
+                }
+            """
+        ))
 
-        let strategy = FinickyAPI.callUrlHandlers(exampleUrl, sourceBundleIdentifier: "", flags: getFlags())
-        let bundleId = strategy["bundleIdentifier"] as! String!
-        let strategyUrl : String! = strategy["url"] as! String!
-        let bool = strategy["openInBackground"] as! Bool?
-        XCTAssertNil(bundleId,  "Bundle ID should not have been set")
-        XCTAssertEqual(strategyUrl, "http://example.com", "URL should not have been changed")
-        XCTAssertNil(bool, "openInBackground should not have been set")
+        let result = configLoader.determineOpeningApp(url: URL(string: "http://example.com")!)
+        XCTAssertEqual(result!.type, AppDescriptorType.appName,  "Type should be app name")
+        XCTAssertEqual(result!.value, "Test Success", "App value should be set")
+        XCTAssertEqual(result!.url.absoluteString, "http://example.com", "URL should not have been changed")
     }
 
-    func testSetAll() {
-        configLoader.parseConfig(
-        "   finicky.onUrl(function(url, opts) { finicky.log('test'); " +
-        "        return { " +
-        "           bundleIdentifier: 'com.google.Chrome.canary', " +
-        "           url: 'http://example.org', " +
-        "           openInBackground: false " +
-        "        }" +
-        "   });"
-        )
+    func testRegexMatcher() {
+        _ = configLoader.parseConfig(generateConfig(handlers:
+            """
+                {
+                    match: /http:\\/\\/example\\.com/,
+                    value: "Test Success"
+                }
+            """
+        ))
 
-        let strategy = FinickyAPI.callUrlHandlers(exampleUrl, sourceBundleIdentifier: "", flags: getFlags())
-        let bundleId = strategy["bundleIdentifier"] as! String!
-        let strategyUrl : String! = strategy["url"] as! String!
-        let bool = strategy["openInBackground"] as! Bool!
-        XCTAssertEqual(bundleId, "com.google.Chrome.canary", "Bundle ID should have been set")
-        XCTAssertEqual(strategyUrl, "http://example.org", "URL should have been changed")
-        XCTAssertEqual(bool, false, "openInBackground should have been set to false")
+        let result = configLoader.determineOpeningApp(url: URL(string: "http://example.com")!)
+        XCTAssertEqual(result!.type, AppDescriptorType.appName,  "Type should be app name")
+        XCTAssertEqual(result!.value, "Test Success", "App value should be set")
+        XCTAssertEqual(result!.url.absoluteString, "http://example.com", "URL should not have been changed")
     }
 
-    func testLastFlag() {
-        configLoader.parseConfig(
-            "   finicky.onUrl(function(url, opts) { " +
-            "        return { " +
-            "           bundleIdentifier: 'com.example.test', " +
-            "           last: true, " +
-            "        }" +
-            "   });" +
-            "   finicky.onUrl(function(url, opts) { " +
-            "        return { " +
-            "           bundleIdentifier: 'com.example.test2', " +
-            "        }" +
-            "   });"
-        )
+    func testFunctionMatcher() {
+        _ = configLoader.parseConfig(generateConfig(handlers:
+            """
+                {
+                    match: (url) => url === "http://example.com",
+                    value: "Test Success"
+                }
+            """
+        ))
 
-        let strategy = FinickyAPI.callUrlHandlers(exampleUrl, sourceBundleIdentifier: "", flags: getFlags())
-        let bundleId = strategy["bundleIdentifier"] as! String!
-        XCTAssertEqual(bundleId, "com.example.test", "Last flag should be respected")
+        let result = configLoader.determineOpeningApp(url: URL(string: "http://example.com")!)
+        XCTAssertEqual(result!.type, AppDescriptorType.appName,  "Type should be app name")
+        XCTAssertEqual(result!.value, "Test Success", "App value should be set")
+        XCTAssertEqual(result!.url.absoluteString, "http://example.com", "URL should not have been changed")
+    }
+
+    func testObjectResult() {
+        _ = configLoader.parseConfig(generateConfig(handlers:
+            """
+                {
+                    match: () => true,
+                    value: { value: "Test Success", url: "http://another-example.com" }
+                }
+            """
+        ))
+
+        let result = configLoader.determineOpeningApp(url: URL(string: "http://example.com")!)
+        XCTAssertEqual(result!.type, AppDescriptorType.appName,  "Type should be app name")
+        XCTAssertEqual(result!.value, "Test Success", "App value should be set")
+        XCTAssertEqual(result!.url.absoluteString, "http://example.com", "URL should not have been changed")
     }
 }

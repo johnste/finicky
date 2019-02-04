@@ -59,7 +59,9 @@
 
     if (typeof result === "object") {
       if (typeof result.value !== "string") {
-        throw new Error(`Missing or invalid property value in result: ${typeof result.value}; ${result}`);
+        throw new Error(
+          `Missing or invalid property value in result: ${typeof result.value}; ${result}`
+        );
       }
 
       let type;
@@ -69,11 +71,14 @@
         type = isBundleIdentifier(result) ? "bundleId" : "appName";
       }
 
+      const invalidKeys = Object.keys(result).filter(
+        key => !["value", "url", "type", "openInBackground"].includes(key)
+      );
 
-
-      const invalidKeys = Object.keys(result).filter(key => !["value", "url", "type"].includes(key));
       if (invalidKeys.length > 0) {
-        throw new Error(`Found unrecognized keys in result: ${invalidKeys.join(',')}`);
+        throw new Error(
+          `Found unrecognized keys in result: ${invalidKeys.join(",")}`
+        );
       }
 
       return result;
