@@ -89,12 +89,4 @@ finicky.onUrl(function(url, opts) {
 ```
 
 #### A note on the current status of finicky
-Finicky is, as of October 2018, under active development. I plan to have a larger release out sometime later this year, with focus on making it simpler to configure. Feel free to leave bug reports and feature requests, so please go ahead and add an issue on github, or ask me on [twitter](https://twitter.com/johnste_)
-
-
-### Alternatives
-
-These are two similar applications, though they are not open source.
-
-- [Choosy](http://choosyosx.com)
-- [Browser Fairy](http://www.browserfairy.com/)
+Finicky is, as of October 2018, under active development. I plan to have a larger release out sometime in 2019, with focus on making it simpler to configure. Feel free to leave bug reports and feature requests, so please go ahead and add an issue on github, or ask me on [twitter](https://twitter.com/johnste_)
