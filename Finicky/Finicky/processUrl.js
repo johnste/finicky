@@ -41,12 +41,6 @@
       result = result(urlString, urlObject);
     }
 
-    if (typeof result !== "string" && typeof result !== "object") {
-      throw new Error(
-        `Handler result invalid, expected one of [string, object], found ${typeof result}`
-      );
-    }
-
     // If all we got was a string, try to figure out if it's a bundle identifier or an application name
     if (typeof result === "string") {
       const type = isBundleIdentifier(result) ? "bundleId" : "appName";
@@ -58,33 +52,39 @@
     }
 
     if (typeof result === "object") {
-      if (typeof result.value !== "string") {
-        throw new Error(
-          `Missing or invalid property value in result: ${typeof result.value}; ${result}`
-        );
+      if (typeof result.type === "undefined") {
+        result.type = isBundleIdentifier(result.value) ? "bundleId" : "appName";
       }
 
-      let type;
-      if (typeof result.type) {
-        type = result.type;
-      } else {
-        type = isBundleIdentifier(result) ? "bundleId" : "appName";
-      }
-
-      const invalidKeys = Object.keys(result).filter(
-        key => !["value", "url", "type", "openInBackground"].includes(key)
+      validateObject(
+        result,
+        {
+          value: "string",
+          type: "string"
+        },
+        {
+          url: "string",
+          options: "object"
+        }
       );
 
-      if (invalidKeys.length > 0) {
-        throw new Error(
-          `Found unrecognized keys in result: ${invalidKeys.join(",")}`
+      if (typeof result.options === "object") {
+        validateObject(
+          result.options,
+          {},
+          {
+            openInBackground: "boolean"
+          }
         );
       }
 
       return result;
     }
 
-    throw new Error("Unrecognized result value " + JSON.stringify(result));
+    throw new Error(
+      "Unrecognized result value, expected type [string or object], found " +
+        JSON.stringify(result)
+    );
   }
 
   function isBundleIdentifier(value) {
@@ -95,5 +95,41 @@
       return true;
     }
     return false;
+  }
+
+  function validateObject(value, required = {}, optional = {}) {
+    if (typeof value !== "object") {
+      throw new Error("Expected object value");
+    }
+    const keys = Object.keys(value);
+    const requiredKeys = Object.keys(required);
+    const optionalKeys = Object.keys(optional);
+    const allProperties = {
+      ...optional,
+      ...required
+    };
+
+    requiredKeys.forEach(key => {
+      if (!keys.includes(key)) {
+        throw new Error(
+          `Required key "${key}" missing in "${JSON.stringify(value)}"`
+        );
+      }
+    });
+
+    keys.forEach(key => {
+      if (![...requiredKeys, ...optionalKeys].includes(key)) {
+        throw new Error(`Unknown key "${key}" in "${JSON.stringify(value)}"`);
+      }
+
+      const expectedType = allProperties[key];
+      const actualType = typeof value[key];
+
+      if (expectedType !== actualType) {
+        throw new Error(
+          `Wrong type for key "${key}", found "${actualType}", expected "${expectedType}"`
+        );
+      }
+    });
   }
 })();
