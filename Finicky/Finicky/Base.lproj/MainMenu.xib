@@ -15,8 +15,10 @@
         <customObject id="-3" userLabel="Application" customClass="NSObject"/>
         <customObject id="Voe-Tx-rLC" customClass="AppDelegate" customModule="Finicky" customModuleProvider="target">
             <connections>
+                <outlet property="label" destination="XDD-kr-ekc" id="865-76-bA7"/>
                 <outlet property="statusItemMenu" destination="Kzo-ni-M3E" id="VAC-Jd-SUN"/>
-                <outlet property="window" destination="QvC-M9-y7g" id="gIp-Ho-8D9"/>
+                <outlet property="testConfigWindow" destination="VZJ-Lg-gDn" id="yu6-P3-Fon"/>
+                <outlet property="yourTextField" destination="MSV-N8-vFV" id="R7y-rh-o03"/>
             </connections>
         </customObject>
         <customObject id="YLy-65-1bz" customClass="NSFontManager"/>
@@ -668,17 +670,8 @@
                     </menu>
                 </menuItem>
             </items>
+            <point key="canvasLocation" x="263" y="-47"/>
         </menu>
-        <window title="Finicky" allowsToolTipsWhenApplicationIsInactive="NO" autorecalculatesKeyViewLoop="NO" releasedWhenClosed="NO" visibleAtLaunch="NO" animationBehavior="default" id="QvC-M9-y7g">
-            <windowStyleMask key="styleMask" titled="YES" closable="YES" miniaturizable="YES" resizable="YES"/>
-            <windowPositionMask key="initialPositionMask" leftStrut="YES" rightStrut="YES" topStrut="YES" bottomStrut="YES"/>
-            <rect key="contentRect" x="335" y="390" width="480" height="360"/>
-            <rect key="screenRect" x="0.0" y="0.0" width="1680" height="1027"/>
-            <view key="contentView" id="EiT-Mj-1SZ">
-                <rect key="frame" x="0.0" y="0.0" width="480" height="360"/>
-                <autoresizingMask key="autoresizingMask"/>
-            </view>
-        </window>
         <menu id="Kzo-ni-M3E" userLabel="Status Item Menu">
             <items>
                 <menuItem title="Reload Config" id="X9g-Uv-L2W">
@@ -687,11 +680,18 @@
                         <action selector="reloadConfig:" target="Voe-Tx-rLC" id="0FH-YI-ACs"/>
                     </connections>
                 </menuItem>
-                <menuItem title="About Finicky..." id="B8m-5i-1Ii">
+                <menuItem title="Test Config..." id="B8m-5i-1Ii">
                     <attributedString key="attributedTitle"/>
                     <modifierMask key="keyEquivalentModifierMask"/>
                     <connections>
-                        <action selector="showAboutPanel:" target="Voe-Tx-rLC" id="Rdk-lx-hnl"/>
+                        <action selector="showTestConfigWindow:" target="Voe-Tx-rLC" id="VMp-rt-TSl"/>
+                    </connections>
+                </menuItem>
+                <menuItem title="About Finicky..." id="I5V-5h-xdT">
+                    <attributedString key="attributedTitle"/>
+                    <modifierMask key="keyEquivalentModifierMask"/>
+                    <connections>
+                        <action selector="showAboutPanel:" target="Voe-Tx-rLC" id="KBo-Bz-WFn"/>
                     </connections>
                 </menuItem>
                 <menuItem isSeparatorItem="YES" id="iDa-we-FEr"/>
@@ -702,6 +702,67 @@
                     </connections>
                 </menuItem>
             </items>
+            <point key="canvasLocation" x="137.5" y="-105"/>
         </menu>
+        <window title="Test Config" allowsToolTipsWhenApplicationIsInactive="NO" autorecalculatesKeyViewLoop="NO" restorable="NO" visibleAtLaunch="NO" frameAutosaveName="" animationBehavior="default" id="VZJ-Lg-gDn">
+            <windowStyleMask key="styleMask" titled="YES" closable="YES"/>
+            <windowPositionMask key="initialPositionMask" leftStrut="YES" rightStrut="YES" topStrut="YES" bottomStrut="YES"/>
+            <rect key="contentRect" x="163" y="199" width="396" height="195"/>
+            <rect key="screenRect" x="0.0" y="0.0" width="1680" height="1027"/>
+            <view key="contentView" id="7j0-3Z-aDh">
+                <rect key="frame" x="0.0" y="0.0" width="396" height="195"/>
+                <autoresizingMask key="autoresizingMask"/>
+                <subviews>
+                    <textField horizontalHuggingPriority="251" verticalHuggingPriority="750" fixedFrame="YES" translatesAutoresizingMaskIntoConstraints="NO" id="lld-oX-GqI">
+                        <rect key="frame" x="18" y="161" width="30" height="14"/>
+                        <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMinY="YES"/>
+                        <textFieldCell key="cell" controlSize="small" lineBreakMode="clipping" title="URL" id="XqD-aE-eA8">
+                            <font key="font" metaFont="smallSystem"/>
+                            <color key="textColor" name="labelColor" catalog="System" colorSpace="catalog"/>
+                            <color key="backgroundColor" name="textBackgroundColor" catalog="System" colorSpace="catalog"/>
+                        </textFieldCell>
+                    </textField>
+                    <textField verticalHuggingPriority="750" fixedFrame="YES" translatesAutoresizingMaskIntoConstraints="NO" id="MSV-N8-vFV">
+                        <rect key="frame" x="60" y="156" width="316" height="22"/>
+                        <autoresizingMask key="autoresizingMask" widthSizable="YES" flexibleMinY="YES"/>
+                        <textFieldCell key="cell" scrollable="YES" lineBreakMode="clipping" selectable="YES" editable="YES" sendsActionOnEndEditing="YES" borderStyle="bezel" placeholderString="https://example.com" drawsBackground="YES" id="0iJ-Ww-Lf2">
+                            <font key="font" metaFont="system"/>
+                            <color key="textColor" name="controlTextColor" catalog="System" colorSpace="catalog"/>
+                            <color key="backgroundColor" name="textBackgroundColor" catalog="System" colorSpace="catalog"/>
+                        </textFieldCell>
+                    </textField>
+                    <textField horizontalHuggingPriority="251" verticalHuggingPriority="750" fixedFrame="YES" translatesAutoresizingMaskIntoConstraints="NO" id="XDD-kr-ekc">
+                        <rect key="frame" x="60" y="12" width="318" height="134"/>
+                        <autoresizingMask key="autoresizingMask" widthSizable="YES" heightSizable="YES"/>
+                        <textFieldCell key="cell" lineBreakMode="clipping" drawsBackground="YES" id="0uC-8H-R3Q">
+                            <font key="font" usesAppearanceFont="YES"/>
+                            <color key="textColor" name="labelColor" catalog="System" colorSpace="catalog"/>
+                            <color key="backgroundColor" name="textBackgroundColor" catalog="System" colorSpace="catalog"/>
+                        </textFieldCell>
+                    </textField>
+                    <textField horizontalHuggingPriority="251" verticalHuggingPriority="750" fixedFrame="YES" translatesAutoresizingMaskIntoConstraints="NO" id="bGG-1s-avp">
+                        <rect key="frame" x="6" y="133" width="42" height="14"/>
+                        <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMinY="YES"/>
+                        <textFieldCell key="cell" controlSize="small" lineBreakMode="clipping" title="Result" id="Wpf-P0-GVn">
+                            <font key="font" metaFont="smallSystem"/>
+                            <color key="textColor" name="labelColor" catalog="System" colorSpace="catalog"/>
+                            <color key="backgroundColor" name="textBackgroundColor" catalog="System" colorSpace="catalog"/>
+                        </textFieldCell>
+                    </textField>
+                </subviews>
+            </view>
+            <point key="canvasLocation" x="-26" y="-328.5"/>
+        </window>
+        <window title="Window" allowsToolTipsWhenApplicationIsInactive="NO" autorecalculatesKeyViewLoop="NO" releasedWhenClosed="NO" visibleAtLaunch="NO" frameAutosaveName="" animationBehavior="default" id="wYC-J9-waJ">
+            <windowStyleMask key="styleMask" titled="YES" closable="YES" miniaturizable="YES" resizable="YES"/>
+            <windowPositionMask key="initialPositionMask" leftStrut="YES" rightStrut="YES" topStrut="YES" bottomStrut="YES"/>
+            <rect key="contentRect" x="163" y="199" width="480" height="307"/>
+            <rect key="screenRect" x="0.0" y="0.0" width="1680" height="1027"/>
+            <view key="contentView" id="sle-Xy-ZMj">
+                <rect key="frame" x="0.0" y="0.0" width="480" height="307"/>
+                <autoresizingMask key="autoresizingMask"/>
+            </view>
+            <point key="canvasLocation" x="245" y="205"/>
+        </window>
     </objects>
 </document>

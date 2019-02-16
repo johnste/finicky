@@ -8,17 +8,25 @@ public enum AppDescriptorType: String {
     case appName
 }
 
+public struct AppDescriptorOptions {
+    public var openInBackground: Bool
+
+    public init(openInBackground: Bool) {
+        self.openInBackground = openInBackground
+    }
+}
+
 public struct AppDescriptor {
     public var value: String
     public var type: AppDescriptorType
     public var url: URL
-    public var openInBackground: Bool?
+    public var options: AppDescriptorOptions?
 
-    public init(value: String, type: AppDescriptorType, url: URL, openInBackground: Bool?) {
+    public init(value: String, type: AppDescriptorType, url: URL, options: AppDescriptorOptions?) {
         self.value = value
         self.type = type
         self.url = url
-        self.openInBackground = openInBackground
+        self.options = options
     }
 }
 
@@ -131,9 +139,7 @@ open class FinickyConfig {
 
         if ((appValue?.isObject)!) {
             let dict = appValue?.toDictionary()
-
             let type = AppDescriptorType(rawValue: dict!["type"] as! String)
-
 
             var finalUrl = url
             if let newUrl = dict!["url"] as? String {
@@ -143,7 +149,14 @@ open class FinickyConfig {
             if (type == nil) {
                 showNotification(title: "Unrecognized app type \"\(String(describing: type))\"")
             } else {
-                return AppDescriptor(value: dict!["value"] as! String, type: type!, url: finalUrl, openInBackground: dict!["openInBackground"] as! Bool?)
+                //let openInBackground = ?["openInBackground"] as! Bool ?? false
+                var options : AppDescriptorOptions? = nil;
+
+                if let optionsDict = dict!["options"] {
+                    let openInBackgrund = (optionsDict as! Dictionary)["openInBackground"] ?? false
+                    options = AppDescriptorOptions(openInBackground: openInBackgrund)
+                }
+                return AppDescriptor(value: dict!["value"] as! String, type: type!, url: finalUrl, options: options)
             }
         }
 

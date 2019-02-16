@@ -47,15 +47,10 @@
       );
     }
 
-    if (typeof value === "object") {
-      const hasBundleId = typeof value.bundleId === "string";
-      const hasName = typeof value.name === "string";
-
-      if ((!hasBundleId && !hasName) || (hasBundleId && hasName)) {
+    if (typeof value === "object" && typeof value.value !== "string") {
         throw new Error(
-          `Handler #${handlerNum} value: expected object to have string property "bundleId" OR "name" `
+                        `Handler #${handlerNum} value: expected object to have string property ${typeof value.value}`
         );
-      }
     }
   }
 

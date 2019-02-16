@@ -3,10 +3,12 @@ import Foundation
 import AppKit
 
 @NSApplicationMain
-class AppDelegate: NSObject, NSApplicationDelegate, NSUserNotificationCenterDelegate {
+class AppDelegate: NSObject, NSApplicationDelegate, NSUserNotificationCenterDelegate, NSTextFieldDelegate {
 
-    @IBOutlet weak var window: NSWindow!
     @IBOutlet var statusItemMenu: NSMenu!
+    @IBOutlet weak var testConfigWindow: NSWindow!
+    @IBOutlet weak var yourTextField: NSTextField!
+    @IBOutlet weak var label: NSTextField!
 
     @objc var statusItem: NSStatusItem!
     var configLoader: FinickyConfig!
@@ -14,6 +16,8 @@ class AppDelegate: NSObject, NSApplicationDelegate, NSUserNotificationCenterDele
     @objc var isActive: Bool = true
 
     func applicationDidFinishLaunching(_ aNotification: Notification) {
+
+        yourTextField.delegate = self
         let bundleId = "net.kassett.Finicky"
         LSSetDefaultHandlerForURLScheme("http" as CFString, bundleId as CFString)
         LSSetDefaultHandlerForURLScheme("https" as CFString, bundleId as CFString)
@@ -29,6 +33,8 @@ class AppDelegate: NSObject, NSApplicationDelegate, NSUserNotificationCenterDele
         statusItem.highlightMode = true
         statusItem.image = img
         _ = toggleDockIcon(showIcon: false)
+
+
     }
 
     @IBAction func reloadConfig(_ sender: NSMenuItem) {
@@ -38,6 +44,44 @@ class AppDelegate: NSObject, NSApplicationDelegate, NSUserNotificationCenterDele
     @IBAction func showAboutPanel(_ sender: NSMenuItem) {
         NSApp.activate(ignoringOtherApps: true)
         NSApp.orderFrontStandardAboutPanel(sender)
+    }
+
+    @IBAction func showTestConfigWindow(_ sender: NSMenuItem) {
+        NSApp.activate(ignoringOtherApps: true)
+        self.testConfigWindow.orderFront(sender)
+    }
+
+    override func controlTextDidChange(_ obj: Notification) {
+        let object = obj.object as! NSTextField
+        let value = object.stringValue
+
+        if (!value.starts(with: "https://") && !value.starts(with: "http://")) {
+            self.label.stringValue = ""
+            return
+        }
+        if let url = URL.init(string: value) {
+            if let appDescriptor = configLoader.determineOpeningApp(url: url) {
+                var description = ""
+
+                if let options = appDescriptor.options {
+                    description = """
+                    Will open:
+                    Application \(AppDescriptorType.bundleId == appDescriptor.type ? "bundleId" : "") "\(appDescriptor.value)"
+                    URL: "\(appDescriptor.url)"
+                    Will \(options.openInBackground ? "open" : "not open") application in the background
+                    """
+                } else {
+                    description = """
+                        Will open:
+                        Application \(AppDescriptorType.bundleId == appDescriptor.type ? "bundleId" : "") "\(appDescriptor.value)"
+                        URL: "\(appDescriptor.url)"
+                        """
+                }
+                self.label.stringValue = description
+            } else {
+                self.label.stringValue = ""
+            }
+        }
     }
 
     @objc func toggleDockIcon(showIcon state: Bool) -> Bool {
@@ -80,7 +124,7 @@ class AppDelegate: NSObject, NSApplicationDelegate, NSUserNotificationCenterDele
             }
 
             if bundleId != nil {
-                openUrlWithBrowser(appDescriptor.url, bundleIdentifier:bundleId!, openInBackground: appDescriptor.openInBackground)
+                openUrlWithBrowser(appDescriptor.url, bundleIdentifier:bundleId!, options: appDescriptor.options )
             } else {
                 print ("Finicky was unable to find the application \"" + appDescriptor.value + "\"")
                 showNotification(title: "Unable to find application", informativeText: "Finicky was unable to find the application \"" + appDescriptor.value + "\"")
@@ -92,16 +136,16 @@ class AppDelegate: NSObject, NSApplicationDelegate, NSUserNotificationCenterDele
         return true
     }
 
-    func openUrlWithBrowser(_ url: URL, bundleIdentifier: String, openInBackground: Bool?) {
+    func openUrlWithBrowser(_ url: URL, bundleIdentifier: String, options: AppDescriptorOptions?) {
         let urls = [url]
 
         // Launch in background by default if finicky isn't active to avoid something..
-        var launchInBackground = !isActive
-        if openInBackground != nil {
-            launchInBackground = openInBackground!
+        var openInBackground = !isActive
+        if options != nil {
+            openInBackground = (options?.openInBackground)!
         }
 
-        if !launchInBackground {
+        if !openInBackground {
             NSWorkspace.shared.launchApplication(
                 withBundleIdentifier: bundleIdentifier,
                 options: NSWorkspace.LaunchOptions.default,
@@ -113,7 +157,7 @@ class AppDelegate: NSObject, NSApplicationDelegate, NSUserNotificationCenterDele
         NSWorkspace.shared.open(
             urls,
             withAppBundleIdentifier: bundleIdentifier,
-            options: launchInBackground ? NSWorkspace.LaunchOptions.withoutActivation : NSWorkspace.LaunchOptions.default,
+            options: openInBackground ? NSWorkspace.LaunchOptions.withoutActivation : NSWorkspace.LaunchOptions.default,
             additionalEventParamDescriptor: nil,
             launchIdentifiers: nil
         )
@@ -124,6 +168,7 @@ class AppDelegate: NSObject, NSApplicationDelegate, NSUserNotificationCenterDele
             self.callUrlHandlers(nil, url: URL(fileURLWithPath: filename ))
         }
     }
+
 
     func applicationWillFinishLaunching(_ aNotification: Notification) {
         configLoader = FinickyConfig()
