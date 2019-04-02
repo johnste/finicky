@@ -33,8 +33,6 @@ class AppDelegate: NSObject, NSApplicationDelegate, NSUserNotificationCenterDele
         statusItem.highlightMode = true
         statusItem.image = img
         _ = toggleDockIcon(showIcon: false)
-
-
     }
 
     @IBAction func reloadConfig(_ sender: NSMenuItem) {
@@ -48,6 +46,7 @@ class AppDelegate: NSObject, NSApplicationDelegate, NSUserNotificationCenterDele
 
     @IBAction func showTestConfigWindow(_ sender: NSMenuItem) {
         NSApp.activate(ignoringOtherApps: true)
+        self.testConfigWindow.center()
         self.testConfigWindow.orderFront(sender)
     }
 

@@ -31,15 +31,20 @@ public struct AppDescriptor {
 }
 
 open class FinickyConfig {
-    var configPaths: NSMutableSet
     var ctx: JSContext!
     var validateConfigJS : String?;
     var processUrlJS : String?;
     var hasError: Bool;
 
+    var dispatchSource: DispatchSourceFileSystemObject?
+    var fileDescriptor: Int32 = -1
+    var fileManager = FileManager.init();
+
+
     public init() {
-        self.configPaths = NSMutableSet()
         self.hasError = false;
+        listenToChanges();
+
 
         if let path = Bundle.main.path(forResource: "validateConfig.js", ofType: nil ) {
             do {
@@ -59,11 +64,63 @@ open class FinickyConfig {
         }
     }
 
-    func resetConfigPaths() {
-        self.hasError = false;
-        FinickyAPI.reset()
-        configPaths.removeAllObjects()
-        configPaths.add(FNConfigPath)
+
+    func listenToChanges() {
+
+        let filename: String = (FNConfigPath as NSString).resolvingSymlinksInPath
+        print(filename)
+
+        guard dispatchSource == nil && fileDescriptor == -1 else { return }
+
+        fileDescriptor = open(filename, O_EVTONLY)
+        if (fileDescriptor <= 0) {
+            print(strerror(errno));
+
+        }
+
+        guard fileDescriptor != -1 else { return }
+
+
+        let queue = DispatchQueue.main
+
+
+
+        // 4
+        dispatchSource =
+            DispatchSource.makeFileSystemObjectSource(fileDescriptor: fileDescriptor, eventMask: .attrib, queue: queue)
+
+
+        // 5
+        dispatchSource?.setEventHandler { [weak self] in
+            print("Hi, I am it")
+
+            do {
+                // normal try operation that provides error handling via `catch` block
+                let x =  try self?.fileManager.attributesOfItem(atPath: (self?.fileManager.destinationOfSymbolicLink(atPath: filename))!)
+                print(x![FileAttributeKey.modificationDate])
+
+            } catch (let msg) {
+                print("Error message: \(msg)")
+            }
+
+        }
+
+        dispatchSource?.setCancelHandler {
+            close(self.fileDescriptor)
+
+            self.fileDescriptor = -1
+            self.dispatchSource = nil
+        }
+
+        // 6
+        //dispatchSource?.activate()
+         dispatchSource?.resume()
+
+
+
+        print("Hi, I am it blip")
+
+
     }
 
     open func createContext() -> JSContext {
@@ -104,7 +161,7 @@ open class FinickyConfig {
     }
 
     func reload(showSuccess: Bool) {
-        self.resetConfigPaths()
+        self.hasError = false;
         var error:NSError?
         let filename: String = (FNConfigPath as NSString).standardizingPath
         var config: String?
