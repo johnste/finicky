@@ -39,12 +39,11 @@ open class FinickyConfig {
     var dispatchSource: DispatchSourceFileSystemObject?
     var fileDescriptor: Int32 = -1
     var fileManager = FileManager.init();
-
+    var lastModificationDate: Date? = nil;
 
     public init() {
         self.hasError = false;
         listenToChanges();
-
 
         if let path = Bundle.main.path(forResource: "validateConfig.js", ofType: nil ) {
             do {
@@ -64,63 +63,52 @@ open class FinickyConfig {
         }
     }
 
+    func getModificationDate(atPath: String) -> Date? {
+        do {
+            let attributes = try self.fileManager.attributesOfItem(atPath: atPath)
+            let modificationDate = attributes[FileAttributeKey.modificationDate] as? Date
+            guard modificationDate != nil else { return nil }
+            return modificationDate!
+        } catch (let msg) {
+            print("Error message: \(msg)")
+            return nil
+        }
+    }
 
     func listenToChanges() {
 
         let filename: String = (FNConfigPath as NSString).resolvingSymlinksInPath
-        print(filename)
 
         guard dispatchSource == nil && fileDescriptor == -1 else { return }
 
         fileDescriptor = open(filename, O_EVTONLY)
         if (fileDescriptor <= 0) {
             print(strerror(errno));
-
         }
 
         guard fileDescriptor != -1 else { return }
 
+        lastModificationDate = getModificationDate(atPath: filename)
 
-        let queue = DispatchQueue.main
-
-
-
-        // 4
         dispatchSource =
-            DispatchSource.makeFileSystemObjectSource(fileDescriptor: fileDescriptor, eventMask: .attrib, queue: queue)
+            DispatchSource.makeFileSystemObjectSource(fileDescriptor: fileDescriptor, eventMask: .attrib, queue: DispatchQueue.main)
 
-
-        // 5
         dispatchSource?.setEventHandler { [weak self] in
-            print("Hi, I am it")
-
-            do {
-                // normal try operation that provides error handling via `catch` block
-                let x =  try self?.fileManager.attributesOfItem(atPath: (self?.fileManager.destinationOfSymbolicLink(atPath: filename))!)
-                print(x![FileAttributeKey.modificationDate])
-
-            } catch (let msg) {
-                print("Error message: \(msg)")
+            if let modificationDate = self?.getModificationDate(atPath: filename) {
+                if !(self!.lastModificationDate != nil) || modificationDate > self!.lastModificationDate! {
+                    self!.lastModificationDate = modificationDate
+                    self!.reload(showSuccess: true)
+                }
             }
-
         }
 
         dispatchSource?.setCancelHandler {
             close(self.fileDescriptor)
-
             self.fileDescriptor = -1
             self.dispatchSource = nil
         }
 
-        // 6
-        //dispatchSource?.activate()
-         dispatchSource?.resume()
-
-
-
-        print("Hi, I am it blip")
-
-
+        dispatchSource?.resume()
     }
 
     open func createContext() -> JSContext {
