@@ -33,6 +33,15 @@ class AppDelegate: NSObject, NSApplicationDelegate, NSUserNotificationCenterDele
         statusItem.highlightMode = true
         statusItem.image = img
         _ = toggleDockIcon(showIcon: false)
+
+        func toggleIconCallback(show: Bool) {
+            guard statusItem != nil else { return }
+            statusItem.isVisible = !show
+        }
+
+        configLoader = FinickyConfig(toggleIconCallback: toggleIconCallback)
+        configLoader.reload(showSuccess: false)
+
     }
 
     @IBAction func reloadConfig(_ sender: NSMenuItem) {
@@ -170,8 +179,6 @@ class AppDelegate: NSObject, NSApplicationDelegate, NSUserNotificationCenterDele
 
 
     func applicationWillFinishLaunching(_ aNotification: Notification) {
-        configLoader = FinickyConfig()
-        configLoader.reload(showSuccess: false)
         shortUrlResolver = FNShortUrlResolver()
         let appleEventManager:NSAppleEventManager = NSAppleEventManager.shared()
         appleEventManager.setEventHandler(self, andSelector: #selector(AppDelegate.handleGetURLEvent(_:withReplyEvent:)), forEventClass: AEEventClass(kInternetEventClass), andEventID: AEEventID(kAEGetURL))

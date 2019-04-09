@@ -34,15 +34,16 @@ open class FinickyConfig {
     var ctx: JSContext!
     var validateConfigJS : String?;
     var processUrlJS : String?;
-    var hasError: Bool;
+    var hasError: Bool = false;
 
     var dispatchSource: DispatchSourceFileSystemObject?
     var fileDescriptor: Int32 = -1
     var fileManager = FileManager.init();
     var lastModificationDate: Date? = nil;
+    var toggleIconCallback:(_ hide: Bool) -> Void;
 
-    public init() {
-        self.hasError = false;
+    public init(toggleIconCallback: @escaping (_ hide: Bool) -> Void ) {
+        self.toggleIconCallback = toggleIconCallback
         listenToChanges();
 
         if let path = Bundle.main.path(forResource: "validateConfig.js", ofType: nil ) {
@@ -134,18 +135,20 @@ open class FinickyConfig {
         }
 
         let validConfig = ctx.evaluateScript(validateConfigJS!)?.call(withArguments: [])
+
         if let isBoolean = validConfig?.isBoolean {
             if (isBoolean) {
-                let result = validConfig?.toBool()
-                if (!result!) {
+                if (!(validConfig?.toBool())!) {
                     print("Invalid config")
                     showNotification(title: "Invalid config")
                     return false;
+                } else {
+                    return true;
                 }
             }
         }
 
-        return true;
+        return false;
     }
 
     func reload(showSuccess: Bool) {
@@ -174,9 +177,21 @@ open class FinickyConfig {
         if config != nil {
             let success = parseConfig(config!)
             if (success && showSuccess) {
+                toggleIconCallback(getHideIcon())
                 showNotification(title: "Reloaded config successfully")
             }
         }
+
+
+    }
+
+    open func getHideIcon() -> Bool {
+        let hideIcon = ctx.evaluateScript("module.exports.options && module.exports.options.hideIcon")?.toBool()
+
+        if hideIcon == nil {
+            return false
+        }
+        return hideIcon!;
     }
 
     open func determineOpeningApp(url: URL) -> AppDescriptor? {
