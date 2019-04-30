@@ -3,12 +3,12 @@ import Foundation
 import AppKit
 
 @NSApplicationMain
-class AppDelegate: NSObject, NSApplicationDelegate, NSUserNotificationCenterDelegate, NSTextFieldDelegate {
+class AppDelegate: NSObject, NSApplicationDelegate, NSUserNotificationCenterDelegate, NSTextFieldDelegate, NSTextViewDelegate {
 
     @IBOutlet var statusItemMenu: NSMenu!
     @IBOutlet weak var testConfigWindow: NSWindow!
     @IBOutlet weak var yourTextField: NSTextField!
-    @IBOutlet weak var label: NSTextField!
+    @IBOutlet weak var textView: NSTextView!
 
     @objc var statusItem: NSStatusItem!
     var configLoader: FinickyConfig!
@@ -64,7 +64,7 @@ class AppDelegate: NSObject, NSApplicationDelegate, NSUserNotificationCenterDele
         let formatter = DateFormatter()
         formatter.dateFormat = "yyyy-MM-dd hh:mm:ss"
         let dateString = formatter.string(from: date)
-        self.label.string = dateString + " - " + message + "\n" + self.label.string.prefix(20000) + "\n\n"
+        self.textView.string = dateString + " - " + message + "\n\n" + self.textView.string.prefix(20000).trimmingCharacters(in: .whitespacesAndNewlines)
     }
 
     override func controlTextDidEndEditing(_ obj: Notification) {

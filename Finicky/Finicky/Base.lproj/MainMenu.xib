@@ -15,9 +15,9 @@
         <customObject id="-3" userLabel="Application" customClass="NSObject"/>
         <customObject id="Voe-Tx-rLC" customClass="AppDelegate" customModule="Finicky" customModuleProvider="target">
             <connections>
-                <outlet property="label" destination="XDD-kr-ekc" id="865-76-bA7"/>
                 <outlet property="statusItemMenu" destination="Kzo-ni-M3E" id="VAC-Jd-SUN"/>
                 <outlet property="testConfigWindow" destination="VZJ-Lg-gDn" id="yu6-P3-Fon"/>
+                <outlet property="textView" destination="qaM-sW-3L0" id="bG4-lg-3CX"/>
                 <outlet property="yourTextField" destination="MSV-N8-vFV" id="R7y-rh-o03"/>
             </connections>
         </customObject>
@@ -747,9 +747,6 @@
                                     <size key="minSize" width="572" height="436"/>
                                     <size key="maxSize" width="572" height="10000000"/>
                                     <color key="insertionPointColor" name="textColor" catalog="System" colorSpace="catalog"/>
-                                    <connections>
-                                        <outlet property="delegate" destination="-3" id="M4s-ic-Ytn"/>
-                                    </connections>
                                 </textView>
                             </subviews>
                         </clipView>
