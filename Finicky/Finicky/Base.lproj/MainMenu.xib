@@ -680,13 +680,14 @@
                         <action selector="reloadConfig:" target="Voe-Tx-rLC" id="0FH-YI-ACs"/>
                     </connections>
                 </menuItem>
-                <menuItem title="Test Config..." id="B8m-5i-1Ii">
+                <menuItem title="Console..." id="B8m-5i-1Ii">
                     <attributedString key="attributedTitle"/>
                     <modifierMask key="keyEquivalentModifierMask"/>
                     <connections>
                         <action selector="showTestConfigWindow:" target="Voe-Tx-rLC" id="VMp-rt-TSl"/>
                     </connections>
                 </menuItem>
+                <menuItem isSeparatorItem="YES" id="iDa-we-FEr"/>
                 <menuItem title="About Finicky..." id="I5V-5h-xdT">
                     <attributedString key="attributedTitle"/>
                     <modifierMask key="keyEquivalentModifierMask"/>
@@ -694,7 +695,7 @@
                         <action selector="showAboutPanel:" target="Voe-Tx-rLC" id="KBo-Bz-WFn"/>
                     </connections>
                 </menuItem>
-                <menuItem isSeparatorItem="YES" id="iDa-we-FEr"/>
+                <menuItem isSeparatorItem="YES" id="xv0-8Y-Mbd"/>
                 <menuItem title="Quit" id="a0y-GU-CFI">
                     <modifierMask key="keyEquivalentModifierMask"/>
                     <connections>
@@ -704,54 +705,66 @@
             </items>
             <point key="canvasLocation" x="137.5" y="-105"/>
         </menu>
-        <window title="Test Config" allowsToolTipsWhenApplicationIsInactive="NO" autorecalculatesKeyViewLoop="NO" restorable="NO" releasedWhenClosed="NO" visibleAtLaunch="NO" frameAutosaveName="" animationBehavior="default" id="VZJ-Lg-gDn">
+        <window title="Finicky Console" allowsToolTipsWhenApplicationIsInactive="NO" autorecalculatesKeyViewLoop="NO" restorable="NO" releasedWhenClosed="NO" visibleAtLaunch="NO" frameAutosaveName="" animationBehavior="default" id="VZJ-Lg-gDn">
             <windowStyleMask key="styleMask" titled="YES" closable="YES"/>
             <windowPositionMask key="initialPositionMask" leftStrut="YES" rightStrut="YES" topStrut="YES" bottomStrut="YES"/>
-            <rect key="contentRect" x="163" y="199" width="396" height="243"/>
+            <rect key="contentRect" x="163" y="199" width="591" height="500"/>
             <rect key="screenRect" x="0.0" y="0.0" width="1680" height="1027"/>
             <view key="contentView" id="7j0-3Z-aDh">
-                <rect key="frame" x="0.0" y="0.0" width="396" height="243"/>
+                <rect key="frame" x="0.0" y="0.0" width="591" height="500"/>
                 <autoresizingMask key="autoresizingMask"/>
                 <subviews>
-                    <textField horizontalHuggingPriority="251" verticalHuggingPriority="750" fixedFrame="YES" translatesAutoresizingMaskIntoConstraints="NO" id="lld-oX-GqI">
-                        <rect key="frame" x="18" y="209" width="30" height="14"/>
-                        <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMinY="YES"/>
-                        <textFieldCell key="cell" controlSize="small" lineBreakMode="clipping" title="URL" id="XqD-aE-eA8">
-                            <font key="font" metaFont="smallSystem"/>
-                            <color key="textColor" name="labelColor" catalog="System" colorSpace="catalog"/>
-                            <color key="backgroundColor" name="textBackgroundColor" catalog="System" colorSpace="catalog"/>
-                        </textFieldCell>
-                    </textField>
                     <textField verticalHuggingPriority="750" fixedFrame="YES" translatesAutoresizingMaskIntoConstraints="NO" id="MSV-N8-vFV">
-                        <rect key="frame" x="60" y="204" width="316" height="22"/>
+                        <rect key="frame" x="65" y="459" width="516" height="24"/>
                         <autoresizingMask key="autoresizingMask" widthSizable="YES" flexibleMinY="YES"/>
-                        <textFieldCell key="cell" scrollable="YES" lineBreakMode="clipping" selectable="YES" editable="YES" sendsActionOnEndEditing="YES" borderStyle="bezel" placeholderString="https://example.com" drawsBackground="YES" id="0iJ-Ww-Lf2">
-                            <font key="font" metaFont="system"/>
+                        <textFieldCell key="cell" scrollable="YES" lineBreakMode="clipping" selectable="YES" editable="YES" borderStyle="bezel" title="https://example.com" placeholderString="https://example.com" drawsBackground="YES" id="0iJ-Ww-Lf2">
+                            <font key="font" size="13" name="Menlo-Regular"/>
                             <color key="textColor" name="controlTextColor" catalog="System" colorSpace="catalog"/>
                             <color key="backgroundColor" name="textBackgroundColor" catalog="System" colorSpace="catalog"/>
                         </textFieldCell>
                     </textField>
-                    <textField horizontalHuggingPriority="251" verticalHuggingPriority="750" fixedFrame="YES" translatesAutoresizingMaskIntoConstraints="NO" id="XDD-kr-ekc">
-                        <rect key="frame" x="60" y="20" width="318" height="174"/>
-                        <autoresizingMask key="autoresizingMask" widthSizable="YES" heightSizable="YES"/>
-                        <textFieldCell key="cell" lineBreakMode="clipping" drawsBackground="YES" id="0uC-8H-R3Q">
-                            <font key="font" usesAppearanceFont="YES"/>
-                            <color key="textColor" name="labelColor" catalog="System" colorSpace="catalog"/>
-                            <color key="backgroundColor" name="textBackgroundColor" catalog="System" colorSpace="catalog"/>
-                        </textFieldCell>
-                    </textField>
-                    <textField horizontalHuggingPriority="251" verticalHuggingPriority="750" fixedFrame="YES" translatesAutoresizingMaskIntoConstraints="NO" id="bGG-1s-avp">
-                        <rect key="frame" x="6" y="181" width="42" height="14"/>
+                    <textField horizontalHuggingPriority="251" verticalHuggingPriority="750" fixedFrame="YES" translatesAutoresizingMaskIntoConstraints="NO" id="lld-oX-GqI">
+                        <rect key="frame" x="7" y="464" width="52" height="14"/>
                         <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMinY="YES"/>
-                        <textFieldCell key="cell" controlSize="small" lineBreakMode="clipping" title="Result" id="Wpf-P0-GVn">
+                        <textFieldCell key="cell" controlSize="small" lineBreakMode="clipping" title="Test URL" id="XqD-aE-eA8">
                             <font key="font" metaFont="smallSystem"/>
                             <color key="textColor" name="labelColor" catalog="System" colorSpace="catalog"/>
                             <color key="backgroundColor" name="textBackgroundColor" catalog="System" colorSpace="catalog"/>
                         </textFieldCell>
                     </textField>
+                    <scrollView fixedFrame="YES" borderType="none" autohidesScrollers="YES" horizontalLineScroll="10" horizontalPageScroll="10" verticalLineScroll="10" verticalPageScroll="10" hasHorizontalScroller="NO" horizontalScrollElasticity="none" translatesAutoresizingMaskIntoConstraints="NO" id="NNs-Xk-fv6">
+                        <rect key="frame" x="9" y="8" width="572" height="436"/>
+                        <autoresizingMask key="autoresizingMask"/>
+                        <clipView key="contentView" ambiguous="YES" drawsBackground="NO" copiesOnScroll="NO" id="k0G-uq-6Cu">
+                            <rect key="frame" x="0.0" y="0.0" width="572" height="436"/>
+                            <autoresizingMask key="autoresizingMask" widthSizable="YES" heightSizable="YES"/>
+                            <subviews>
+                                <textView ambiguous="YES" editable="NO" importsGraphics="NO" richText="NO" verticallyResizable="YES" allowsCharacterPickerTouchBarItem="NO" textCompletion="NO" id="qaM-sW-3L0">
+                                    <rect key="frame" x="0.0" y="0.0" width="572" height="436"/>
+                                    <autoresizingMask key="autoresizingMask" widthSizable="YES" heightSizable="YES"/>
+                                    <color key="textColor" name="textColor" catalog="System" colorSpace="catalog"/>
+                                    <color key="backgroundColor" name="textBackgroundColor" catalog="System" colorSpace="catalog"/>
+                                    <size key="minSize" width="572" height="436"/>
+                                    <size key="maxSize" width="572" height="10000000"/>
+                                    <color key="insertionPointColor" name="textColor" catalog="System" colorSpace="catalog"/>
+                                    <connections>
+                                        <outlet property="delegate" destination="-3" id="M4s-ic-Ytn"/>
+                                    </connections>
+                                </textView>
+                            </subviews>
+                        </clipView>
+                        <scroller key="horizontalScroller" hidden="YES" wantsLayer="YES" verticalHuggingPriority="750" horizontal="YES" id="C1T-EH-gAk">
+                            <rect key="frame" x="-100" y="-100" width="240" height="16"/>
+                            <autoresizingMask key="autoresizingMask"/>
+                        </scroller>
+                        <scroller key="verticalScroller" hidden="YES" wantsLayer="YES" verticalHuggingPriority="750" horizontal="NO" id="tab-N9-B8Q">
+                            <rect key="frame" x="556" y="0.0" width="16" height="436"/>
+                            <autoresizingMask key="autoresizingMask"/>
+                        </scroller>
+                    </scrollView>
                 </subviews>
             </view>
-            <point key="canvasLocation" x="-26" y="-304.5"/>
+            <point key="canvasLocation" x="71.5" y="-176"/>
         </window>
         <window title="Window" allowsToolTipsWhenApplicationIsInactive="NO" autorecalculatesKeyViewLoop="NO" releasedWhenClosed="NO" visibleAtLaunch="NO" frameAutosaveName="" animationBehavior="default" id="wYC-J9-waJ">
             <windowStyleMask key="styleMask" titled="YES" closable="YES" miniaturizable="YES" resizable="YES"/>

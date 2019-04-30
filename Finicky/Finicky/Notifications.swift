@@ -13,7 +13,9 @@ func showNotification(title: String, subtitle: String? = nil, informativeText: S
         notification.informativeText = informativeText!
     }
 
-    notification.soundName = NSUserNotificationDefaultSoundName
+    if error {
+        notification.soundName = NSUserNotificationDefaultSoundName
+    }
     
     NSUserNotificationCenter.default.deliver(notification)    
 }

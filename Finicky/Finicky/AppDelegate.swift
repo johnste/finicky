@@ -39,7 +39,7 @@ class AppDelegate: NSObject, NSApplicationDelegate, NSUserNotificationCenterDele
             statusItem.isVisible = !show
         }
 
-        configLoader = FinickyConfig(toggleIconCallback: toggleIconCallback)
+        configLoader = FinickyConfig(toggleIconCallback: toggleIconCallback, logToConsoleCallback: logToConsole)
         configLoader.reload(showSuccess: false)
 
     }
@@ -59,12 +59,20 @@ class AppDelegate: NSObject, NSApplicationDelegate, NSUserNotificationCenterDele
         self.testConfigWindow.orderFront(sender)
     }
 
-    override func controlTextDidChange(_ obj: Notification) {
+    func logToConsole(_ message: String) {
+        let date = Date()
+        let formatter = DateFormatter()
+        formatter.dateFormat = "yyyy-MM-dd hh:mm:ss"
+        let dateString = formatter.string(from: date)
+        self.label.string = dateString + " - " + message + "\n" + self.label.string.prefix(20000) + "\n\n"
+    }
+
+    override func controlTextDidEndEditing(_ obj: Notification) {
         let object = obj.object as! NSTextField
         let value = object.stringValue
 
         if (!value.starts(with: "https://") && !value.starts(with: "http://")) {
-            self.label.stringValue = ""
+            logToConsole("Finicky only understand https:// and http:// urls")
             return
         }
         if let url = URL.init(string: value) {
@@ -73,23 +81,16 @@ class AppDelegate: NSObject, NSApplicationDelegate, NSUserNotificationCenterDele
 
                 if let options = appDescriptor.options {
                     description = """
-                    Will open:
-                    Application \(AppDescriptorType.bundleId == appDescriptor.type ? "bundleId" : "") "\(appDescriptor.value)"
-                    URL: "\(appDescriptor.url)"
-                    Will \(options.openInBackground ? "open" : "not open") application in the background
+                    Would open \(AppDescriptorType.bundleId == appDescriptor.type ? "bundleId" : "") "\(appDescriptor.value)" \(options.openInBackground ? "application in the background" : "") URL: "\(appDescriptor.url)"
                     """
                 } else {
                     description = """
-                        Will open:
-                        Application \(AppDescriptorType.bundleId == appDescriptor.type ? "bundleId" : "") "\(appDescriptor.value)"
-                        URL: "\(appDescriptor.url)"
+                        Would open \(AppDescriptorType.bundleId == appDescriptor.type ? "bundleId" : "") "\(appDescriptor.value)" URL: "\(appDescriptor.url)"
                         """
                 }
-                self.label.stringValue = description
-            } else {
-                self.label.stringValue = ""
+                logToConsole(description)
             }
-        }
+        }        
     }
 
     @objc func toggleDockIcon(showIcon state: Bool) -> Bool {
@@ -135,7 +136,7 @@ class AppDelegate: NSObject, NSApplicationDelegate, NSUserNotificationCenterDele
                 openUrlWithBrowser(appDescriptor.url, bundleIdentifier:bundleId!, options: appDescriptor.options )
             } else {
                 print ("Finicky was unable to find the application \"" + appDescriptor.value + "\"")
-                showNotification(title: "Unable to find application", informativeText: "Finicky was unable to find the application \"" + appDescriptor.value + "\"")
+                showNotification(title: "Unable to find application", informativeText: "Finicky was unable to find the application \"" + appDescriptor.value + "\"", error: true)
             }
         }
     }

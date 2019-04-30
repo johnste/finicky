@@ -1,14 +1,28 @@
+// if (typeof options === "object") {
+//   validateObject(
+//     options,
+//     {},
+//     {
+//       openInBackground: "boolean"
+//     }
+//   );
+// }
+
 (function() {
   return function processUrl(urlString, urlObject) {
     for (handler of module.exports.handlers) {
       const match = getMatch(handler.match, urlString, urlObject);
       if (match) {
-        return processResult(handler.value, urlString, urlObject);
+        return processBrowserResult(handler.browser, urlString, urlObject);
       }
     }
 
     if (module.exports.defaultBrowser) {
-      return processResult(module.exports.defaultBrowser, urlString, urlObject);
+      return processBrowserResult(
+        module.exports.defaultBrowser,
+        urlString,
+        urlObject
+      );
     }
   };
 
@@ -36,28 +50,30 @@
     });
   }
 
-  function processResult(result, urlString, urlObject) {
-    if (typeof result === "function") {
-      result = result(urlString, urlObject);
+  function processBrowserResult(browser, urlString, urlObject) {
+    if (typeof browser === "function") {
+      browser = browser(urlString, urlObject);
     }
 
     // If all we got was a string, try to figure out if it's a bundle identifier or an application name
-    if (typeof result === "string") {
-      const type = isBundleIdentifier(result) ? "bundleId" : "appName";
+    if (typeof browser === "string") {
+      const type = isBundleIdentifier(browser) ? "bundleId" : "appName";
 
       return {
-        value: result,
+        value: browser,
         type
       };
     }
 
-    if (typeof result === "object") {
-      if (typeof result.type === "undefined") {
-        result.type = isBundleIdentifier(result.value) ? "bundleId" : "appName";
+    if (typeof browser === "object") {
+      if (typeof browser.type === "undefined") {
+        browser.type = isBundleIdentifier(browser.value)
+          ? "bundleId"
+          : "appName";
       }
 
       validateObject(
-        result,
+        browser,
         {
           value: "string",
           type: "string"
@@ -68,22 +84,12 @@
         }
       );
 
-      if (typeof result.options === "object") {
-        validateObject(
-          result.options,
-          {},
-          {
-            openInBackground: "boolean"
-          }
-        );
-      }
-
-      return result;
+      return browser;
     }
 
     throw new Error(
       "Unrecognized result value, expected type [string or object], found " +
-        JSON.stringify(result)
+        JSON.stringify(browser)
     );
   }
 
@@ -101,6 +107,7 @@
     if (typeof value !== "object") {
       throw new Error("Expected object value");
     }
+
     const keys = Object.keys(value);
     const requiredKeys = Object.keys(required);
     const optionalKeys = Object.keys(optional);

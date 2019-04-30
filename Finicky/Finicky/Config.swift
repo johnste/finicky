@@ -34,6 +34,7 @@ open class FinickyConfig {
     var ctx: JSContext!
     var validateConfigJS : String?;
     var processUrlJS : String?;
+    var validateLibJS : String?;
     var hasError: Bool = false;
 
     var dispatchSource: DispatchSourceFileSystemObject?
@@ -41,10 +42,21 @@ open class FinickyConfig {
     var fileManager = FileManager.init();
     var lastModificationDate: Date? = nil;
     var toggleIconCallback:(_ hide: Bool) -> Void;
+    var logToConsole:(_ message: String) -> Void;
 
-    public init(toggleIconCallback: @escaping (_ hide: Bool) -> Void ) {
+    public init(toggleIconCallback: @escaping (_ hide: Bool) -> Void, logToConsoleCallback: @escaping (_ message: String) -> Void ) {
         self.toggleIconCallback = toggleIconCallback
+        self.logToConsole = logToConsoleCallback
         listenToChanges();
+
+        if let path = Bundle.main.path(forResource: "validate.js", ofType: nil ) {
+            do {
+                validateLibJS = try String(contentsOfFile: path, encoding: String.Encoding.utf8)
+            }
+            catch {
+                validateLibJS = nil
+            }
+        }
 
         if let path = Bundle.main.path(forResource: "validateConfig.js", ofType: nil ) {
             do {
@@ -118,16 +130,21 @@ open class FinickyConfig {
         ctx.exceptionHandler = {
             context, exception in
                 self.hasError = true;
-                print("Error parsing config: \"\(String(describing: exception!))\"")
-                showNotification(title: "Error parsing config", informativeText: String(describing: exception!))
+                let message = "Error parsing config: \"\(String(describing: exception!))\"";
+                print(message)
+                showNotification(title: "Error parsing config", informativeText: String(describing: exception!), error: true)
+                self.logToConsole(message)
         }
 
         ctx.evaluateScript("const module = {}")
+
+        ctx.evaluateScript(validateLibJS!);
+
         self.setupAPI(ctx)
         return ctx
     }
 
-    open func parseConfig(_ config: String) -> Bool {
+    open func parseConfig(_ config: String) -> Bool {        
         ctx.evaluateScript(config)
 
         if (self.hasError) {
@@ -139,8 +156,10 @@ open class FinickyConfig {
         if let isBoolean = validConfig?.isBoolean {
             if (isBoolean) {
                 if (!(validConfig?.toBool())!) {
-                    print("Invalid config")
-                    showNotification(title: "Invalid config")
+                    let message = "Invalid config"
+                    print(message)
+                    showNotification(title: message, error: true)
+                    logToConsole(message)
                     return false;
                 } else {
                     return true;
@@ -164,8 +183,10 @@ open class FinickyConfig {
         }
 
         if config == nil {
-            showNotification(title: "Config file could not be read or found")
-            print("Config file could not be read or found")
+            let message = "Config file could not be read or found"
+            showNotification(title: message, error: true)
+            print(message)
+            logToConsole(message)
             return
         }
 
@@ -179,6 +200,7 @@ open class FinickyConfig {
             if (success && showSuccess) {
                 toggleIconCallback(getHideIcon())
                 showNotification(title: "Reloaded config successfully")
+                logToConsole("Reloaded config successfully")
             }
         }
 
@@ -207,7 +229,9 @@ open class FinickyConfig {
             }
 
             if (type == nil) {
-                showNotification(title: "Unrecognized app type \"\(String(describing: type))\"")
+                let message = "Unrecognized app type \"\(String(describing: type))\""
+                showNotification(title: message, error: true)
+                logToConsole(message)
             } else {
                 //let openInBackground = ?["openInBackground"] as! Bool ?? false
                 var options : AppDescriptorOptions? = nil;
