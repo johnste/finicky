@@ -8,25 +8,17 @@ public enum AppDescriptorType: String {
     case appName
 }
 
-public struct AppDescriptorOptions {
-    public var openInBackground: Bool
-
-    public init(openInBackground: Bool) {
-        self.openInBackground = openInBackground
-    }
-}
-
 public struct AppDescriptor {
-    public var value: String
-    public var type: AppDescriptorType
+    public var name: String
+    public var appType: AppDescriptorType
     public var url: URL
-    public var options: AppDescriptorOptions?
+    public var openInBackground: Bool?
 
-    public init(value: String, type: AppDescriptorType, url: URL, options: AppDescriptorOptions?) {
-        self.value = value
-        self.type = type
+    public init(name: String, appType: AppDescriptorType, url: URL, openInBackground: Bool?) {
+        self.name = name
+        self.appType = appType
         self.url = url
-        self.options = options
+        self.openInBackground = openInBackground
     }
 }
 
@@ -187,9 +179,22 @@ open class FinickyConfig {
 
         if config == nil {
             let message = "Config file could not be read or found"
-            showNotification(title: message, error: true)
+            showNotification(title: message, subtitle: "Click here to show example config file", error: true)
             print(message)
-            logToConsole(message)
+            logToConsole(message + "\n\n" + """
+                // --------------------------------------------------------------
+                // Example config, save as ~/.finicky.js
+                module.exports = {
+                    defaultBrowser: "com.google.Chrome",
+                    handlers: [
+                        {
+                            match: /^https?:\\/\\/(youtube|facebook|twitter|linkedin|keep\\.google)\\.com/,
+                            app: "Google Chrome"
+                        }
+                    ]
+                };
+                // --------------------------------------------------------------
+            """)
             return
         }
 
@@ -231,7 +236,7 @@ open class FinickyConfig {
 
         if ((appValue?.isObject)!) {
             let dict = appValue?.toDictionary()
-            let type = AppDescriptorType(rawValue: dict!["type"] as! String)
+            let appType = AppDescriptorType(rawValue: dict!["appType"] as! String)
 
             var finalUrl = url
 
@@ -243,19 +248,19 @@ open class FinickyConfig {
                 }
             }
 
-            if (type == nil) {
-                let message = "Unrecognized app type \"\(String(describing: type))\""
+            if (appType == nil) {
+                let message = "Unrecognized app type \"\(String(describing: appType))\""
                 showNotification(title: message, error: true)
                 logToConsole(message)
             } else {
-                //let openInBackground = ?["openInBackground"] as! Bool ?? false
-                var options : AppDescriptorOptions? = nil;
+
+                var openInBackground : Bool? = false
 
                 if let optionsDict = dict!["options"] {
-                    let openInBackgrund = (optionsDict as! Dictionary)["openInBackground"] ?? false
-                    options = AppDescriptorOptions(openInBackground: openInBackgrund)
+                    openInBackground = (optionsDict as! Dictionary)["openInBackground"]
+
                 }
-                return AppDescriptor(value: dict!["name"] as! String, type: type!, url: finalUrl, options: options)
+                return AppDescriptor(name: dict!["name"] as! String, appType: appType!, url: finalUrl, openInBackground: openInBackground)
             }
         }
 

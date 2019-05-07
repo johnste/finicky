@@ -82,13 +82,13 @@ class AppDelegate: NSObject, NSApplicationDelegate, NSUserNotificationCenterDele
             if let appDescriptor = configLoader.determineOpeningApp(url: url, sourceBundleIdentifier: "net.kassett.finicky") {
                 var description = ""
 
-                if let options = appDescriptor.options {
+                if let openInBackground = appDescriptor.openInBackground {
                     description = """
-                    Would open \(AppDescriptorType.bundleId == appDescriptor.type ? "bundleId" : "") "\(appDescriptor.value)" \(options.openInBackground ? "application in the background" : "") URL: "\(appDescriptor.url)"
+                    Would open \(AppDescriptorType.bundleId == appDescriptor.appType ? "bundleId" : "") "\(appDescriptor.name)" \(openInBackground ? "application in the background" : "") URL: "\(appDescriptor.url)"
                     """
                 } else {
                     description = """
-                        Would open \(AppDescriptorType.bundleId == appDescriptor.type ? "bundleId" : "") "\(appDescriptor.value)" URL: "\(appDescriptor.url)"
+                        Would open \(AppDescriptorType.bundleId == appDescriptor.appType ? "bundleId" : "") "\(appDescriptor.name)" URL: "\(appDescriptor.url)"
                         """
                 }
                 logToConsole(description)
@@ -125,10 +125,10 @@ class AppDelegate: NSObject, NSApplicationDelegate, NSUserNotificationCenterDele
         if let appDescriptor = configLoader.determineOpeningApp(url: url, sourceBundleIdentifier: sourceBundleIdentifier) {
             var bundleId : String?
 
-            if (appDescriptor.type == AppDescriptorType.bundleId) {
-                bundleId = appDescriptor.value
+            if (appDescriptor.appType == AppDescriptorType.bundleId) {
+                bundleId = appDescriptor.name
             } else {
-                if let path = NSWorkspace.shared.fullPath(forApplication: appDescriptor.value) {
+                if let path = NSWorkspace.shared.fullPath(forApplication: appDescriptor.name) {
                     if let bundle = Bundle(path: path) {
                         bundleId = bundle.bundleIdentifier
                     }
@@ -136,10 +136,10 @@ class AppDelegate: NSObject, NSApplicationDelegate, NSUserNotificationCenterDele
             }
 
             if bundleId != nil {
-                openUrlWithBrowser(appDescriptor.url, bundleIdentifier:bundleId!, options: appDescriptor.options )
+                openUrlWithBrowser(appDescriptor.url, bundleIdentifier:bundleId!, openInBackground: appDescriptor.openInBackground )
             } else {
-                print ("Finicky was unable to find the application \"" + appDescriptor.value + "\"")
-                showNotification(title: "Unable to find application", informativeText: "Finicky was unable to find the application \"" + appDescriptor.value + "\"", error: true)
+                print ("Finicky was unable to find the application \"" + appDescriptor.name + "\"")
+                showNotification(title: "Unable to find application", informativeText: "Finicky was unable to find the application \"" + appDescriptor.name + "\"", error: true)
             }
         }
     }
@@ -153,14 +153,11 @@ class AppDelegate: NSObject, NSApplicationDelegate, NSUserNotificationCenterDele
     }
 
 
-    func openUrlWithBrowser(_ url: URL, bundleIdentifier: String, options: AppDescriptorOptions?) {
+    func openUrlWithBrowser(_ url: URL, bundleIdentifier: String, openInBackground: Bool?) {
         let urls = [url]
 
         // Launch in background by default if finicky isn't active to avoid something..
-        var openInBackground = !isActive
-        if options != nil {
-            openInBackground = (options?.openInBackground)!
-        }
+        let openInBackground = openInBackground ?? !isActive
 
         if !openInBackground {
             NSWorkspace.shared.launchApplication(

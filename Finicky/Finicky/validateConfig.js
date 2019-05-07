@@ -30,11 +30,12 @@
             validate.oneOf([validate.string, validate.function, validate.regex])
           )
         ]).isRequired,
-        browser: validate.oneOf([
+        app: validate.oneOf([
           validate.string,
           validate.shape({
             name: validate.string.isRequired,
-            type: validate.oneOf(["name", "bundleIdentifier"]).isRequired
+            appType: validate.oneOf(["name", "bundleIdentifier"]),
+            openInBackground: validate.boolean
           })
         ]).isRequired
       })

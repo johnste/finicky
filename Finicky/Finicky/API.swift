@@ -4,6 +4,7 @@ import JavaScriptCore
 @objc protocol FinickyAPIExports : JSExport {
     static func log(_ message: String?) -> Void
     static func notify(_ title: JSValue, _ subtitle: JSValue) -> Void
+    static func matchDomains(_ domains: [String]) -> ((_ url: String) -> JSValue)
     static func getUrlParts(_ url: String) -> Dictionary<String, Any>
 }
 
@@ -35,6 +36,20 @@ import JavaScriptCore
 
     @objc class func setLog(_ logToConsole: @escaping (_ message: String) -> Void) {
         self.logToConsole = logToConsole
+    }
+
+    @objc class func matchDomains(_ domains: [String]) -> ((_ url: String) -> JSValue) {
+        func matchDomain(url: String) -> JSValue {
+            for domain in domains {
+                let urlParts = getUrlParts(url);
+                if( urlParts["host"] as! String == domain) {
+                   return JSValue(bool: true, in: context)
+                }
+            }
+            return JSValue(bool: false, in: context)
+        }
+
+        return matchDomain;
     }
 
     @objc class func getUrlParts(_ urlString: String) -> Dictionary<String, Any> {
