@@ -26,20 +26,21 @@ class ResolveShortUrls: NSObject, URLSessionDelegate, URLSessionTaskDelegate {
 
 class FNShortUrlResolver {
 
-    fileprivate var shortUrlProviders = [
-        "bit.ly",
-        "goo.gl",
-        "ow.ly",
-        "deck.ly",
-        "t.co",
-        "su.pr",
-        "spoti.fi",
-        "fur.ly",
-        "tinyurl.com",
-        "tiny.cc"
-    ]
+    fileprivate var shortUrlProviders : [String] = []
 
-    init() {
+    init(shortUrlProviders: [String]?) {
+        self.shortUrlProviders = shortUrlProviders ?? [
+            "bit.ly",
+            "goo.gl",
+            "ow.ly",
+            "deck.ly",
+            "t.co",
+            "su.pr",
+            "spoti.fi",
+            "fur.ly",
+            "tinyurl.com",
+            "tiny.cc"
+        ]
     }
 
     func isShortUrl(_ url: URL) -> Bool {

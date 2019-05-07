@@ -39,7 +39,11 @@ class AppDelegate: NSObject, NSApplicationDelegate, NSUserNotificationCenterDele
             statusItem.isVisible = !show
         }
 
-        configLoader = FinickyConfig(toggleIconCallback: toggleIconCallback, logToConsoleCallback: logToConsole)
+        func setShortUrlProviders(shortUrlProviders: [String]?) {
+            shortUrlResolver = FNShortUrlResolver(shortUrlProviders: shortUrlProviders)
+        }
+
+        configLoader = FinickyConfig(toggleIconCallback: toggleIconCallback, logToConsoleCallback: logToConsole, setShortUrlProviders: setShortUrlProviders)
         configLoader.reload(showSuccess: false)
 
     }
@@ -53,7 +57,7 @@ class AppDelegate: NSObject, NSApplicationDelegate, NSUserNotificationCenterDele
         NSApp.orderFrontStandardAboutPanel(sender)
     }
 
-    @IBAction func showTestConfigWindow(_ sender: NSMenuItem) {
+    @IBAction func showTestConfigWindow(_ sender: Any?) {
         NSApp.activate(ignoringOtherApps: true)
         self.testConfigWindow.center()
         self.testConfigWindow.orderFront(sender)
@@ -67,16 +71,15 @@ class AppDelegate: NSObject, NSApplicationDelegate, NSUserNotificationCenterDele
         self.textView.string = dateString + " - " + message + "\n\n" + self.textView.string.prefix(20000).trimmingCharacters(in: .whitespacesAndNewlines)
     }
 
-    override func controlTextDidEndEditing(_ obj: Notification) {
-        let object = obj.object as! NSTextField
-        let value = object.stringValue
+    @IBAction func testUrl(_ sender: NSTextField) {
+        let value = sender.stringValue
 
         if (!value.starts(with: "https://") && !value.starts(with: "http://")) {
             logToConsole("Finicky only understand https:// and http:// urls")
             return
         }
         if let url = URL.init(string: value) {
-            if let appDescriptor = configLoader.determineOpeningApp(url: url) {
+            if let appDescriptor = configLoader.determineOpeningApp(url: url, sourceBundleIdentifier: "net.kassett.finicky") {
                 var description = ""
 
                 if let options = appDescriptor.options {
@@ -90,7 +93,7 @@ class AppDelegate: NSObject, NSApplicationDelegate, NSUserNotificationCenterDele
                 }
                 logToConsole(description)
             }
-        }        
+        }
     }
 
     @objc func toggleDockIcon(showIcon state: Bool) -> Bool {
@@ -119,7 +122,7 @@ class AppDelegate: NSObject, NSApplicationDelegate, NSUserNotificationCenterDele
     }
 
     @objc func callUrlHandlers(_ sourceBundleIdentifier: String?, url: URL) {
-        if let appDescriptor = configLoader.determineOpeningApp(url: url) {
+        if let appDescriptor = configLoader.determineOpeningApp(url: url, sourceBundleIdentifier: sourceBundleIdentifier) {
             var bundleId : String?
 
             if (appDescriptor.type == AppDescriptorType.bundleId) {
@@ -144,6 +147,11 @@ class AppDelegate: NSObject, NSApplicationDelegate, NSUserNotificationCenterDele
     func userNotificationCenter(_ center: NSUserNotificationCenter, shouldPresent notification: NSUserNotification) -> Bool {
         return true
     }
+
+    func userNotificationCenter(_ center: NSUserNotificationCenter, didActivate notification: NSUserNotification) -> Void {
+        showTestConfigWindow(nil)
+    }
+
 
     func openUrlWithBrowser(_ url: URL, bundleIdentifier: String, options: AppDescriptorOptions?) {
         let urls = [url]
@@ -180,7 +188,6 @@ class AppDelegate: NSObject, NSApplicationDelegate, NSUserNotificationCenterDele
 
 
     func applicationWillFinishLaunching(_ aNotification: Notification) {
-        shortUrlResolver = FNShortUrlResolver()
         let appleEventManager:NSAppleEventManager = NSAppleEventManager.shared()
         appleEventManager.setEventHandler(self, andSelector: #selector(AppDelegate.handleGetURLEvent(_:withReplyEvent:)), forEventClass: AEEventClass(kInternetEventClass), andEventID: AEEventID(kAEGetURL))
     }

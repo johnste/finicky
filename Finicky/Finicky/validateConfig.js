@@ -12,7 +12,10 @@
         match: validate.oneOf([
           validate.string,
           validate.function,
-          validate.regex
+          validate.regex,
+          validate.arrayOf(
+            validate.oneOf([validate.string, validate.function, validate.regex])
+          )
         ]).isRequired,
         url: validate.oneOf([validate.string, validate.function]).isRequired
       }).isRequired

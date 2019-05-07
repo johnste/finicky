@@ -4,15 +4,18 @@ import JavaScriptCore
 @objc protocol FinickyAPIExports : JSExport {
     static func log(_ message: String?) -> Void
     static func notify(_ title: JSValue, _ subtitle: JSValue) -> Void
+    static func getUrlParts(_ url: String) -> Dictionary<String, Any>
 }
 
 @objc open class FinickyAPI : NSObject, FinickyAPIExports {
 
     fileprivate static var context : JSContext! = nil
+    fileprivate static var logToConsole:((_ message: String) -> Void)? = nil;
 
     static func log(_ message: String?) -> Void {
         if message != nil {
             NSLog(message!)
+            logToConsole!(message!)
         }
     }
 
@@ -26,11 +29,40 @@ import JavaScriptCore
         }
     }
 
-    @objc open class func reset() -> Void {
-    }
-
     @objc class func setContext(_ context: JSContext) {
         self.context = context
+    }
+
+    @objc class func setLog(_ logToConsole: @escaping (_ message: String) -> Void) {
+        self.logToConsole = logToConsole
+    }
+
+    @objc class func getUrlParts(_ urlString: String) -> Dictionary<String, Any> {
+        let url: URL! = URL.init(string: urlString)
+
+        guard url != nil else { return [:] }
+
+        let _protocol = url.scheme ?? nil
+        let username = url.user ?? nil
+        let password = url.password ?? nil
+        let host = url.host ?? nil
+        let port = url.port ?? nil
+        let pathname = url.path
+        let search = url.query ?? nil
+        let hash = url.fragment ?? nil
+
+        let urlDict = [
+            "hash": hash as Any,
+            "host": host as Any,
+            "protocol": _protocol as Any,
+            "port": port as Any,
+            "username": username as Any,
+            "password": password as Any,
+            "pathname": pathname,
+            "search": search as Any,
+        ]
+
+        return urlDict
     }
 
 }

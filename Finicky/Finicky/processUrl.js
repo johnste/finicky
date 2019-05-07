@@ -1,32 +1,45 @@
-// if (typeof options === "object") {
-//   validateObject(
-//     options,
-//     {},
-//     {
-//       openInBackground: "boolean"
-//     }
-//   );
-// }
-
 (function() {
-  return function processUrl(urlString, urlObject) {
+  const { validate, getErrors } = fastidious;
+
+  return function processUrl(url, options = {}) {
+    const { url: finalUrl, urlParts } = rewriteUrl(url, options);
+
+    let finalOptions = {
+      ...options,
+      url: urlParts
+    };
+
     for (handler of module.exports.handlers) {
-      const match = getMatch(handler.match, urlString, urlObject);
-      if (match) {
-        return processBrowserResult(handler.browser, urlString, urlObject);
+      if (isMatch(handler.match, finalUrl, finalOptions)) {
+        return processBrowserResult(handler.browser, finalUrl, finalOptions);
       }
     }
 
     if (module.exports.defaultBrowser) {
       return processBrowserResult(
         module.exports.defaultBrowser,
-        urlString,
-        urlObject
+        finalUrl,
+        finalOptions
       );
     }
   };
 
-  function getMatch(matcher, urlString, urlObject) {
+  function rewriteUrl(url, options) {
+    let url = url;
+
+    for (rewrite of module.exports.rewrite) {
+      if (isMatch(rewrite.match, url, options)) {
+        url = resolveFn(rewrite.url, url, options);
+      }
+    }
+
+    return {
+      url: url,
+      urlParts: finicky.getUrlParts(url)
+    };
+  }
+
+  function isMatch(matcher, url, options) {
     if (!matcher) {
       return false;
     }
@@ -35,62 +48,61 @@
 
     return matchers.some(matcher => {
       if (matcher instanceof RegExp) {
-        return matcher.test(urlString);
-      }
-
-      if (typeof matcher === "string") {
-        return matcher === urlString;
-      }
-
-      if (typeof matcher === "function") {
-        return !!matcher(urlString, urlObject);
+        return matcher.test(url);
+      } else if (typeof matcher === "string") {
+        return matcher === url;
+      } else if (typeof matcher === "function") {
+        return !!matcher(url, options);
       }
 
       return false;
     });
   }
 
-  function processBrowserResult(browser, urlString, urlObject) {
-    if (typeof browser === "function") {
-      browser = browser(urlString, urlObject);
+  // Recursively resolve handler to value
+  function resolveFn(handler, ...args) {
+    if (typeof handler === "function") {
+      return resolveFn(handler(...args), ...args);
     }
+    return handler;
+  }
+
+  function getAppType(value) {
+    return isBundleIdentifier(browser) ? "bundleId" : "app";
+  }
+
+  function processBrowserResult(handler, url, options) {
+    let app = resolveFn(handler, url, options);
 
     // If all we got was a string, try to figure out if it's a bundle identifier or an application name
-    if (typeof browser === "string") {
-      const type = isBundleIdentifier(browser) ? "bundleId" : "appName";
-
-      return {
-        value: browser,
-        type
+    if (typeof app === "string") {
+      app = {
+        name: app
       };
     }
 
-    if (typeof browser === "object") {
-      if (typeof browser.type === "undefined") {
-        browser.type = isBundleIdentifier(browser.value)
-          ? "bundleId"
-          : "appName";
-      }
-
-      validateObject(
-        browser,
-        {
-          value: "string",
-          type: "string"
-        },
-        {
-          url: "string",
-          options: "object"
-        }
-      );
-
-      return browser;
+    if (typeof app === "object" && app.name && !app.appType) {
+      app = {
+        ...app,
+        appType: getAppType(app.name)
+      };
     }
 
-    throw new Error(
-      "Unrecognized result value, expected type [string or object], found " +
-        JSON.stringify(browser)
-    );
+    const appDescriptorSchema = {
+      name: validate.string.isRequired,
+      appType: validate.oneOf([
+        validate.value("bundleId"),
+        validate.value("app")
+      ]).isRequired,
+      openInBackground: validate.bool
+    };
+
+    const errors = getErrors(app, appDescriptorSchema, "result.");
+    if (errors.length > 0) {
+      throw new Error(errors.join(", ") + "\n" + JSON.stringify(browser));
+    }
+
+    return { ...app, url };
   }
 
   function isBundleIdentifier(value) {
@@ -101,42 +113,5 @@
       return true;
     }
     return false;
-  }
-
-  function validateObject(value, required = {}, optional = {}) {
-    if (typeof value !== "object") {
-      throw new Error("Expected object value");
-    }
-
-    const keys = Object.keys(value);
-    const requiredKeys = Object.keys(required);
-    const optionalKeys = Object.keys(optional);
-    const allProperties = {
-      ...optional,
-      ...required
-    };
-
-    requiredKeys.forEach(key => {
-      if (!keys.includes(key)) {
-        throw new Error(
-          `Required key "${key}" missing in "${JSON.stringify(value)}"`
-        );
-      }
-    });
-
-    keys.forEach(key => {
-      if (![...requiredKeys, ...optionalKeys].includes(key)) {
-        throw new Error(`Unknown key "${key}" in "${JSON.stringify(value)}"`);
-      }
-
-      const expectedType = allProperties[key];
-      const actualType = typeof value[key];
-
-      if (expectedType !== actualType) {
-        throw new Error(
-          `Wrong type for key "${key}", found "${actualType}", expected "${expectedType}"`
-        );
-      }
-    });
   }
 })();

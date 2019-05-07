@@ -43,10 +43,13 @@ open class FinickyConfig {
     var lastModificationDate: Date? = nil;
     var toggleIconCallback:(_ hide: Bool) -> Void;
     var logToConsole:(_ message: String) -> Void;
+    var setShortUrlProviders:(_ urlShorteners: [String]?) -> Void;
 
-    public init(toggleIconCallback: @escaping (_ hide: Bool) -> Void, logToConsoleCallback: @escaping (_ message: String) -> Void ) {
+    public init(toggleIconCallback: @escaping (_ hide: Bool) -> Void, logToConsoleCallback: @escaping (_ message: String) -> Void , setShortUrlProviders: @escaping (_ shortUrlProviders: [String]?) -> Void) {
         self.toggleIconCallback = toggleIconCallback
         self.logToConsole = logToConsoleCallback
+        self.setShortUrlProviders = setShortUrlProviders
+
         listenToChanges();
 
         if let path = Bundle.main.path(forResource: "validate.js", ofType: nil ) {
@@ -144,7 +147,7 @@ open class FinickyConfig {
         return ctx
     }
 
-    open func parseConfig(_ config: String) -> Bool {        
+    open func parseConfig(_ config: String) -> Bool {
         ctx.evaluateScript(config)
 
         if (self.hasError) {
@@ -197,14 +200,16 @@ open class FinickyConfig {
         ctx = createContext()
         if config != nil {
             let success = parseConfig(config!)
-            if (success && showSuccess) {
+            if (success) {
                 toggleIconCallback(getHideIcon())
-                showNotification(title: "Reloaded config successfully")
-                logToConsole("Reloaded config successfully")
+                setShortUrlProviders(getShortUrlProviders());
+
+                if (showSuccess) {
+                    showNotification(title: "Reloaded config successfully")
+                    logToConsole("Reloaded config successfully")
+                }
             }
         }
-
-
     }
 
     open func getHideIcon() -> Bool {
@@ -216,16 +221,26 @@ open class FinickyConfig {
         return hideIcon!;
     }
 
-    open func determineOpeningApp(url: URL) -> AppDescriptor? {
-        let appValue = getConfiguredAppValue(url: url)
+    open func getShortUrlProviders() -> [String]? {
+        let urlShorteners = ctx.evaluateScript("module.exports.options && module.exports.options.urlShorteners || []")?.toArray()
+        return urlShorteners as! [String]?;
+    }
+
+    open func determineOpeningApp(url: URL, sourceBundleIdentifier: String?) -> AppDescriptor? {
+        let appValue = getConfiguredAppValue(url: url, sourceBundleIdentifier: sourceBundleIdentifier)
 
         if ((appValue?.isObject)!) {
             let dict = appValue?.toDictionary()
             let type = AppDescriptorType(rawValue: dict!["type"] as! String)
 
             var finalUrl = url
+
             if let newUrl = dict!["url"] as? String {
-                finalUrl = URL.init(string: newUrl) ?? url
+                if let rewrittenUrl = URL.init(string: newUrl) {
+                    finalUrl = rewrittenUrl
+                } else {
+                    logToConsole("Couldn't generate url from handler \(newUrl), falling back to original url")
+                }
             }
 
             if (type == nil) {
@@ -240,44 +255,23 @@ open class FinickyConfig {
                     let openInBackgrund = (optionsDict as! Dictionary)["openInBackground"] ?? false
                     options = AppDescriptorOptions(openInBackground: openInBackgrund)
                 }
-                return AppDescriptor(value: dict!["value"] as! String, type: type!, url: finalUrl, options: options)
+                return AppDescriptor(value: dict!["name"] as! String, type: type!, url: finalUrl, options: options)
             }
         }
 
         return nil
     }
 
-    func createUrlDict(url: URL) -> Dictionary<String, Any> {
-        let _protocol = url.scheme ?? nil
-        let username = url.user ?? nil
-        let password = url.password ?? nil
-        let host = url.host ?? nil
-        let port = url.port ?? nil
-        let pathname = url.path
-        let search = url.query ?? nil
-        let hash = url.fragment ?? nil
-
-        let urlDict = [
-            "hash": hash as Any,
-            "host": host as Any,
-            "protocol": _protocol as Any,
-            "port": port as Any,
-            "username": username as Any,
-            "password": password as Any,
-            "pathname": pathname,
-            "search": search as Any,
-        ]
-
-        return urlDict
-    }
-
-    func getConfiguredAppValue(url: URL) -> JSValue? {
-        let urlDict = createUrlDict(url: url)
-        let result = ctx.evaluateScript(processUrlJS!)?.call(withArguments: [url.absoluteString, urlDict])
+    func getConfiguredAppValue(url: URL, sourceBundleIdentifier: String?) -> JSValue? {
+        let optionsDict = [
+            "sourceBundleIdentifier": sourceBundleIdentifier as Any,
+            ] as [AnyHashable : Any]
+        let result = ctx.evaluateScript(processUrlJS!)?.call(withArguments: [url.absoluteString, optionsDict])
         return result
     }
 
     open func setupAPI(_ ctx: JSContext) {
+        FinickyAPI.setLog(logToConsole)
         FinickyAPI.setContext(ctx)
         ctx.setObject(FinickyAPI.self, forKeyedSubscript: "finicky" as NSCopying & NSObjectProtocol)
     }
