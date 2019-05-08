@@ -33,14 +33,11 @@ open class FinickyConfig {
     var fileDescriptor: Int32 = -1
     var fileManager = FileManager.init();
     var lastModificationDate: Date? = nil;
-    var toggleIconCallback:(_ hide: Bool) -> Void;
-    var logToConsole:(_ message: String) -> Void;
-    var setShortUrlProviders:(_ urlShorteners: [String]?) -> Void;
+    var toggleIconCallback:((_ hide: Bool) -> Void)?;
+    var logToConsole:((_ message: String) -> Void)?;
+    var setShortUrlProviders:((_ urlShorteners: [String]?) -> Void)?;
 
-    public init(toggleIconCallback: @escaping (_ hide: Bool) -> Void, logToConsoleCallback: @escaping (_ message: String) -> Void , setShortUrlProviders: @escaping (_ shortUrlProviders: [String]?) -> Void) {
-        self.toggleIconCallback = toggleIconCallback
-        self.logToConsole = logToConsoleCallback
-        self.setShortUrlProviders = setShortUrlProviders
+    public init() {
 
         listenToChanges();
 
@@ -69,6 +66,14 @@ open class FinickyConfig {
                 processUrlJS = nil
             }
         }
+    }
+
+    public convenience init(toggleIconCallback: @escaping (_ hide: Bool) -> Void, logToConsoleCallback: @escaping (_ message: String) -> Void , setShortUrlProviders: @escaping (_ shortUrlProviders: [String]?) -> Void) {
+        self.init();
+        self.toggleIconCallback = toggleIconCallback
+        self.logToConsole = logToConsoleCallback
+        self.setShortUrlProviders = setShortUrlProviders
+
     }
 
     func getModificationDate(atPath: String) -> Date? {
@@ -128,7 +133,9 @@ open class FinickyConfig {
                 let message = "Error parsing config: \"\(String(describing: exception!))\"";
                 print(message)
                 showNotification(title: "Error parsing config", informativeText: String(describing: exception!), error: true)
-                self.logToConsole(message)
+                if (self.logToConsole != nil) {
+                    self.logToConsole!(message)
+                }
         }
 
         ctx.evaluateScript("const module = {}")
@@ -154,7 +161,9 @@ open class FinickyConfig {
                     let message = "Invalid config"
                     print(message)
                     showNotification(title: message, error: true)
-                    logToConsole(message)
+                    if (self.logToConsole != nil) {
+                        self.logToConsole!(message)
+                    }
                     return false;
                 } else {
                     return true;
@@ -181,20 +190,22 @@ open class FinickyConfig {
             let message = "Config file could not be read or found"
             showNotification(title: message, subtitle: "Click here to show example config file", error: true)
             print(message)
-            logToConsole(message + "\n\n" + """
-                // --------------------------------------------------------------
-                // Example config, save as ~/.finicky.js
-                module.exports = {
-                    defaultBrowser: "com.google.Chrome",
-                    handlers: [
-                        {
-                            match: /^https?:\\/\\/(youtube|facebook|twitter|linkedin|keep\\.google)\\.com/,
-                            app: "Google Chrome"
-                        }
-                    ]
-                };
-                // --------------------------------------------------------------
-            """)
+            if (self.logToConsole != nil) {
+                self.logToConsole!(message + "\n\n" + """
+                    // --------------------------------------------------------------
+                    // Example config, save as ~/.finicky.js
+                    module.exports = {
+                        defaultBrowser: "Safari",
+                        handlers: [
+                            {
+                                match: /^https?:\\/\\/(youtube|facebook|twitter|linkedin|keep\\.google)\\.com/,
+                                app: "Google Chrome"
+                            }
+                        ]
+                    };
+                    // --------------------------------------------------------------
+                """)
+            }
             return
         }
 
@@ -206,12 +217,18 @@ open class FinickyConfig {
         if config != nil {
             let success = parseConfig(config!)
             if (success) {
-                toggleIconCallback(getHideIcon())
-                setShortUrlProviders(getShortUrlProviders());
+                if (self.toggleIconCallback != nil) {
+                    self.toggleIconCallback!(getHideIcon())
+                }
+                if (self.setShortUrlProviders != nil) {
+                    self.setShortUrlProviders!(getShortUrlProviders());
+                }
 
                 if (showSuccess) {
                     showNotification(title: "Reloaded config successfully")
-                    logToConsole("Reloaded config successfully")
+                    if (self.logToConsole != nil) {
+                        self.logToConsole!("Reloaded config successfully")
+                    }
                 }
             }
         }
@@ -233,7 +250,7 @@ open class FinickyConfig {
 
     open func determineOpeningApp(url: URL, sourceBundleIdentifier: String?) -> AppDescriptor? {
         let appValue = getConfiguredAppValue(url: url, sourceBundleIdentifier: sourceBundleIdentifier)
-
+       
         if ((appValue?.isObject)!) {
             let dict = appValue?.toDictionary()
             let appType = AppDescriptorType(rawValue: dict!["appType"] as! String)
@@ -243,22 +260,23 @@ open class FinickyConfig {
             if let newUrl = dict!["url"] as? String {
                 if let rewrittenUrl = URL.init(string: newUrl) {
                     finalUrl = rewrittenUrl
-                } else {
-                    logToConsole("Couldn't generate url from handler \(newUrl), falling back to original url")
+                } else if (self.logToConsole != nil){
+                    self.logToConsole!("Couldn't generate url from handler \(newUrl), falling back to original url")
                 }
             }
 
             if (appType == nil) {
                 let message = "Unrecognized app type \"\(String(describing: appType))\""
                 showNotification(title: message, error: true)
-                logToConsole(message)
+                if (self.logToConsole != nil){
+                    self.logToConsole!(message)
+                }
             } else {
 
-                var openInBackground : Bool? = false
+                var openInBackground : Bool? = nil
 
                 if let optionsDict = dict!["options"] {
                     openInBackground = (optionsDict as! Dictionary)["openInBackground"]
-
                 }
                 return AppDescriptor(name: dict!["name"] as! String, appType: appType!, url: finalUrl, openInBackground: openInBackground)
             }
@@ -276,7 +294,9 @@ open class FinickyConfig {
     }
 
     open func setupAPI(_ ctx: JSContext) {
-        FinickyAPI.setLog(logToConsole)
+        if (self.logToConsole != nil) {
+            FinickyAPI.setLog(logToConsole!)
+        }
         FinickyAPI.setContext(ctx)
         ctx.setObject(FinickyAPI.self, forKeyedSubscript: "finicky" as NSCopying & NSObjectProtocol)
     }

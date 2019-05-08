@@ -34,7 +34,7 @@
           validate.string,
           validate.shape({
             name: validate.string.isRequired,
-            appType: validate.oneOf(["name", "bundleIdentifier"]),
+            appType: validate.oneOf(["appName", "bundleId"]),
             openInBackground: validate.boolean
           })
         ]).isRequired

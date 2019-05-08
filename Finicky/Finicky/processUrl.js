@@ -3,7 +3,6 @@
 
   return function processUrl(url, options = {}) {
     const { url: finalUrl, urlParts } = rewriteUrl(url, options);
-
     let finalOptions = {
       ...options,
       url: urlParts
@@ -11,7 +10,7 @@
 
     for (handler of module.exports.handlers) {
       if (isMatch(handler.match, finalUrl, finalOptions)) {
-        return processBrowserResult(handler.browser, finalUrl, finalOptions);
+        return processBrowserResult(handler.app, finalUrl, finalOptions);
       }
     }
 
@@ -25,11 +24,11 @@
   };
 
   function rewriteUrl(url, options) {
-    let url = url;
-
-    for (rewrite of module.exports.rewrite) {
-      if (isMatch(rewrite.match, url, options)) {
-        url = resolveFn(rewrite.url, url, options);
+    if (Array.isArray(module.exports.rewrite)) {
+      for (rewrite of module.exports.rewrite) {
+        if (isMatch(rewrite.match, url, options)) {
+          url = resolveFn(rewrite.url, url, options);
+        }
       }
     }
 
@@ -68,7 +67,7 @@
   }
 
   function getAppType(value) {
-    return isBundleIdentifier(browser) ? "bundleId" : "app";
+    return isBundleIdentifier(value) ? "bundleId" : "appName";
   }
 
   function processBrowserResult(handler, url, options) {
@@ -92,14 +91,14 @@
       name: validate.string.isRequired,
       appType: validate.oneOf([
         validate.value("bundleId"),
-        validate.value("app")
+        validate.value("appName")
       ]).isRequired,
-      openInBackground: validate.bool
+      openInBackground: validate.boolean
     };
 
     const errors = getErrors(app, appDescriptorSchema, "result.");
     if (errors.length > 0) {
-      throw new Error(errors.join(", ") + "\n" + JSON.stringify(browser));
+      throw new Error(errors.join(", ") + "\n" + JSON.stringify(app));
     }
 
     return { ...app, url };
