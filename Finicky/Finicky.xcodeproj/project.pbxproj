@@ -22,6 +22,7 @@
 		548F11CC1B2A39F800FDDC3C /* finicky.icns in Resources */ = {isa = PBXBuildFile; fileRef = 548F11CB1B2A39F800FDDC3C /* finicky.icns */; };
 		548F11CE1B2A43F700FDDC3C /* API.swift in Sources */ = {isa = PBXBuildFile; fileRef = 548F11CD1B2A43F700FDDC3C /* API.swift */; };
 		54B0E7031B4678CE003F8AEE /* ShortUrlResolver.swift in Sources */ = {isa = PBXBuildFile; fileRef = 54B0E7021B4678CE003F8AEE /* ShortUrlResolver.swift */; };
+		54B5771622860D0B0016BF77 /* Credits.rtf in Resources */ = {isa = PBXBuildFile; fileRef = 54B5771522860D0B0016BF77 /* Credits.rtf */; };
 		54B9A8B622823ABB00BF67DE /* Utilities.swift in Sources */ = {isa = PBXBuildFile; fileRef = 54B9A8B522823ABB00BF67DE /* Utilities.swift */; };
 		54B9A8B822823B3A00BF67DE /* ConfigAppResult.swift in Sources */ = {isa = PBXBuildFile; fileRef = 54B9A8B722823B3A00BF67DE /* ConfigAppResult.swift */; };
 		54E33FD71B24E27000998E13 /* Config.swift in Sources */ = {isa = PBXBuildFile; fileRef = 54E33FD61B24E27000998E13 /* Config.swift */; };
@@ -57,6 +58,7 @@
 		548F11CB1B2A39F800FDDC3C /* finicky.icns */ = {isa = PBXFileReference; lastKnownFileType = image.icns; path = finicky.icns; sourceTree = "<group>"; };
 		548F11CD1B2A43F700FDDC3C /* API.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = API.swift; sourceTree = "<group>"; };
 		54B0E7021B4678CE003F8AEE /* ShortUrlResolver.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = ShortUrlResolver.swift; sourceTree = "<group>"; };
+		54B5771522860D0B0016BF77 /* Credits.rtf */ = {isa = PBXFileReference; lastKnownFileType = text.rtf; path = Credits.rtf; sourceTree = "<group>"; };
 		54B9A8B522823ABB00BF67DE /* Utilities.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Utilities.swift; sourceTree = "<group>"; };
 		54B9A8B722823B3A00BF67DE /* ConfigAppResult.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ConfigAppResult.swift; sourceTree = "<group>"; };
 		54E33FD61B24E27000998E13 /* Config.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = Config.swift; sourceTree = "<group>"; };
@@ -114,6 +116,7 @@
 				543EC33E21DE54E9004789DF /* validateConfig.js */,
 				54B0E7021B4678CE003F8AEE /* ShortUrlResolver.swift */,
 				5479FDD321655A3400D15A3C /* Notifications.swift */,
+				54B5771522860D0B0016BF77 /* Credits.rtf */,
 			);
 			path = Finicky;
 			sourceTree = "<group>";
@@ -244,6 +247,7 @@
 			buildActionMask = 2147483647;
 			files = (
 				548479A22278ADB40003D51C /* validate.js in Resources */,
+				54B5771622860D0B0016BF77 /* Credits.rtf in Resources */,
 				544B57891B28B87900812908 /* statusitem.png in Resources */,
 				544B578A1B28B87900812908 /* statusitem@2x.png in Resources */,
 				548F11CC1B2A39F800FDDC3C /* finicky.icns in Resources */,
