@@ -23,40 +23,47 @@ class ConfigAppResultTests: XCTestCase {
     func testStringResult() {
         _ = configLoader.parseConfig(generateHandlerConfig(app: "\"Test Success\""))
         let result = configLoader.determineOpeningApp(url: exampleUrl, sourceBundleIdentifier: nil)
-        XCTAssertEqual(result!.name, "Test Success", "App value should be set")
-        XCTAssertEqual(result!.appType, AppDescriptorType.appName, "App type should be appName")
+        XCTAssertEqual(result!.name, "Test Success")
+        XCTAssertEqual(result!.appType, AppDescriptorType.appName)
     }
 
     func testObjectResult() {
         _ = configLoader.parseConfig(generateHandlerConfig(app: "{ name: 'Test Success' }"))
         let result = configLoader.determineOpeningApp(url: exampleUrl, sourceBundleIdentifier: nil)
-        XCTAssertEqual(result!.name, "Test Success", "App value should be set")
-        XCTAssertEqual(result!.appType, AppDescriptorType.appName, "App type should be appName")
+        XCTAssertEqual(result!.name, "Test Success")
+        XCTAssertEqual(result!.appType, AppDescriptorType.appName)
     }
 
     func testStringBundleIdResult() {
-        _ = configLoader.parseConfig(generateHandlerConfig(app: "\"test.success\""))
+        _ = configLoader.parseConfig(generateHandlerConfig(app: "'test.success'"))
         let result = configLoader.determineOpeningApp(url: exampleUrl, sourceBundleIdentifier: nil)
-        XCTAssertEqual(result!.name, "test.success", "App value should be set")
-        XCTAssertEqual(result!.appType, AppDescriptorType.bundleId, "App type should be bundle id")
+        XCTAssertEqual(result!.name, "test.success")
+        XCTAssertEqual(result!.appType, AppDescriptorType.bundleId)
     }
 
     func testObjectBundleIdResult() {
-        _ = configLoader.parseConfig(generateHandlerConfig(app: "{ name: 'test.success }"))
+        _ = configLoader.parseConfig(generateHandlerConfig(app: "{ name: 'test.success' }"))
         let result = configLoader.determineOpeningApp(url: exampleUrl, sourceBundleIdentifier: nil)
-        XCTAssertEqual(result!.name, "test.success", "App value should be set")
-        XCTAssertEqual(result!.appType, AppDescriptorType.bundleId, "App type should be bundle id")
+        XCTAssertEqual(result!.name, "test.success")
+        XCTAssertEqual(result!.appType, AppDescriptorType.bundleId)
     }
 
     func testObjectFixedTypeResult() {
-        _ = configLoader.parseConfig(generateHandlerConfig(app: "{ name: 'test.success, appType: 'appName' }"))
+        _ = configLoader.parseConfig(generateHandlerConfig(app: "{ name: 'test.success', appType: 'appName' }"))
         let result = configLoader.determineOpeningApp(url: exampleUrl, sourceBundleIdentifier: nil)
-        XCTAssertEqual(result!.appType, AppDescriptorType.appName, "App type should be bundle id")
+        XCTAssertEqual(result!.appType, AppDescriptorType.appName)
     }
 
     func testObjectFixedTypeBundleIdResult() {
-         _ = configLoader.parseConfig(generateHandlerConfig(app: "{ name: 'test.success, appType: 'bundleId' }"))
+         _ = configLoader.parseConfig(generateHandlerConfig(app: "{ name: 'test.success', appType: 'bundleId' }"))
         let result = configLoader.determineOpeningApp(url: exampleUrl, sourceBundleIdentifier: nil)
-        XCTAssertEqual(result!.appType, AppDescriptorType.bundleId, "App type should be bundle id")
+        XCTAssertEqual(result!.appType, AppDescriptorType.bundleId)
+    }
+
+    func testFunctionResult() {
+        _ = configLoader.parseConfig(generateHandlerConfig(app: "(url, options) => { return { name: 'test.success', appType: 'bundleId' }}"))
+        let result = configLoader.determineOpeningApp(url: exampleUrl, sourceBundleIdentifier: nil)        
+        XCTAssertEqual(result!.name, "test.success")
+        XCTAssertEqual(result!.appType, AppDescriptorType.bundleId)
     }
 }

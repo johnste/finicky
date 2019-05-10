@@ -4,6 +4,8 @@
   (global = global || self, factory(global.fastidious = {}));
 }(this, function (exports) { 'use strict';
 
+  /* fastidious 1.0.3 - https://github.com/johnste/fastidious */
+
   function isDefined(value) {
       return typeof value !== "undefined" && value !== null;
   }
@@ -17,6 +19,12 @@
       return Object.keys(object).filter(key => Object.prototype.hasOwnProperty.call(object, key));
   }
 
+  function getTypeName(typeName) {
+      if (typeof typeName === "string") {
+          return typeName;
+      }
+      return JSON.stringify(typeName);
+  }
   function createValidator(typeName, typeCallback) {
       function isOptional(value, key) {
           if (!isDefined(value)) {
@@ -32,10 +40,11 @@
       }
       function isRequired(value, key) {
           if (!isDefined(value)) {
-              return `Expected "${key}" to be ${typeName}`;
+              return `Expected "${key}" to be ${getTypeName(typeName)}`;
           }
           return isOptional(value, key);
       }
+      isRequired.typeName = typeName;
       function checkType(value, key) {
           return isOptional(value, key);
       }
@@ -82,12 +91,15 @@
       value: (expectedValue) => createValidator(expectedValue, value => {
           return value === expectedValue;
       }),
-      shape: (schema) => createValidator("shape", (value, key) => {
-          if (typeof value !== "object") {
-              return false;
-          }
-          return getErrors(value, schema, key + ".");
-      }),
+      shape: (schema) => {
+          const names = getNameType(schema);
+          return createValidator(names, (value, key) => {
+              if (typeof value !== "object") {
+                  return false;
+              }
+              return getErrors(value, schema, key + ".");
+          });
+      },
       arrayOf: (validator) => createValidator("array", (value, key) => {
           if (!Array.isArray(value)) {
               return false;
@@ -107,13 +119,27 @@
               }
               return v;
           });
-          const description = typeCheckers.map(oneOf => oneOf.typeName);
+          const description = typeCheckers.map(oneOf => getTypeName(oneOf.typeName));
           return createValidator(`oneOf: [${description}]`, (value, key) => {
               const errors = typeCheckers.every(oneOfValidator => typeof oneOfValidator(value, key) === "string");
               return errors ? [`${key}: Value not one of ${description}`] : true;
           });
       }
   };
+  function getNameType(schema) {
+      const names = {};
+      const schemaKeys = getKeys(schema);
+      schemaKeys.forEach(key => {
+          const property = schema[key];
+          if (typeof property === "number" || typeof property === "string") {
+              names[key] = typeof property;
+          }
+          else {
+              names[key] = property.typeName;
+          }
+      });
+      return names;
+  }
 
   exports.getErrors = getErrors;
   exports.validate = validate;

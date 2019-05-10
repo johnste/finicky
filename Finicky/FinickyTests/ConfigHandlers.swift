@@ -21,39 +21,39 @@ class ConfigHandlerTests: XCTestCase {
     func testStringMatch() {
         _ = configLoader.parseConfig(generateHandlerConfig(match: "'http://example.com'"))
         let result = configLoader.determineOpeningApp(url: exampleUrl, sourceBundleIdentifier: nil)
-        XCTAssertEqual(result!.name, "Test Success", "App value should be set")
+        XCTAssertEqual(result!.name, "Test config")
     }
 
     func testRegexMatcher() {
         _ = configLoader.parseConfig(generateHandlerConfig(match: "/http:\\/\\/example\\.com/"))
         let result = configLoader.determineOpeningApp(url: exampleUrl, sourceBundleIdentifier: nil)
-        XCTAssertEqual(result!.name, "Test Success", "App value should be set")
+        XCTAssertEqual(result!.name, "Test config")
     }
 
     func testFunctionMatcher() {
         _ = configLoader.parseConfig(generateHandlerConfig(match: "(url) => url === 'http://example.com'"))
         let result = configLoader.determineOpeningApp(url: exampleUrl, sourceBundleIdentifier: nil)
-        XCTAssertEqual(result!.name, "Test Success", "App value should be set")
+        XCTAssertEqual(result!.name, "Test config")
     }
 
     func testFunctionMatcherDomainMatcher() {
         _ = configLoader.parseConfig(generateHandlerConfig(match: "finicky.matchDomains(['example.com'])"))
         let result = configLoader.determineOpeningApp(url: exampleUrl, sourceBundleIdentifier: nil)
-        XCTAssertEqual(result!.name, "Test Success", "App value should be set")
+        XCTAssertEqual(result!.name, "Test config")
     }
 
     func testFunctionSourceBundleIdentifierMatcher() {
         _ = configLoader.parseConfig(generateHandlerConfig(match:
-            "(url, options) => options.sourceBundleIdentifier === 'testBundleId''"
+            "(url, options) => options.sourceBundleIdentifier === 'testBundleId'"
         ))
         let result = configLoader.determineOpeningApp(url: exampleUrl, sourceBundleIdentifier: "testBundleId")
-        XCTAssertEqual(result!.name, "Test Success", "App value should be set")
+        XCTAssertEqual(result!.name, "Test config")
     }
 
     func testDefaultBrowser() {
-        _ = configLoader.parseConfig(generateHandlerConfig(defaultBrowser: "defaultBrowser", match: "() => false"))
+        _ = configLoader.parseConfig(generateHandlerConfig(defaultBrowser: "'defaultBrowser'", match: "() => false"))
         let result = configLoader.determineOpeningApp(url: exampleUrl, sourceBundleIdentifier: nil)
-        XCTAssertEqual(result!.name, "defaultBrowser", "App value should be set")
+        XCTAssertEqual(result!.name, "defaultBrowser")
     }
 
 }
