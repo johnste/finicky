@@ -11,9 +11,9 @@ func generateConfig(defaultBrowser : String = "net.kassett.defaultBrowser", hand
 
 func generateHandlerConfig(defaultBrowser : String = "'net.kassett.defaultBrowser'", match: String = "() => true", app: String = "'Test config'") -> String {
 
-    try! evaluateScript(defaultBrowser)
-    try! evaluateScript(match)
-    try! evaluateScript(app)
+    try! validateScript(defaultBrowser)
+    try! validateScript(match)
+    try! validateScript(app)
     
     return """
         module.exports = {
@@ -26,11 +26,31 @@ func generateHandlerConfig(defaultBrowser : String = "'net.kassett.defaultBrowse
     """
 }
 
+
+func generateRewriteConfig(defaultBrowser : String = "'net.kassett.defaultBrowser'", match: String = "() => true", url: String = "'http://example.org'") -> String {
+
+    try! validateScript(defaultBrowser)
+    try! validateScript(match)
+    try! validateScript(url)
+
+    return """
+    module.exports = {
+        defaultBrowser: \(defaultBrowser),
+        rewrite: [{
+            match: \(match),
+            url: \(url)
+        }],
+        handlers: []
+    }
+    """
+}
+
+
 enum ScriptEvaluationError: Error {
     case error(msg: String)
 }
 
-func evaluateScript(_ script: String) throws -> Void{
+func validateScript(_ script: String) throws -> Void{
     let context = JSContext()!
     var error : String? = nil
     context.exceptionHandler = {

@@ -24,10 +24,20 @@
   };
 
   function rewriteUrl(url, options) {
+    let finalOptions = {
+      ...options,
+      url: finicky.getUrlParts(url)
+    };
+
     if (Array.isArray(module.exports.rewrite)) {
       for (rewrite of module.exports.rewrite) {
-        if (isMatch(rewrite.match, url, options)) {
-          url = resolveFn(rewrite.url, url, options);
+        if (isMatch(rewrite.match, url, finalOptions)) {
+          url = resolveFn(rewrite.url, url, finalOptions);
+
+          finalOptions = {
+            ...options,
+            url: finicky.getUrlParts(url)
+          };
         }
       }
     }

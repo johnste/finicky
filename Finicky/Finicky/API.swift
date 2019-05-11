@@ -52,7 +52,7 @@ import JavaScriptCore
         return matchDomain;
     }
 
-    @objc class func getUrlParts(_ urlString: String) -> Dictionary<String, Any> {
+    @objc public class func getUrlParts(_ urlString: String) -> Dictionary<String, Any> {
         let url: URL! = URL.init(string: urlString)
 
         guard url != nil else { return [:] }

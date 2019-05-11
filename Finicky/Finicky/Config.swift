@@ -38,33 +38,18 @@ open class FinickyConfig {
     var setShortUrlProviders:((_ urlShorteners: [String]?) -> Void)?;
 
     public init() {
-
         listenToChanges();
 
         if let path = Bundle.main.path(forResource: "validate.js", ofType: nil ) {
-            do {
-                validateLibJS = try String(contentsOfFile: path, encoding: String.Encoding.utf8)
-            }
-            catch {
-                validateLibJS = nil
-            }
+            validateLibJS = try! String(contentsOfFile: path, encoding: String.Encoding.utf8)
         }
 
         if let path = Bundle.main.path(forResource: "validateConfig.js", ofType: nil ) {
-            do {
-                validateConfigJS = try String(contentsOfFile: path, encoding: String.Encoding.utf8)
-            }
-            catch {
-                validateConfigJS = nil
-            }
+            validateConfigJS = try! String(contentsOfFile: path, encoding: String.Encoding.utf8)
         }
 
         if let path = Bundle.main.path(forResource: "processUrl.js", ofType: nil ) {
-            do {
-                processUrlJS = try String(contentsOfFile: path, encoding: String.Encoding.utf8)}
-            catch {
-                processUrlJS = nil
-            }
+            processUrlJS = try! String(contentsOfFile: path, encoding: String.Encoding.utf8)
         }
     }
 
@@ -248,7 +233,7 @@ open class FinickyConfig {
         return urlShorteners as! [String]?;
     }
 
-    open func determineOpeningApp(url: URL, sourceBundleIdentifier: String?) -> AppDescriptor? {
+    open func determineOpeningApp(url: URL, sourceBundleIdentifier: String? = nil) -> AppDescriptor? {
         let appValue = getConfiguredAppValue(url: url, sourceBundleIdentifier: sourceBundleIdentifier)
        
         if ((appValue?.isObject)!) {
@@ -272,12 +257,7 @@ open class FinickyConfig {
                     self.logToConsole!(message)
                 }
             } else {
-
-                var openInBackground : Bool? = nil
-
-                if let optionsDict = dict!["options"] {
-                    openInBackground = (optionsDict as! Dictionary)["openInBackground"]
-                }
+                let openInBackground = dict!["openInBackground"] as? Bool;
                 return AppDescriptor(name: dict!["name"] as! String, appType: appType!, url: finalUrl, openInBackground: openInBackground)
             }
         }
