@@ -31,7 +31,7 @@ class ConfigHandlerTests: XCTestCase {
     }
 
     func testFunctionMatcher() {
-        _ = configLoader.parseConfig(generateHandlerConfig(match: "(url) => url === 'http://example.com'"))
+        _ = configLoader.parseConfig(generateHandlerConfig(match: "(options) => options.urlString === 'http://example.com'"))
         let result = configLoader.determineOpeningApp(url: exampleUrl)
         XCTAssertEqual(result!.name, "Test config")
     }
@@ -44,7 +44,7 @@ class ConfigHandlerTests: XCTestCase {
 
     func testFunctionSourceBundleIdentifierMatcher() {
         _ = configLoader.parseConfig(generateHandlerConfig(match:
-            "(url, options) => options.sourceBundleIdentifier === 'testBundleId'"
+            "(options) => options.sourceBundleIdentifier === 'testBundleId'"
         ))
         let result = configLoader.determineOpeningApp(url: exampleUrl, sourceBundleIdentifier: "testBundleId")
         XCTAssertEqual(result!.name, "Test config")

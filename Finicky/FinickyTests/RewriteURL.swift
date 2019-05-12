@@ -33,13 +33,13 @@ class URLRewriteTests: XCTestCase {
     }
 
     func testRewriteFunctionArgs() {
-        _ = configLoader.parseConfig(generateRewriteConfig(url: "(url) => url + '?ok'"))
+        _ = configLoader.parseConfig(generateRewriteConfig(url: "(options) => options.urlString + '?ok'"))
         let result = configLoader.determineOpeningApp(url: exampleUrl)
         XCTAssertEqual(result!.url, URL(string: "http://example.com?ok"))
     }
 
     func testRewriteFunctionArgs2() {
-        _ = configLoader.parseConfig(generateRewriteConfig(url: "(url, options) => url + '?' + options.url.protocol"))
+        _ = configLoader.parseConfig(generateRewriteConfig(url: "(options) => { finicky.log(options); return options.urlString + '?' + options.url.protocol; }"))
         let result = configLoader.determineOpeningApp(url: exampleUrl)
         XCTAssertEqual(result!.url, URL(string: "http://example.com?http"))
     }

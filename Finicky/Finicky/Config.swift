@@ -113,9 +113,12 @@ open class FinickyConfig {
         ctx = JSContext()
 
         ctx.exceptionHandler = {
-            context, exception in
+            (context: JSContext!, exception: JSValue!) in
                 self.hasError = true;
-                let message = "Error parsing config: \"\(String(describing: exception!))\"";
+                let stacktrace = exception.objectForKeyedSubscript("stack").toString()
+                let lineNumber = exception.objectForKeyedSubscript("line").toString()
+                let columnNumber = exception.objectForKeyedSubscript("column").toString()
+            let message = "Error parsing config: \"\(String(describing: exception!))\" \nStack: \(stacktrace!):\(lineNumber!):\(columnNumber!)";
                 print(message)
                 showNotification(title: "Error parsing config", informativeText: String(describing: exception!), error: true)
                 if (self.logToConsole != nil) {
@@ -183,8 +186,8 @@ open class FinickyConfig {
                         defaultBrowser: "Safari",
                         handlers: [
                             {
-                                match: /^https?:\\/\\/(youtube|facebook|twitter|linkedin|keep\\.google)\\.com/,
-                                app: "Google Chrome"
+                                match: finicky.matchDomains(["youtube.com", "facebook.com", "twitter.com", "linkedin.com"]),
+                                browser: "Google Chrome"
                             }
                         ]
                     };
@@ -235,7 +238,7 @@ open class FinickyConfig {
 
     open func determineOpeningApp(url: URL, sourceBundleIdentifier: String? = nil) -> AppDescriptor? {
         let appValue = getConfiguredAppValue(url: url, sourceBundleIdentifier: sourceBundleIdentifier)
-       
+
         if ((appValue?.isObject)!) {
             let dict = appValue?.toDictionary()
             let appType = AppDescriptorType(rawValue: dict!["appType"] as! String)
@@ -268,8 +271,10 @@ open class FinickyConfig {
     func getConfiguredAppValue(url: URL, sourceBundleIdentifier: String?) -> JSValue? {
         let optionsDict = [
             "sourceBundleIdentifier": sourceBundleIdentifier as Any,
+            "urlString": url.absoluteString,
+            "url": FinickyAPI.getUrlParts(url.absoluteString),
             ] as [AnyHashable : Any]
-        let result = ctx.evaluateScript(processUrlJS!)?.call(withArguments: [url.absoluteString, optionsDict])
+        let result = ctx.evaluateScript(processUrlJS!)?.call(withArguments: [optionsDict])
         return result
     }
 
@@ -279,5 +284,37 @@ open class FinickyConfig {
         }
         FinickyAPI.setContext(ctx)
         ctx.setObject(FinickyAPI.self, forKeyedSubscript: "finicky" as NSCopying & NSObjectProtocol)
+
+        ctx.evaluateScript("""
+            finicky.matchDomains = function(matchers) {
+                if (!Array.isArray(matchers)) {
+                    matchers = [matchers];
+                }
+
+                return function({ url }) {
+                    const domain = url.host;
+                    return matchers.some(matcher => {
+                        if (matcher instanceof RegExp) {
+                            return matcher.test(domain);
+                        } else if (typeof matcher === "string") {
+                            return matcher === domain;
+                        }
+
+                        return false;
+                    });
+                }
+            }
+
+            // Warn when using deprecated API methods
+            finicky.onUrl = function() {
+                finicky.log("finicky.onUrl is no longer supported in this version of Finicky, please go to https://github.com/johnste/finicky for updated documentation");
+                finicky.notify("finicky.onUrl is no longer supported", "Check the Finicky website for updated documentation");
+            }
+
+            finicky.setDefaultBrowser = function() {
+                finicky.log("finicky.setDefaultBrowser is no longer supported in this version of Finicky, please go to https://github.com/johnste/finicky for updated documentation");
+                finicky.notify("finicky.setDefaultBrowser is no longer supported", "Check the Finicky website for updated documentation");
+            }
+        """)
     }
 }

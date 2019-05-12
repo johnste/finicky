@@ -9,18 +9,18 @@ func generateConfig(defaultBrowser : String = "net.kassett.defaultBrowser", hand
     """
 }
 
-func generateHandlerConfig(defaultBrowser : String = "'net.kassett.defaultBrowser'", match: String = "() => true", app: String = "'Test config'") -> String {
+func generateHandlerConfig(defaultBrowser : String = "'net.kassett.defaultBrowser'", match: String = "() => true", browser: String = "'Test config'") -> String {
 
     try! validateScript(defaultBrowser)
     try! validateScript(match)
-    try! validateScript(app)
-    
+    try! validateScript(browser)
+
     return """
         module.exports = {
             defaultBrowser: \(defaultBrowser),
             handlers: [{
                 match: \(match),
-                app: \(app)
+                browser: \(browser)
             }]
         }
     """
