@@ -30,15 +30,21 @@ class FNShortUrlResolver {
 
     init(shortUrlProviders: [String]?) {
         self.shortUrlProviders = shortUrlProviders ?? [
+            "adf.ly",
+            "bit.do",
             "bit.ly",
-            "goo.gl",
-            "ow.ly",
+            "buff.ly",
             "deck.ly",
-            "t.co",
-            "su.pr",
             "fur.ly",
-            "tinyurl.com",
-            "tiny.cc"
+            "goo.gl",
+            "is.gd",
+            "mcaf.ee",
+            "ow.ly",
+            "spoti.fi",
+            "su.pr",
+            "t.co",
+            "tiny.cc",
+            "tinyurl.com"
         ]
     }
 
