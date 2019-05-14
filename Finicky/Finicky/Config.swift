@@ -109,16 +109,18 @@ open class FinickyConfig {
         dispatchSource?.resume()
     }
 
+    @discardableResult
     open func createContext() -> JSContext {
         ctx = JSContext()
 
         ctx.exceptionHandler = {
             (context: JSContext!, exception: JSValue!) in
                 self.hasError = true;
-                let stacktrace = exception.objectForKeyedSubscript("stack").toString()
-                let lineNumber = exception.objectForKeyedSubscript("line").toString()
-                let columnNumber = exception.objectForKeyedSubscript("column").toString()
-            let message = "Error parsing config: \"\(String(describing: exception!))\" \nStack: \(stacktrace!):\(lineNumber!):\(columnNumber!)";
+                //let stacktrace = exception.objectForKeyedSubscript("stack").toString()
+                //let lineNumber = exception.objectForKeyedSubscript("line").toString()
+                //let columnNumber = exception.objectForKeyedSubscript("column").toString()
+                //let message = "Error parsing config: \"\(String(describing: exception!))\" \nStack: \(stacktrace!):\(lineNumber!):\(columnNumber!)";
+                let message = "Error parsing config: \"\(String(describing: exception!))\"";
                 print(message)
                 showNotification(title: "Error parsing config", informativeText: String(describing: exception!), error: true)
                 if (self.logToConsole != nil) {
@@ -134,6 +136,7 @@ open class FinickyConfig {
         return ctx
     }
 
+    @discardableResult
     open func parseConfig(_ config: String) -> Bool {
         ctx.evaluateScript(config)
 
@@ -233,7 +236,11 @@ open class FinickyConfig {
 
     open func getShortUrlProviders() -> [String]? {
         let urlShorteners = ctx.evaluateScript("module.exports.options && module.exports.options.urlShorteners || []")?.toArray()
-        return urlShorteners as! [String]?;
+        let list = urlShorteners as! [String]?;
+        if (list?.count == 0) {
+            return nil;
+        }
+        return list;
     }
 
     open func determineOpeningApp(url: URL, sourceBundleIdentifier: String? = nil) -> AppDescriptor? {

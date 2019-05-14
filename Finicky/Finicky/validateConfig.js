@@ -8,15 +8,19 @@
       appType: validate.oneOf(["appName", "bundleId"]),
       openInBackground: validate.boolean
     }),
-    validate.function
+    validate.function("options")
   ]);
 
   const matchSchema = validate.oneOf([
     validate.string,
-    validate.function,
+    validate.function("options"),
     validate.regex,
     validate.arrayOf(
-      validate.oneOf([validate.string, validate.function, validate.regex])
+      validate.oneOf([
+        validate.string,
+        validate.function("options"),
+        validate.regex
+      ])
     )
   ]);
 
@@ -29,7 +33,8 @@
     rewrite: validate.arrayOf(
       validate.shape({
         match: matchSchema.isRequired,
-        url: validate.oneOf([validate.string, validate.function]).isRequired
+        url: validate.oneOf([validate.string, validate.function("options")])
+          .isRequired
       }).isRequired
     ),
     handlers: validate.arrayOf(

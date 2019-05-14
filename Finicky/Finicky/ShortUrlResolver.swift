@@ -36,7 +36,6 @@ class FNShortUrlResolver {
             "deck.ly",
             "t.co",
             "su.pr",
-            "spoti.fi",
             "fur.ly",
             "tinyurl.com",
             "tiny.cc"
@@ -55,13 +54,13 @@ class FNShortUrlResolver {
 
         let request = URLRequest(url: url)
         let myDelegate = ResolveShortUrls(shortUrlResolver: self)
-
         let session = URLSession(configuration: URLSessionConfiguration.default, delegate: myDelegate, delegateQueue: nil)
 
         let task = session.dataTask(with: request, completionHandler: { (data, response, error) -> Void in
-            if let responsy : HTTPURLResponse = response as? HTTPURLResponse {
-                let newUrl = URL(string: (responsy.allHeaderFields["Location"] as? String)!)!
-                callback(newUrl)
+
+            if let httpResponse : HTTPURLResponse = response as? HTTPURLResponse {
+                let newUrl = URL(string: (httpResponse.allHeaderFields["Location"] as? String ?? url.absoluteString) )
+                callback(newUrl ?? url)
             } else {
                 callback(url)
             }

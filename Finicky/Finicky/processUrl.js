@@ -27,7 +27,6 @@
   };
 
   return function processUrl(options = {}) {
-    finicky.log("okok: " + options);
     options = rewriteUrl(options);
 
     if (Array.isArray(module.exports.handlers)) {
@@ -44,19 +43,21 @@
   function validateSchema(value, schema, path = "") {
     const errors = getErrors(value, schema, path);
     if (errors.length > 0) {
-      throw new Error(errors.join(", ") + "\n" + JSON.stringify(value));
+      throw new Error(
+        errors.join("\n") + "\nRecieved value:" + JSON.stringify(value)
+      );
     }
   }
 
   function createUrl(url) {
+    const { protocol, host, pathname = "" } = url;
     let port = url.port ? `:${url.port}` : "";
     let search = url.search ? `?${url.search}` : "";
     let hash = url.hash ? `#${url.hash}` : "";
     let auth = url.username ? `${url.username}` : "";
     auth += url.password ? `:${url.password}` : "";
-    return `${url.protocol}://${auth}${url.host}${port}${
-      url.path
-    }${search}${hash}`;
+
+    return `${protocol}://${auth}${host}${port}${pathname}${search}${hash}`;
   }
 
   function rewriteUrl(options) {

@@ -4,7 +4,7 @@
   (global = global || self, factory(global.fastidious = {}));
 }(this, function (exports) { 'use strict';
 
-  /* fastidious 1.0.3 - https://github.com/johnste/fastidious */
+  /* fastidious 1.0.4 - https://github.com/johnste/fastidious */
 
   function isDefined(value) {
       return typeof value !== "undefined" && value !== null;
@@ -13,10 +13,35 @@
       if (value instanceof RegExp) {
           return value.toString();
       }
-      return JSON.stringify(value);
+      else if (Array.isArray(value)) {
+          return `[Array]`;
+      }
+      else if (typeof value === "function") {
+          return `[Function${value.name ? ` ${value.name}` : ""}]`;
+      }
+      else if (value instanceof Date) {
+          return `[Date]`;
+      }
+      else if (value === null) {
+          return "[null]";
+      }
+      else if (value === undefined) {
+          return "[undefined]";
+      }
+      return `[${JSON.stringify(value)}]`;
   }
   function getKeys(object) {
       return Object.keys(object).filter(key => Object.prototype.hasOwnProperty.call(object, key));
+  }
+  function enumerate(names, mode = "or") {
+      if (names.length === 0) {
+          return "";
+      }
+      if (names.length == 1) {
+          return names[0];
+      }
+      const [tail, ...body] = names.reverse();
+      return `${body.join(", ")} ${mode} ${tail}`;
   }
 
   function getTypeName(typeName) {
@@ -32,10 +57,10 @@
           }
           const result = typeCallback(value, key);
           if (typeof result === "boolean" && !result) {
-              return `Value at ${key}: ${formatValue(value)} is not ${typeName}`;
+              return `Value at ${key}: ${formatValue(value)} is not ${getTypeName(typeName)}`;
           }
           else if (Array.isArray(result) && result.length > 0) {
-              return result.join(", ");
+              return result.join("\n");
           }
       }
       function isRequired(value, key) {
@@ -86,7 +111,18 @@
       boolean: createValidator("boolean", value => typeof value === "boolean"),
       string: createValidator("string", value => typeof value === "string"),
       number: createValidator("number", value => typeof value === "number" && !Number.isNaN(value)),
-      function: createValidator("function", value => typeof value === "function"),
+      function: (argNames) => {
+          if (!Array.isArray(argNames)) {
+              if (argNames) {
+                  argNames = [argNames];
+              }
+              else {
+                  argNames = [];
+              }
+          }
+          const name = `function(${argNames.join(", ")})`;
+          return createValidator(name, value => typeof value === "function");
+      },
       regex: createValidator("regex", value => value instanceof RegExp),
       value: (expectedValue) => createValidator(expectedValue, value => {
           return value === expectedValue;
@@ -119,8 +155,8 @@
               }
               return v;
           });
-          const description = typeCheckers.map(oneOf => getTypeName(oneOf.typeName));
-          return createValidator(`oneOf: [${description}]`, (value, key) => {
+          const description = enumerate(typeCheckers.map(oneOf => getTypeName(oneOf.typeName)));
+          return createValidator(`${description}`, (value, key) => {
               const errors = typeCheckers.every(oneOfValidator => typeof oneOfValidator(value, key) === "string");
               return errors ? [`${key}: Value not one of ${description}`] : true;
           });

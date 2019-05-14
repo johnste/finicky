@@ -42,14 +42,14 @@ import JavaScriptCore
 
         guard url != nil else { return [:] }
 
-        let _protocol = url.scheme ?? nil
-        let username = url.user ?? nil
-        let password = url.password ?? nil
-        let host = url.host ?? nil
+        let _protocol = url.scheme ?? ""
+        let username = url.user ?? ""
+        let password = url.password ?? ""
+        let host = url.host ?? ""
         let port = url.port ?? nil
         let pathname = url.path
-        let search = url.query ?? nil
-        let hash = url.fragment ?? nil
+        let search = url.query ?? ""
+        let hash = url.fragment ?? ""
 
         let urlDict = [
             "hash": hash as Any,

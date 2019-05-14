@@ -45,7 +45,6 @@ func generateRewriteConfig(defaultBrowser : String = "'net.kassett.defaultBrowse
     """
 }
 
-
 enum ScriptEvaluationError: Error {
     case error(msg: String)
 }
@@ -57,8 +56,8 @@ func validateScript(_ script: String) throws -> Void{
         context, exception in
         error = "\"" + String(describing: exception!) + "\" script: " + script
     }
-    _ = context.evaluateScript("const finicky = { log() {}, matchDomains() {} }")
-    _ = context.evaluateScript("const x = " + script)
+    context.evaluateScript("const finicky = { log() {}, matchDomains() {} }")
+    context.evaluateScript("const x = " + script)
 
 
     guard error == nil else {
