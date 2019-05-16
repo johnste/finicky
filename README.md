@@ -132,14 +132,14 @@ TBD
 
 Please file an issue for bugs, missing documentation, or unexpected behavior.
 
-[**See Bugs**][bugs]
+[**See Bugs**][https://github.com/johnste/finicky/issues?q=is%3Aopen+is%3Aissue+label%3Abug]
 
 ### Feature Requests
 
 Please file an issue to suggest new features. Vote on feature requests by adding
 a 👍.
 
-[**See Feature Requests**][requests]
+[**See Feature Requests**][https://github.com/johnste/finicky/labels/feature%20request]
 
 ## Questions
 
