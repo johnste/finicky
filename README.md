@@ -11,34 +11,47 @@
 
 </div>
 
-Finicky is an Mac OS application that allows you to set up rules that decide which browser is opened for every link. Open Facebook or Reddit in one browser, and Trello or LinkedIn in another. Or Spotify links in the Spotify client. Or whatever url in whatever app.
+Finicky is an Mac OS application that allows you to set up rules that decide which browser is opened for every link. Open Facebook or Reddit in one browser, and Trello or LinkedIn in another.
+
+- Write rules to open urls in any browser
+- Rewrite and replace parts of urls before opening them
+
+## Table of Contents
 
 <!-- To regenerate toc run `npx doctoc README.md --github` -->
 <!-- START doctoc generated TOC please keep comment here to allow auto update -->
 <!-- DON'T EDIT THIS SECTION, INSTEAD RE-RUN doctoc TO UPDATE -->
 
-- [Install](#install)
+- [Installation](#installation)
 - [Example configuration](#example-configuration)
-  - [Simple configuration to get started:](#simple-configuration-to-get-started)
-  - [Rewrite urls before being handled](#rewrite-urls-before-being-handled)
-  - [Optional settings](#optional-settings)
-- [Documentation](#documentation)
+  - [Basic configuration](#basic-configuration)
+  - [Rewrite urls](#rewrite-urls)
+  - [Advanced usage, settings](#advanced-usage-settings)
+- [API Reference](#api-reference)
+- [Issues](#issues)
+  - [Bugs](#bugs)
+  - [Feature Requests](#feature-requests)
 - [Questions](#questions)
 - [License](#license)
 - [Building from source](#building-from-source)
 
 <!-- END doctoc generated TOC please keep comment here to allow auto update -->
 
-# Installation
+## Installation
 
-1. Download [the latest release](https://github.com/johnste/finicky/releases), unzip and drop Finicky.app in your application folder. Alternatively, if you have [homebrew-cask](https://github.com/caskroom/homebrew-cask) available, install with `brew cask install finicky`.
-2. Create a file called `.finicky.js` with some [configuration](#example-configuration) in your home directory.
+1. Install Finicky:
+
+- Download [the latest release](https://github.com/johnste/finicky/releases), unzip and put `Finicky.app` in your application folder.
+- [homebrew-cask](https://github.com/caskroom/homebrew-cask): install with `brew cask install finicky`.
+
+2. Create a file called `.finicky.js` with configuration
+   ([examples](#example-configuration)) in your home directory.
 3. Start Finicky. Please allow it to be set as the default browser.
 4. And you're done. All http and https links clicked that would have opened your default browser are now first handled by Finicky.
 
-# Example configuration
+## Example configuration
 
-## Simple configuration to get started
+### Basic configuration
 
 ```js
 module.exports = {
@@ -55,7 +68,7 @@ module.exports = {
 }
 ```
 
-## Rewrite urls before being handled
+### Rewrite urls
 
 ```js
 module.exports = {
@@ -81,7 +94,7 @@ module.exports = {
 };
 ```
 
-## Other settings
+### Advanced usage, settings
 
 ```js
 module.exports = {
@@ -91,6 +104,12 @@ module.exports = {
     hideIcon: true
   },
   handlers: [
+    {
+      // Open any link clicked in Slack in Safari
+      match: ({ sourceBundleIdentifier }) =>
+        sourceBundleIdentifier === "com.tinyspeck.chatlyio",
+      browser: "Safari"
+    },
     {
       match: ["http://zombo.com"],
       browser: {
@@ -103,21 +122,36 @@ module.exports = {
 };
 ```
 
-# Documentation
+## API Reference
 
-[Javascript API Documentation](https://github.com/johnste/finicky/wiki#javascript-api)
+TBD
 
-# Questions
+## Issues
 
-Have any other questions or need help? Please feel free to reach out to me on [Twitter](https://twitter.com/johnste_)
+### Bugs
 
-# License
+Please file an issue for bugs, missing documentation, or unexpected behavior.
+
+[**See Bugs**][bugs]
+
+### Feature Requests
+
+Please file an issue to suggest new features. Vote on feature requests by adding
+a 👍.
+
+[**See Feature Requests**][requests]
+
+## Questions
+
+Have any other questions or need help? Please feel free to reach out to me on [Twitter](https://twitter.com/johnste_).
+
+## License
 
 [MIT](https://raw.githubusercontent.com/johnste/finicky/master/LICENSE)
 
-# Building from source
+## Building from source
 
-Install XCode and XCode command line tools, then from a terminal:
+Install XCode and XCode command line tools and then run commands:
 
 ```shell
     git clone https://github.com/johnste/finicky.git
