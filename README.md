@@ -47,7 +47,7 @@ Finicky is an Mac OS application that allows you to set up rules that decide whi
 2. Create a file called `.finicky.js` with configuration
    ([examples](#example-configuration)) in your home directory.
 3. Start Finicky. Please allow it to be set as the default browser.
-4. And you're done. All http and https links clicked that would have opened your default browser are now first handled by Finicky.
+4. And you're done. All links clicked that would have opened your browser are now first handled by Finicky.
 
 ## Example configuration
 
@@ -132,7 +132,7 @@ TBD
 
 Please file an issue for bugs, missing documentation, or unexpected behavior.
 
-[**See Bugs**][https://github.com/johnste/finicky/issues?q=is%3Aopen+is%3Aissue+label%3Abug]
+[**See Bugs**][https://github.com/johnste/finicky/issues?q=is%3aopen+is%3aissue+label%3abug]
 
 ### Feature Requests
 
