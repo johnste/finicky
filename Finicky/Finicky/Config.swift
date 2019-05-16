@@ -179,12 +179,13 @@ open class FinickyConfig {
 
         if config == nil {
             let message = "Config file could not be read or found"
-            showNotification(title: message, subtitle: "Click here to show example config file", error: true)
+            showNotification(title: message, subtitle: "Click here for assistance", error: true)
             print(message)
             if (self.logToConsole != nil) {
                 self.logToConsole!(message + "\n\n" + """
                     // --------------------------------------------------------------
                     // Example config, save as ~/.finicky.js
+                    // For more examples, see the Finicky github page https://github.com/johnste/finicky
                     module.exports = {
                         defaultBrowser: "Safari",
                         handlers: [

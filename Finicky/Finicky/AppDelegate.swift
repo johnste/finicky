@@ -90,11 +90,11 @@ class AppDelegate: NSObject, NSApplicationDelegate, NSUserNotificationCenterDele
 
             if let openInBackground = appDescriptor.openInBackground {
                 description = """
-                Would open \(AppDescriptorType.bundleId == appDescriptor.appType ? "bundleId" : "") \(appDescriptor.name) \(openInBackground ? "application in the background" : "") URL: \(appDescriptor.url)
+                Would open \(AppDescriptorType.bundleId == appDescriptor.appType ? "bundleId" : "")\(appDescriptor.name) \(openInBackground ? "application in the background" : "") URL: \(appDescriptor.url)
                 """
             } else {
                 description = """
-                Would open \(AppDescriptorType.bundleId == appDescriptor.appType ? "bundleId" : "") \(appDescriptor.name) URL: \(appDescriptor.url)
+                Would open \(AppDescriptorType.bundleId == appDescriptor.appType ? "bundleId" : "")\(appDescriptor.name) URL: \(appDescriptor.url)
                 """
             }
             logToConsole(description)

@@ -27,6 +27,7 @@ class ResolveShortUrls: NSObject, URLSessionDelegate, URLSessionTaskDelegate {
 class FNShortUrlResolver {
 
     fileprivate var shortUrlProviders : [String] = []
+    var version : String;
 
     init(shortUrlProviders: [String]?) {
         self.shortUrlProviders = shortUrlProviders ?? [
@@ -46,6 +47,8 @@ class FNShortUrlResolver {
             "tiny.cc",
             "tinyurl.com"
         ]
+
+        self.version = Bundle.main.infoDictionary!["CFBundleShortVersionString"] as! String
     }
 
     func isShortUrl(_ url: URL) -> Bool {
@@ -58,7 +61,8 @@ class FNShortUrlResolver {
             return
         }
 
-        let request = URLRequest(url: url)
+        var request = URLRequest(url: url)
+        request.setValue("finicky/\(self.version)", forHTTPHeaderField: "User-Agent")
         let myDelegate = ResolveShortUrls(shortUrlResolver: self)
         let session = URLSession(configuration: URLSessionConfiguration.default, delegate: myDelegate, delegateQueue: nil)
 
