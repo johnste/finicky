@@ -16,6 +16,10 @@ Finicky is an Mac OS application that allows you to set up rules that decide whi
 - Write rules to open urls in any browser
 - Rewrite and replace parts of urls before opening them
 
+[![GitHub downloads](https://img.shields.io/github/downloads/johnste/finicky/total.svg?style=flat-square)](https://GitHub.com/johnste/finicky/releases/)
+[![GitHub release](https://img.shields.io/github/release-pre/johnste/finicky.svg?style=flat-square)](https://GitHub.com/johnste/finicky/releases/)
+
+
 ## Table of Contents
 
 <!-- To regenerate toc run `npx doctoc README.md --github` -->
