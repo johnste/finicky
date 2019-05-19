@@ -128,8 +128,8 @@ module.exports = {
 
 ## API Reference
 
-- [Configuration Reference](https://johnste.github.io/finicky-docs/modules/_finickyconfig_.html)
-- [API Reference](https://johnste.github.io/finicky-docs/modules/_finickyapi_.html)
+- [Configuration Reference](https://johnste.github.io/finicky-docs/interfaces/_finickyconfig_.finickyconfig.html)
+- [API Reference](https://johnste.github.io/finicky-docs/interfaces/_finickyapi_.finicky.html)
 
 ## Issues
 
