@@ -46,7 +46,7 @@ Finicky is an Mac OS application that allows you to set up rules that decide whi
 1. Install Finicky:
 
 - Download [the latest release](https://github.com/johnste/finicky/releases), unzip and put `Finicky.app` in your application folder.
-- Alternatively, you can install with [homebrew-cask](https://github.com/caskroom/homebrew-cask): `brew cask install finicky`.
+<!-- - Alternatively, you can install with [homebrew-cask](https://github.com/caskroom/homebrew-cask): `brew cask install finicky`. -->
 
 2. Create a file called `.finicky.js` with configuration
    ([examples](#example-configuration)) in your home directory.
