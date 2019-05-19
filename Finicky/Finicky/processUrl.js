@@ -1,54 +1,94 @@
 (function() {
   const { validate, getErrors } = fastidious;
 
-  return function processUrl(url, options = {}) {
-    const { url: finalUrl, urlParts } = rewriteUrl(url, options);
-    let finalOptions = {
-      ...options,
-      url: urlParts
-    };
-
-    for (handler of module.exports.handlers) {
-      if (isMatch(handler.match, finalUrl, finalOptions)) {
-        return processBrowserResult(handler.app, finalUrl, finalOptions);
-      }
-    }
-
-    if (module.exports.defaultBrowser) {
-      return processBrowserResult(
-        module.exports.defaultBrowser,
-        finalUrl,
-        finalOptions
-      );
-    }
+  const appDescriptorSchema = {
+    name: validate.string.isRequired,
+    appType: validate.oneOf([
+      validate.value("bundleId"),
+      validate.value("appName")
+    ]).isRequired,
+    openInBackground: validate.boolean
   };
 
-  function rewriteUrl(url, options) {
-    let finalOptions = {
-      ...options,
-      url: finicky.getUrlParts(url)
-    };
+  const urlSchema = {
+    url: validate.oneOf([
+      validate.string,
+      validate.shape({
+        protocol: validate.string.isRequired,
+        username: validate.string,
+        password: validate.string,
+        host: validate.string.isRequired,
+        port: validate.number,
+        pathname: validate.string,
+        search: validate.string,
+        hash: validate.string
+      })
+    ]).isRequired
+  };
 
-    if (Array.isArray(module.exports.rewrite)) {
-      for (rewrite of module.exports.rewrite) {
-        if (isMatch(rewrite.match, url, finalOptions)) {
-          url = resolveFn(rewrite.url, url, finalOptions);
+  return function processUrl(options = {}) {
+    options = rewriteUrl(options);
 
-          finalOptions = {
-            ...options,
-            url: finicky.getUrlParts(url)
-          };
+    if (Array.isArray(module.exports.handlers)) {
+      for (let handler of module.exports.handlers) {
+        if (isMatch(handler.match, options)) {
+          return processBrowserResult(handler.browser, options);
         }
       }
     }
 
-    return {
-      url: url,
-      urlParts: finicky.getUrlParts(url)
-    };
+    return processBrowserResult(module.exports.defaultBrowser, options);
+  };
+
+  function validateSchema(value, schema, path = "") {
+    const errors = getErrors(value, schema, path);
+    if (errors.length > 0) {
+      throw new Error(
+        errors.join("\n") + "\nRecieved value:" + JSON.stringify(value)
+      );
+    }
   }
 
-  function isMatch(matcher, url, options) {
+  function createUrl(url) {
+    const { protocol, host, pathname = "" } = url;
+    let port = url.port ? `:${url.port}` : "";
+    let search = url.search ? `?${url.search}` : "";
+    let hash = url.hash ? `#${url.hash}` : "";
+    let auth = url.username ? `${url.username}` : "";
+    auth += url.password ? `:${url.password}` : "";
+
+    return `${protocol}://${auth}${host}${port}${pathname}${search}${hash}`;
+  }
+
+  function rewriteUrl(options) {
+    if (Array.isArray(module.exports.rewrite)) {
+      for (let rewrite of module.exports.rewrite) {
+        if (isMatch(rewrite.match, options)) {
+          let urlResult = resolveFn(rewrite.url, options);
+
+          validateSchema({ url: urlResult }, urlSchema);
+
+          if (typeof urlResult === "string") {
+            options = {
+              ...options,
+              url: finicky.getUrlParts(urlResult),
+              urlString: urlResult
+            };
+          } else {
+            options = {
+              ...options,
+              url: urlResult,
+              urlString: createUrl(urlResult)
+            };
+          }
+        }
+      }
+    }
+
+    return options;
+  }
+
+  function isMatch(matcher, options) {
     if (!matcher) {
       return false;
     }
@@ -57,11 +97,11 @@
 
     return matchers.some(matcher => {
       if (matcher instanceof RegExp) {
-        return matcher.test(url);
+        return matcher.test(options.urlString);
       } else if (typeof matcher === "string") {
-        return matcher === url;
+        return matcher === options.urlString;
       } else if (typeof matcher === "function") {
-        return !!matcher(url, options);
+        return !!matcher(options);
       }
 
       return false;
@@ -80,38 +120,26 @@
     return isBundleIdentifier(value) ? "bundleId" : "appName";
   }
 
-  function processBrowserResult(handler, url, options) {
-    let app = resolveFn(handler, url, options);
+  function processBrowserResult(handler, options) {
+    let browser = resolveFn(handler, options);
 
     // If all we got was a string, try to figure out if it's a bundle identifier or an application name
-    if (typeof app === "string") {
-      app = {
-        name: app
+    if (typeof browser === "string") {
+      browser = {
+        name: browser
       };
     }
 
-    if (typeof app === "object" && app.name && !app.appType) {
-      app = {
-        ...app,
-        appType: getAppType(app.name)
+    if (typeof browser === "object" && browser.name && !browser.appType) {
+      browser = {
+        ...browser,
+        appType: getAppType(browser.name)
       };
     }
 
-    const appDescriptorSchema = {
-      name: validate.string.isRequired,
-      appType: validate.oneOf([
-        validate.value("bundleId"),
-        validate.value("appName")
-      ]).isRequired,
-      openInBackground: validate.boolean
-    };
+    validateSchema(browser, appDescriptorSchema);
 
-    const errors = getErrors(app, appDescriptorSchema, "result.");
-    if (errors.length > 0) {
-      throw new Error(errors.join(", ") + "\n" + JSON.stringify(app));
-    }
-
-    return { ...app, url };
+    return { ...browser, url: options.urlString };
   }
 
   function isBundleIdentifier(value) {

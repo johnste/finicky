@@ -27,20 +27,28 @@ class ResolveShortUrls: NSObject, URLSessionDelegate, URLSessionTaskDelegate {
 class FNShortUrlResolver {
 
     fileprivate var shortUrlProviders : [String] = []
+    var version : String;
 
     init(shortUrlProviders: [String]?) {
         self.shortUrlProviders = shortUrlProviders ?? [
+            "adf.ly",
+            "bit.do",
             "bit.ly",
-            "goo.gl",
-            "ow.ly",
+            "buff.ly",
             "deck.ly",
-            "t.co",
-            "su.pr",
-            "spoti.fi",
             "fur.ly",
-            "tinyurl.com",
-            "tiny.cc"
+            "goo.gl",
+            "is.gd",
+            "mcaf.ee",
+            "ow.ly",
+            "spoti.fi",
+            "su.pr",
+            "t.co",
+            "tiny.cc",
+            "tinyurl.com"
         ]
+
+        self.version = Bundle.main.infoDictionary!["CFBundleShortVersionString"] as! String
     }
 
     func isShortUrl(_ url: URL) -> Bool {
@@ -53,15 +61,16 @@ class FNShortUrlResolver {
             return
         }
 
-        let request = URLRequest(url: url)
+        var request = URLRequest(url: url)
+        request.setValue("finicky/\(self.version)", forHTTPHeaderField: "User-Agent")
         let myDelegate = ResolveShortUrls(shortUrlResolver: self)
-
         let session = URLSession(configuration: URLSessionConfiguration.default, delegate: myDelegate, delegateQueue: nil)
 
         let task = session.dataTask(with: request, completionHandler: { (data, response, error) -> Void in
-            if let responsy : HTTPURLResponse = response as? HTTPURLResponse {
-                let newUrl = URL(string: (responsy.allHeaderFields["Location"] as? String)!)!
-                callback(newUrl)
+
+            if let httpResponse : HTTPURLResponse = response as? HTTPURLResponse {
+                let newUrl = URL(string: (httpResponse.allHeaderFields["Location"] as? String ?? url.absoluteString) )
+                callback(newUrl ?? url)
             } else {
                 callback(url)
             }

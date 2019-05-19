@@ -109,12 +109,17 @@ open class FinickyConfig {
         dispatchSource?.resume()
     }
 
+    @discardableResult
     open func createContext() -> JSContext {
         ctx = JSContext()
 
         ctx.exceptionHandler = {
-            context, exception in
+            (context: JSContext!, exception: JSValue!) in
                 self.hasError = true;
+                //let stacktrace = exception.objectForKeyedSubscript("stack").toString()
+                //let lineNumber = exception.objectForKeyedSubscript("line").toString()
+                //let columnNumber = exception.objectForKeyedSubscript("column").toString()
+                //let message = "Error parsing config: \"\(String(describing: exception!))\" \nStack: \(stacktrace!):\(lineNumber!):\(columnNumber!)";
                 let message = "Error parsing config: \"\(String(describing: exception!))\"";
                 print(message)
                 showNotification(title: "Error parsing config", informativeText: String(describing: exception!), error: true)
@@ -131,6 +136,7 @@ open class FinickyConfig {
         return ctx
     }
 
+    @discardableResult
     open func parseConfig(_ config: String) -> Bool {
         ctx.evaluateScript(config)
 
@@ -173,18 +179,19 @@ open class FinickyConfig {
 
         if config == nil {
             let message = "Config file could not be read or found"
-            showNotification(title: message, subtitle: "Click here to show example config file", error: true)
+            showNotification(title: message, subtitle: "Click here for assistance", error: true)
             print(message)
             if (self.logToConsole != nil) {
                 self.logToConsole!(message + "\n\n" + """
                     // --------------------------------------------------------------
                     // Example config, save as ~/.finicky.js
+                    // For more examples, see the Finicky github page https://github.com/johnste/finicky
                     module.exports = {
                         defaultBrowser: "Safari",
                         handlers: [
                             {
-                                match: /^https?:\\/\\/(youtube|facebook|twitter|linkedin|keep\\.google)\\.com/,
-                                app: "Google Chrome"
+                                match: finicky.matchDomains(["youtube.com", "facebook.com", "twitter.com", "linkedin.com"]),
+                                browser: "Google Chrome"
                             }
                         ]
                     };
@@ -230,12 +237,16 @@ open class FinickyConfig {
 
     open func getShortUrlProviders() -> [String]? {
         let urlShorteners = ctx.evaluateScript("module.exports.options && module.exports.options.urlShorteners || []")?.toArray()
-        return urlShorteners as! [String]?;
+        let list = urlShorteners as! [String]?;
+        if (list?.count == 0) {
+            return nil;
+        }
+        return list;
     }
 
     open func determineOpeningApp(url: URL, sourceBundleIdentifier: String? = nil) -> AppDescriptor? {
         let appValue = getConfiguredAppValue(url: url, sourceBundleIdentifier: sourceBundleIdentifier)
-       
+
         if ((appValue?.isObject)!) {
             let dict = appValue?.toDictionary()
             let appType = AppDescriptorType(rawValue: dict!["appType"] as! String)
@@ -268,8 +279,10 @@ open class FinickyConfig {
     func getConfiguredAppValue(url: URL, sourceBundleIdentifier: String?) -> JSValue? {
         let optionsDict = [
             "sourceBundleIdentifier": sourceBundleIdentifier as Any,
+            "urlString": url.absoluteString,
+            "url": FinickyAPI.getUrlParts(url.absoluteString),
             ] as [AnyHashable : Any]
-        let result = ctx.evaluateScript(processUrlJS!)?.call(withArguments: [url.absoluteString, optionsDict])
+        let result = ctx.evaluateScript(processUrlJS!)?.call(withArguments: [optionsDict])
         return result
     }
 
@@ -279,5 +292,37 @@ open class FinickyConfig {
         }
         FinickyAPI.setContext(ctx)
         ctx.setObject(FinickyAPI.self, forKeyedSubscript: "finicky" as NSCopying & NSObjectProtocol)
+
+        ctx.evaluateScript("""
+            finicky.matchDomains = function(matchers) {
+                if (!Array.isArray(matchers)) {
+                    matchers = [matchers];
+                }
+
+                return function({ url }) {
+                    const domain = url.host;
+                    return matchers.some(matcher => {
+                        if (matcher instanceof RegExp) {
+                            return matcher.test(domain);
+                        } else if (typeof matcher === "string") {
+                            return matcher === domain;
+                        }
+
+                        return false;
+                    });
+                }
+            }
+
+            // Warn when using deprecated API methods
+            finicky.onUrl = function() {
+                finicky.log("finicky.onUrl is no longer supported in this version of Finicky, please go to https://github.com/johnste/finicky for updated documentation");
+                finicky.notify("finicky.onUrl is no longer supported", "Check the Finicky website for updated documentation");
+            }
+
+            finicky.setDefaultBrowser = function() {
+                finicky.log("finicky.setDefaultBrowser is no longer supported in this version of Finicky, please go to https://github.com/johnste/finicky for updated documentation");
+                finicky.notify("finicky.setDefaultBrowser is no longer supported", "Check the Finicky website for updated documentation");
+            }
+        """)
     }
 }

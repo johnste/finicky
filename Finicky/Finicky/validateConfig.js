@@ -1,43 +1,46 @@
 (function() {
   const { validate, getErrors } = fastidious;
 
+  const browserSchema = validate.oneOf([
+    validate.string,
+    validate.shape({
+      name: validate.string.isRequired,
+      appType: validate.oneOf(["appName", "bundleId"]),
+      openInBackground: validate.boolean
+    }),
+    validate.function("options")
+  ]);
+
+  const matchSchema = validate.oneOf([
+    validate.string,
+    validate.function("options"),
+    validate.regex,
+    validate.arrayOf(
+      validate.oneOf([
+        validate.string,
+        validate.function("options"),
+        validate.regex
+      ])
+    )
+  ]);
+
   const schema = {
-    defaultBrowser: validate.string.isRequired,
+    defaultBrowser: browserSchema.isRequired,
     options: validate.shape({
       hideIcon: validate.boolean,
       urlShorteners: validate.arrayOf(validate.string)
     }),
     rewrite: validate.arrayOf(
       validate.shape({
-        match: validate.oneOf([
-          validate.string,
-          validate.function,
-          validate.regex,
-          validate.arrayOf(
-            validate.oneOf([validate.string, validate.function, validate.regex])
-          )
-        ]).isRequired,
-        url: validate.oneOf([validate.string, validate.function]).isRequired
+        match: matchSchema.isRequired,
+        url: validate.oneOf([validate.string, validate.function("options")])
+          .isRequired
       }).isRequired
     ),
     handlers: validate.arrayOf(
       validate.shape({
-        match: validate.oneOf([
-          validate.string,
-          validate.function,
-          validate.regex,
-          validate.arrayOf(
-            validate.oneOf([validate.string, validate.function, validate.regex])
-          )
-        ]).isRequired,
-        app: validate.oneOf([
-          validate.string,
-          validate.shape({
-            name: validate.string.isRequired,
-            appType: validate.oneOf(["appName", "bundleId"]),
-            openInBackground: validate.boolean
-          })
-        ]).isRequired
+        match: matchSchema.isRequired,
+        browser: browserSchema.isRequired
       })
     )
   };

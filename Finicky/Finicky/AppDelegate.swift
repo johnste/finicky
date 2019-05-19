@@ -32,7 +32,7 @@ class AppDelegate: NSObject, NSApplicationDelegate, NSUserNotificationCenterDele
         statusItem.menu = statusItemMenu
         statusItem.highlightMode = true
         statusItem.image = img
-        _ = toggleDockIcon(showIcon: false)
+        toggleDockIcon(showIcon: false)
 
         func toggleIconCallback(show: Bool) {
             guard statusItem != nil else { return }
@@ -45,7 +45,6 @@ class AppDelegate: NSObject, NSApplicationDelegate, NSUserNotificationCenterDele
 
         configLoader = FinickyConfig(toggleIconCallback: toggleIconCallback, logToConsoleCallback: logToConsole, setShortUrlProviders: setShortUrlProviders)
         configLoader.reload(showSuccess: false)
-
     }
 
     @IBAction func reloadConfig(_ sender: NSMenuItem) {
@@ -79,23 +78,30 @@ class AppDelegate: NSObject, NSApplicationDelegate, NSUserNotificationCenterDele
             return
         }
         if let url = URL.init(string: value) {
-            if let appDescriptor = configLoader.determineOpeningApp(url: url, sourceBundleIdentifier: "net.kassett.finicky") {
-                var description = ""
-
-                if let openInBackground = appDescriptor.openInBackground {
-                    description = """
-                    Would open \(AppDescriptorType.bundleId == appDescriptor.appType ? "bundleId" : "") "\(appDescriptor.name)" \(openInBackground ? "application in the background" : "") URL: "\(appDescriptor.url)"
-                    """
-                } else {
-                    description = """
-                        Would open \(AppDescriptorType.bundleId == appDescriptor.appType ? "bundleId" : "") "\(appDescriptor.name)" URL: "\(appDescriptor.url)"
-                        """
-                }
-                logToConsole(description)
-            }
+            shortUrlResolver.resolveUrl(url, callback: {(URL) -> Void in
+                self.performTest(url: URL)
+            })
         }
     }
 
+    func performTest(url: URL) {
+        if let appDescriptor = configLoader.determineOpeningApp(url: url, sourceBundleIdentifier: "net.kassett.finicky") {
+            var description = ""
+
+            if let openInBackground = appDescriptor.openInBackground {
+                description = """
+                Would open \(AppDescriptorType.bundleId == appDescriptor.appType ? "bundleId" : "")\(appDescriptor.name) \(openInBackground ? "application in the background" : "") URL: \(appDescriptor.url)
+                """
+            } else {
+                description = """
+                Would open \(AppDescriptorType.bundleId == appDescriptor.appType ? "bundleId" : "")\(appDescriptor.name) URL: \(appDescriptor.url)
+                """
+            }
+            logToConsole(description)
+        }
+    }
+
+    @discardableResult
     @objc func toggleDockIcon(showIcon state: Bool) -> Bool {
         var result: Bool
         if state {
@@ -112,13 +118,9 @@ class AppDelegate: NSObject, NSApplicationDelegate, NSUserNotificationCenterDele
         let pid = event!.attributeDescriptor(forKeyword: AEKeyword(keySenderPIDAttr))!.int32Value
         let sourceBundleIdentifier = NSRunningApplication(processIdentifier: pid)?.bundleIdentifier
 
-        if shortUrlResolver.isShortUrl(url) {
-            shortUrlResolver.resolveUrl(url, callback: {(URL) -> Void in
-                self.callUrlHandlers(sourceBundleIdentifier, url: url)
-            })
-        } else {
-            self.callUrlHandlers(sourceBundleIdentifier, url: url)
-        }
+        shortUrlResolver.resolveUrl(url, callback: {(URL) -> Void in
+            self.callUrlHandlers(sourceBundleIdentifier, url: URL)
+        })
     }
 
     @objc func callUrlHandlers(_ sourceBundleIdentifier: String?, url: URL) {
@@ -138,7 +140,9 @@ class AppDelegate: NSObject, NSApplicationDelegate, NSUserNotificationCenterDele
             if bundleId != nil {
                 openUrlWithBrowser(appDescriptor.url, bundleIdentifier:bundleId!, openInBackground: appDescriptor.openInBackground )
             } else {
-                print ("Finicky was unable to find the application \"" + appDescriptor.name + "\"")
+                let description = "Finicky was unable to find the application \"" + appDescriptor.name + "\"";
+                print(description)
+                logToConsole(description)
                 showNotification(title: "Unable to find application", informativeText: "Finicky was unable to find the application \"" + appDescriptor.name + "\"", error: true)
             }
         }
@@ -154,27 +158,16 @@ class AppDelegate: NSObject, NSApplicationDelegate, NSUserNotificationCenterDele
 
 
     func openUrlWithBrowser(_ url: URL, bundleIdentifier: String, openInBackground: Bool?) {
-        let urls = [url]
-
-        // Launch in background by default if finicky isn't active to avoid something..
+        // Launch in background by default if finicky isn't active to avoid something that causes some bug to happen...
+        // Too long ago to remember what actually happened
         let openInBackground = openInBackground ?? !isActive
 
-        if !openInBackground {
-            NSWorkspace.shared.launchApplication(
-                withBundleIdentifier: bundleIdentifier,
-                options: NSWorkspace.LaunchOptions.default,
-                additionalEventParamDescriptor: nil,
-                launchIdentifier: nil
-            )
+        print("opening " + url.absoluteString)
+        if (openInBackground) {
+            shell("open",  url.absoluteString , "-b", bundleIdentifier, "-g")
+        } else {
+            shell("open",url.absoluteString , "-b", bundleIdentifier)
         }
-
-        NSWorkspace.shared.open(
-            urls,
-            withAppBundleIdentifier: bundleIdentifier,
-            options: openInBackground ? NSWorkspace.LaunchOptions.withoutActivation : NSWorkspace.LaunchOptions.default,
-            additionalEventParamDescriptor: nil,
-            launchIdentifiers: nil
-        )
     }
 
     func application(_ sender: NSApplication, openFiles filenames: [String]) {
@@ -182,7 +175,6 @@ class AppDelegate: NSObject, NSApplicationDelegate, NSUserNotificationCenterDele
             self.callUrlHandlers(nil, url: URL(fileURLWithPath: filename ))
         }
     }
-
 
     func applicationWillFinishLaunching(_ aNotification: Notification) {
         let appleEventManager:NSAppleEventManager = NSAppleEventManager.shared()

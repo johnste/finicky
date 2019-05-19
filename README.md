@@ -1,92 +1,168 @@
-# Finicky ![Finicky logo](https://raw.githubusercontent.com/johnste/finicky/master/Finicky/Finicky/statusitem%402x.png)
+<div align="center">
+  <h1>Finicky<img
+    height="36"
+    width="36"
+    alt="finicky logo - hand pointing downwards"
+    src="https://raw.githubusercontent.com/johnste/finicky/master/Finicky/Finicky/statusitem%402x.png"
+  />
+  </h1>
 
-*Always open the right browser*
+  <p>Always open the right browser</p>
 
-Finicky is an OS X application that allows you to set up rules that decide which browser is opened for every link that would open the default browser. Open Facebook or Reddit in one browser, and Trello or LinkedIn in another. Or Spotify links in the Spotify client. Or whatever url in whatever app.
+</div>
 
-Features include:
-- Url rewriting
-- Opening links in background
-- Opening links in the currently active browser
-- Resolving short urls before running them through handlers
+Finicky is an Mac OS application that allows you to set up rules that decide which browser is opened for every link. Open Facebook or Reddit in one browser, and Trello or LinkedIn in another.
 
-#### Install
+- Write rules to open urls in any browser
+- Rewrite and replace parts of urls before opening them
 
-1. Download [the latest release](https://github.com/johnste/finicky/releases), unzip and drop Finicky.app in your application folder. Alternatively, if you have [homebrew-cask](https://github.com/caskroom/homebrew-cask) available, install with `brew cask install finicky`.
-2. Create a file called `.finicky.js` in your home directory and set a default browser and one or more url handlers.
-3. Start finicky. Please allow it to be set as the default browser.
-4. And you're done. All http and https links clicked that would have opened a link in your default browser are now first handled by Finicky.
+[![GitHub downloads](https://img.shields.io/github/downloads/johnste/finicky/total.svg?style=flat-square)](https://GitHub.com/johnste/finicky/releases/)
+[![GitHub release](https://img.shields.io/github/release-pre/johnste/finicky.svg?style=flat-square)](https://GitHub.com/johnste/finicky/releases/)
 
-#### Building from source
-Install XCode and XCode command line tools, then from a terminal:
 
+## Table of Contents
+
+<!-- To regenerate toc run `npx doctoc README.md --github` -->
+<!-- START doctoc generated TOC please keep comment here to allow auto update -->
+<!-- DON'T EDIT THIS SECTION, INSTEAD RE-RUN doctoc TO UPDATE -->
+
+- [Installation](#installation)
+- [Example configuration](#example-configuration)
+  - [Basic configuration](#basic-configuration)
+  - [Rewrite urls](#rewrite-urls)
+  - [Advanced usage, settings](#advanced-usage-settings)
+- [API Reference](#api-reference)
+- [Issues](#issues)
+  - [Bugs](#bugs)
+  - [Feature Requests](#feature-requests)
+- [Questions](#questions)
+- [License](#license)
+- [Building from source](#building-from-source)
+
+<!-- END doctoc generated TOC please keep comment here to allow auto update -->
+
+## Installation
+
+1. Install Finicky:
+
+- Download [the latest release](https://github.com/johnste/finicky/releases), unzip and put `Finicky.app` in your application folder.
+- Alternatively, you can install with [homebrew-cask](https://github.com/caskroom/homebrew-cask): `brew cask install finicky`.
+
+2. Create a file called `.finicky.js` with configuration
+   ([examples](#example-configuration)) in your home directory.
+3. Start Finicky. Please allow it to be set as the default browser.
+4. And you're done. All links clicked that would have opened your browser are now first handled by Finicky.
+
+## Example configuration
+
+### Basic configuration
+
+```js
+module.exports = {
+  defaultBrowser: "Google Chrome",
+  handlers: [{
+    // Open apple.com and example.org urls in Safari
+    match: finicky.matchDomains(["apple.com", "example.org"]),
+    browser: "Safari"
+  }, {
+    // Open any url including the string "workplace" in Firefox
+    match: /workplace/,
+    browser: "Firefox"
+  }];
+}
+```
+
+### Rewrite urls
+
+```js
+module.exports = {
+  defaultBrowser: "Google Chrome",
+  rewrite: [
+    {
+      // Redirect all urls to use https
+      match: ({ url }) => url.protocol === "http",
+      url: ({ url }) => ({
+        ...url,
+        protocol: "https"
+      })
+    },
+    {
+      // Avoid being rickrolled
+      match: [
+        "https://www.youtube.com/watch?v=dQw4w9WgXcQ",
+        "https://www.youtube.com/watch?v=oHg5SJYRHA0"
+      ],
+      url: "about:blank"
+    }
+  ]
+};
+```
+
+### Advanced usage, settings
+
+```js
+module.exports = {
+  defaultBrowser: "Google Chrome",
+  options: {
+    // Hide the finicky icon from the top bar
+    hideIcon: true
+  },
+  handlers: [
+    {
+      // Open any link clicked in Slack in Safari
+      match: ({ sourceBundleIdentifier }) =>
+        sourceBundleIdentifier === "com.tinyspeck.chatlyio",
+      browser: "Safari"
+    },
+    {
+      match: ["http://zombo.com"],
+      browser: {
+        name: "Google Chrome Canary",
+        // Force opening the link in the background
+        openInBackground: true
+      }
+    }
+  ]
+};
+```
+
+## API Reference
+
+- [Configuration Reference](https://johnste.github.io/finicky-docs/modules/_finickyconfig_.html)
+- [API Reference](https://johnste.github.io/finicky-docs/modules/_finickyapi_.html)
+
+## Issues
+
+### Bugs
+
+Please file an issue for bugs, missing documentation, or unexpected behavior.
+
+[**See Bugs**](https://github.com/johnste/finicky/issues?q=is%3aopen+is%3aissue+label%3abug)
+
+### Feature Requests
+
+Please file an issue to suggest new features. Vote on feature requests by adding
+a 👍.
+
+[**See Feature Requests**](https://github.com/johnste/finicky/labels/feature%20request)
+
+## Questions
+
+Have any other questions or need help? Please feel free to reach out to me on [Twitter](https://twitter.com/johnste_).
+
+## License
+
+[MIT](https://raw.githubusercontent.com/johnste/finicky/master/LICENSE)
+
+## Building from source
+
+Install XCode and XCode command line tools and then run commands:
+
+```shell
     git clone https://github.com/johnste/finicky.git
     cd finicky/Finicky
     xcodebuild
+```
 
 When complete you'll find a freshly built **Finicky** app in
 `build/release`.
-
-#### Documentation
-- [Javascript API Documentation](https://github.com/johnste/finicky/wiki#javascript-api)
-
-#### Example configuration
-```javascript
-
-finicky.setDefaultBrowser('com.google.Chrome');
-
-// Open social network links in Google Chrome
-finicky.onUrl(function(url, opts) {
-  if (url.match(/^https?:\/\/(youtube|facebook|twitter|linkedin)\.com/)) {
-    return {
-      bundleIdentifier: "com.google.Chrome"
-    };
-  }
-});
-
-// Open Spotify links in client
-finicky.onUrl(function(url, opts) {
-  if (url.match(/^https?:\/\/open\.spotify\.com/)) {
-    return {
-      bundleIdentifier: "com.spotify.client"
-    };
-  }
-});
-
-// Rewrite all Bing links to DuckDuckGo instead
-finicky.onUrl(function(url, opts) {
-  var url = url.replace(
-    /^https?:\/\/www\.bing\.com\/search/,
-    "https://duckduckgo.com"
-  );
-  return {
-    url: url
-  };
-});
-
-// Always open links from Mail in Safari
-finicky.onUrl(function(url, opts) {
-  var sourceApplication = opts && opts.sourceBundleIdentifier;
-  if (sourceApplication === "com.apple.mail") {
-    return {
-      bundleIdentifier: "com.apple.safari"
-    };
-  }
-});
-
-// By supplying an array of bundle identifiers, finicky opens the url in the first one
-// that's currently running. If none are running, the first app in the array is started.
-finicky.onUrl(function(url, opts) {
-  return {
-    bundleIdentifier: [
-      "org.mozilla.firefox",
-      "com.apple.Safari",
-      "com.google.Chrome"
-    ]
-  };
-});
-
-```
-
-#### A note on the current status of finicky
-Finicky is, as of October 2018, under active development. I plan to have a larger release out sometime in 2019, with focus on making it simpler to configure. Feel free to leave bug reports and feature requests, so please go ahead and add an issue on github, or ask me on [twitter](https://twitter.com/johnste_)
