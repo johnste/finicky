@@ -79,7 +79,11 @@ class AppDelegate: NSObject, NSApplicationDelegate, NSUserNotificationCenterDele
         }
         if let url = URL.init(string: value) {
             shortUrlResolver.resolveUrl(url, callback: {(URL) -> Void in
-                self.performTest(url: URL)
+                // Dispatch the call to the main thread
+                // https://developer.apple.com/documentation/code_diagnostics/main_thread_checker
+                DispatchQueue.main.async {
+                    self.performTest(url: URL)
+                }
             })
         }
     }
