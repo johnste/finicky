@@ -113,7 +113,7 @@ module.exports = {
     {
       // Open any link clicked in Slack in Safari
       match: ({ sourceBundleIdentifier }) =>
-        sourceBundleIdentifier === "com.tinyspeck.chatlyio",
+        sourceBundleIdentifier === "com.tinyspeck.slackmacgap",
       browser: "Safari"
     },
     {
