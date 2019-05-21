@@ -26,11 +26,13 @@ Finicky is an macOS application that allows you to set up rules that decide whic
 <!-- START doctoc generated TOC please keep comment here to allow auto update -->
 <!-- DON'T EDIT THIS SECTION, INSTEAD RE-RUN doctoc TO UPDATE -->
 
+
 - [Installation](#installation)
 - [Example configuration](#example-configuration)
   - [Basic configuration](#basic-configuration)
   - [Rewrite urls](#rewrite-urls)
   - [Advanced usage, settings](#advanced-usage-settings)
+  - [Configuration ideas](#configuration-ideas)
 - [API Reference](#api-reference)
 - [Issues](#issues)
   - [Bugs](#bugs)
@@ -128,7 +130,7 @@ module.exports = {
 
 ### Configuration ideas
 
-See the wiki page for other (configuration ideas)[https://github.com/johnste/finicky/wiki/Configuration-ideas]
+See the wiki page for other [configuration ideas](https://github.com/johnste/finicky/wiki/Configuration-ideas)
 
 ## API Reference
 
