@@ -4,7 +4,7 @@
   (global = global || self, factory(global.fastidious = {}));
 }(this, function (exports) { 'use strict';
 
-  /* fastidious 1.0.4 - https://github.com/johnste/fastidious */
+  /* fastidious 1.0.7 - https://github.com/johnste/fastidious */
 
   function isDefined(value) {
       return typeof value !== "undefined" && value !== null;
@@ -80,31 +80,46 @@
   }
 
   function getErrors(object, schema, prefix = "root.") {
+      // If schema is a function we're testing a single validator
+      if (typeof schema === "function") {
+          const result = schema(object, prefix + "value");
+          return result ? [result] : [];
+      }
+      else if (typeof schema !== "object") {
+          return [
+              `Expected an schema that was an object or a function, but received ${typeof object} (path: ${prefix})`
+          ];
+      }
       const schemaKeys = getKeys(schema);
       const errors = [];
-      // Validate each property in schema
-      schemaKeys.forEach(key => {
-          const propChecker = schema[key];
-          let result;
-          if (typeof propChecker === "function") {
-              result = propChecker(object[key], prefix + key);
-          }
-          else if (["string", "number"].includes(typeof propChecker)) {
-              result = validate.value(propChecker)(object[key], prefix + key);
-          }
-          else {
-              result = `Expected a validator at key ${prefix + key}`;
-          }
-          if (typeof result === "string") {
-              errors.push(result);
-          }
-      });
-      // Check for extraneous properties in object
-      getKeys(object).forEach(key => {
-          if (!schemaKeys.includes(key)) {
-              errors.push("extraneous key " + prefix + key);
-          }
-      });
+      if (typeof object !== "object") {
+          errors.push(`Expected an object to validate, but received ${typeof object} (path: ${prefix})`);
+      }
+      else {
+          // Validate each property in schema
+          schemaKeys.forEach(key => {
+              const propChecker = schema[key];
+              let result;
+              if (typeof propChecker === "function") {
+                  result = propChecker(object[key], prefix + key);
+              }
+              else if (["string", "number"].includes(typeof propChecker)) {
+                  result = validate.value(propChecker)(object[key], prefix + key);
+              }
+              else {
+                  result = `Expected a validator at path ${prefix + key}`;
+              }
+              if (typeof result === "string") {
+                  errors.push(result);
+              }
+          });
+          // Check for extraneous properties in object
+          getKeys(object).forEach(key => {
+              if (!schemaKeys.includes(key)) {
+                  errors.push("unknown key ${key} at ${prefix + key}");
+              }
+          });
+      }
       return errors;
   }
   const validate = {
