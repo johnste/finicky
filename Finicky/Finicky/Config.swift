@@ -120,9 +120,9 @@ open class FinickyConfig {
                 //let lineNumber = exception.objectForKeyedSubscript("line").toString()
                 //let columnNumber = exception.objectForKeyedSubscript("column").toString()
                 //let message = "Error parsing config: \"\(String(describing: exception!))\" \nStack: \(stacktrace!):\(lineNumber!):\(columnNumber!)";
-                let message = "Error parsing config: \"\(String(describing: exception!))\"";
+                let message = "Configuration error: \(String(describing: exception!))";
                 print(message)
-                showNotification(title: "Error parsing config", informativeText: String(describing: exception!), error: true)
+                showNotification(title: "Configuration error", informativeText: String(describing: exception!), error: true)
                 if (self.logToConsole != nil) {
                     self.logToConsole!(message)
                 }
@@ -294,10 +294,21 @@ open class FinickyConfig {
         ctx.setObject(FinickyAPI.self, forKeyedSubscript: "finicky" as NSCopying & NSObjectProtocol)
 
         ctx.evaluateScript("""
-            finicky.matchDomains = function(matchers) {
+            finicky.matchDomains = function(matchers, ...args) {
+                if (args.length > 0) {
+                    throw new Error("finicky.matchDomains(domains) only accepts one argument. See https://johnste.github.io/finicky-docs/interfaces/_finickyapi_.finicky.html#matchdomains for more information")
+                }
+
                 if (!Array.isArray(matchers)) {
                     matchers = [matchers];
                 }
+
+                matchers.forEach(matcher => {
+                    if (matcher instanceof RegExp || typeof matcher === "string") {
+                        return;
+                    }
+                    throw new Error(`finicky.matchDomains(domains): Unrecognized domain "${matcher}"`);
+                });
 
                 return function({ url }) {
                     const domain = url.host;
