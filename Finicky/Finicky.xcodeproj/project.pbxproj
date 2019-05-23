@@ -33,6 +33,7 @@
 		54B9A8B822823B3A00BF67DE /* ConfigAppResult.swift in Sources */ = {isa = PBXBuildFile; fileRef = 54B9A8B722823B3A00BF67DE /* ConfigAppResult.swift */; };
 		54DD12C9229A977200D5D2BF /* jsAPI.js in Resources */ = {isa = PBXBuildFile; fileRef = 54DD12C8229A977100D5D2BF /* jsAPI.js */; };
 		54E33FD71B24E27000998E13 /* Config.swift in Sources */ = {isa = PBXBuildFile; fileRef = 54E33FD61B24E27000998E13 /* Config.swift */; };
+		54E4B1EB22971F7B002FA6F4 /* UpdateCheck.swift in Sources */ = {isa = PBXBuildFile; fileRef = 54E4B1EA22971F7B002FA6F4 /* UpdateCheck.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -76,6 +77,7 @@
 		54B9A8B722823B3A00BF67DE /* ConfigAppResult.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ConfigAppResult.swift; sourceTree = "<group>"; };
 		54DD12C8229A977100D5D2BF /* jsAPI.js */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.javascript; path = jsAPI.js; sourceTree = "<group>"; };
 		54E33FD61B24E27000998E13 /* Config.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = Config.swift; sourceTree = "<group>"; };
+		54E4B1EA22971F7B002FA6F4 /* UpdateCheck.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = UpdateCheck.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -131,6 +133,7 @@
 				54B5771522860D0B0016BF77 /* Credits.rtf */,
 				546F1677228B487F006C5375 /* Utilities.swift */,
 				54B12878229C59EC00990D0D /* AppDescriptor.swift */,
+				54E4B1EA22971F7B002FA6F4 /* UpdateCheck.swift */,
 			);
 			path = Finicky;
 			sourceTree = "<group>";
@@ -331,6 +334,7 @@
 				54E33FD71B24E27000998E13 /* Config.swift in Sources */,
 				54899CD61B20D5BC00647101 /* AppDelegate.swift in Sources */,
 				54B0E7031B4678CE003F8AEE /* ShortUrlResolver.swift in Sources */,
+				54E4B1EB22971F7B002FA6F4 /* UpdateCheck.swift in Sources */,
 				548F11CE1B2A43F700FDDC3C /* API.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;

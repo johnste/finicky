@@ -695,6 +695,12 @@
                         <action selector="showAboutPanel:" target="Voe-Tx-rLC" id="KBo-Bz-WFn"/>
                     </connections>
                 </menuItem>
+                <menuItem title="Check for updates..." id="ny7-ir-HYr">
+                    <modifierMask key="keyEquivalentModifierMask"/>
+                    <connections>
+                        <action selector="checkUpdates:" target="Voe-Tx-rLC" id="1KD-uO-GuV"/>
+                    </connections>
+                </menuItem>
                 <menuItem isSeparatorItem="YES" id="xv0-8Y-Mbd"/>
                 <menuItem title="Quit" id="a0y-GU-CFI">
                     <modifierMask key="keyEquivalentModifierMask"/>

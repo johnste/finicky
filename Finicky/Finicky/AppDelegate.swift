@@ -62,6 +62,11 @@ class AppDelegate: NSObject, NSApplicationDelegate, NSUserNotificationCenterDele
         configLoader.listenToChanges(showInitialSuccess: true)
     }
 
+    @IBAction func checkUpdates(_ sender: NSMenuItem) {
+        let x = UpdateCheck()
+        x.check()
+    }
+
     @IBAction func showAboutPanel(_ sender: NSMenuItem) {
         NSApp.activate(ignoringOtherApps: true)
         NSApp.orderFrontStandardAboutPanel(sender)
