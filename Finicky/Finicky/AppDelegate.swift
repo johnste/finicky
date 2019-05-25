@@ -11,12 +11,11 @@ class AppDelegate: NSObject, NSApplicationDelegate, NSUserNotificationCenterDele
     @IBOutlet weak var textView: NSTextView!
 
     @objc var statusItem: NSStatusItem!
-    var configLoader: FinickyConfig!
-    var shortUrlResolver: FNShortUrlResolver!
+    var configLoader: FinickyConfig = FinickyConfig()
+    var shortUrlResolver: FNShortUrlResolver = FNShortUrlResolver()
     @objc var isActive: Bool = true
 
-    func applicationDidFinishLaunching(_ aNotification: Notification) {
-
+    func applicationWillFinishLaunching(_ aNotification: Notification) {
         yourTextField.delegate = self
         let bundleId = "net.kassett.Finicky"
         LSSetDefaultHandlerForURLScheme("http" as CFString, bundleId as CFString)
@@ -45,6 +44,9 @@ class AppDelegate: NSObject, NSApplicationDelegate, NSUserNotificationCenterDele
 
         configLoader = FinickyConfig(toggleIconCallback: toggleIconCallback, logToConsoleCallback: logToConsole, setShortUrlProviders: setShortUrlProviders)
         configLoader.reload(showSuccess: false)
+
+        let appleEventManager:NSAppleEventManager = NSAppleEventManager.shared()
+        appleEventManager.setEventHandler(self, andSelector: #selector(AppDelegate.handleGetURLEvent(_:withReplyEvent:)), forEventClass: AEEventClass(kInternetEventClass), andEventID: AEEventID(kAEGetURL))
     }
 
     @IBAction func reloadConfig(_ sender: NSMenuItem) {
@@ -160,7 +162,6 @@ class AppDelegate: NSObject, NSApplicationDelegate, NSUserNotificationCenterDele
         showTestConfigWindow(nil)
     }
 
-
     func openUrlWithBrowser(_ url: URL, bundleIdentifier: String, openInBackground: Bool?) {
         // Launch in background by default if finicky isn't active to avoid something that causes some bug to happen...
         // Too long ago to remember what actually happened
@@ -178,11 +179,6 @@ class AppDelegate: NSObject, NSApplicationDelegate, NSUserNotificationCenterDele
         for filename in filenames {
             self.callUrlHandlers(nil, url: URL(fileURLWithPath: filename ))
         }
-    }
-
-    func applicationWillFinishLaunching(_ aNotification: Notification) {
-        let appleEventManager:NSAppleEventManager = NSAppleEventManager.shared()
-        appleEventManager.setEventHandler(self, andSelector: #selector(AppDelegate.handleGetURLEvent(_:withReplyEvent:)), forEventClass: AEEventClass(kInternetEventClass), andEventID: AEEventID(kAEGetURL))
     }
 
     func applicationDidBecomeActive(_ aNotification: Notification) {

@@ -51,6 +51,8 @@ open class FinickyConfig {
         if let path = Bundle.main.path(forResource: "processUrl.js", ofType: nil ) {
             processUrlJS = try! String(contentsOfFile: path, encoding: String.Encoding.utf8)
         }
+
+        createContext()
     }
 
     public convenience init(toggleIconCallback: @escaping (_ hide: Bool) -> Void, logToConsoleCallback: @escaping (_ message: String) -> Void , setShortUrlProviders: @escaping (_ shortUrlProviders: [String]?) -> Void) {
