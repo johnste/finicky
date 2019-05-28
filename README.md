@@ -162,6 +162,8 @@ Have any other questions or need help? Please feel free to reach out to me on [T
 
 ## Support development
 
+If you want to help support further development of finicky, feel free to buy me a coffee on ko-fi.
+
 <a href='https://ko-fi.com/E1E5W973' target='_blank'><img height='36' style='border:0px;height:36px;' src='https://az743702.vo.msecnd.net/cdn/kofi1.png?v=2' border='0' alt='Buy Me a Coffee at ko-fi.com' /></a>
 
 ## Building from source
