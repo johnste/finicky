@@ -19,7 +19,6 @@ Finicky is an macOS application that allows you to set up rules that decide whic
 [![GitHub downloads](https://img.shields.io/github/downloads/johnste/finicky/total.svg?style=flat-square)](https://GitHub.com/johnste/finicky/releases/)
 [![GitHub release](https://img.shields.io/github/release-pre/johnste/finicky.svg?style=flat-square)](https://GitHub.com/johnste/finicky/releases/)
 
-
 ## Table of Contents
 
 <!-- To regenerate toc run `npx doctoc README.md --github` -->
@@ -39,6 +38,7 @@ Finicky is an macOS application that allows you to set up rules that decide whic
   - [Feature Requests](#feature-requests)
 - [Questions](#questions)
 - [License](#license)
+- [Support development](#support-development)
 - [Building from source](#building-from-source)
 
 <!-- END doctoc generated TOC please keep comment here to allow auto update -->
@@ -159,6 +159,10 @@ Have any other questions or need help? Please feel free to reach out to me on [T
 ## License
 
 [MIT](https://raw.githubusercontent.com/johnste/finicky/master/LICENSE)
+
+## Support development
+
+<a href='https://ko-fi.com/E1E5W973' target='_blank'><img height='36' style='border:0px;height:36px;' src='https://az743702.vo.msecnd.net/cdn/kofi1.png?v=2' border='0' alt='Buy Me a Coffee at ko-fi.com' /></a>
 
 ## Building from source
 
