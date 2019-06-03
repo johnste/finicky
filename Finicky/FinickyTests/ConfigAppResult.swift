@@ -1,13 +1,12 @@
 import Cocoa
-import XCTest
 import Finicky
 import JavaScriptCore
+import XCTest
 
 class ConfigAppResultTests: XCTestCase {
-
-    var ctx : JSContext!
+    var ctx: JSContext!
     var exampleUrl = URL(string: "http://example.com")!
-    var configLoader : FinickyConfig!
+    var configLoader: FinickyConfig!
     let urlMatch = "match: () => true"
 
     override func setUp() {
@@ -55,7 +54,7 @@ class ConfigAppResultTests: XCTestCase {
     }
 
     func testObjectFixedTypeBundleIdResult() {
-         configLoader.parseConfig(generateHandlerConfig(browser: "{ name: 'test.success', appType: 'bundleId' }"))
+        configLoader.parseConfig(generateHandlerConfig(browser: "{ name: 'test.success', appType: 'bundleId' }"))
         let result = configLoader.determineOpeningApp(url: exampleUrl)
         XCTAssertEqual(result!.appType, AppDescriptorType.bundleId)
     }
@@ -97,6 +96,4 @@ class ConfigAppResultTests: XCTestCase {
         XCTAssertEqual(result!.name, "http")
         XCTAssertEqual(result!.appType, AppDescriptorType.bundleId)
     }
-
-
 }

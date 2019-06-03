@@ -1,8 +1,7 @@
 import Cocoa
-import XCTest
 import Finicky
+import XCTest
 class URLPartsTests: XCTestCase {
-
     override func setUp() {
         super.setUp()
     }

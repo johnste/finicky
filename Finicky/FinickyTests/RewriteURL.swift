@@ -1,13 +1,12 @@
 import Cocoa
-import XCTest
 import Finicky
 import JavaScriptCore
+import XCTest
 
 class URLRewriteTests: XCTestCase {
-
-    var ctx : JSContext!
+    var ctx: JSContext!
     var exampleUrl = URL(string: "http://example.com")!
-    var configLoader : FinickyConfig!
+    var configLoader: FinickyConfig!
     let urlMatch = "match: () => true"
 
     override func setUp() {

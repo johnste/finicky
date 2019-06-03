@@ -1,7 +1,7 @@
-import Foundation
 import AppKit
+import Foundation
 
-func showNotification(title: String, subtitle: String? = nil, informativeText: String? = nil, error: Bool = false) -> Void {
+func showNotification(title: String, subtitle: String? = nil, informativeText: String? = nil, error: Bool = false) {
     let notification = NSUserNotification()
 
     notification.title = title
@@ -16,6 +16,6 @@ func showNotification(title: String, subtitle: String? = nil, informativeText: S
     if error {
         notification.soundName = NSUserNotificationDefaultSoundName
     }
-    
-    NSUserNotificationCenter.default.deliver(notification)    
+
+    NSUserNotificationCenter.default.deliver(notification)
 }

@@ -1,25 +1,24 @@
 import Foundation
 import JavaScriptCore
 
-@objc protocol FinickyAPIExports : JSExport {
+@objc protocol FinickyAPIExports: JSExport {
     static func log(_ message: String?) -> Void
     static func notify(_ title: JSValue, _ subtitle: JSValue) -> Void
-    static func getUrlParts(_ url: String) -> Dictionary<String, Any>
+    static func getUrlParts(_ url: String) -> [String: Any]
 }
 
-@objc open class FinickyAPI : NSObject, FinickyAPIExports {
+@objc open class FinickyAPI: NSObject, FinickyAPIExports {
+    fileprivate static var context: JSContext!
+    fileprivate static var logToConsole: ((_ message: String) -> Void)?
 
-    fileprivate static var context : JSContext! = nil
-    fileprivate static var logToConsole:((_ message: String) -> Void)? = nil;
-
-    static func log(_ message: String?) -> Void {
+    static func log(_ message: String?) {
         if message != nil {
             NSLog(message!)
             logToConsole!(message!)
         }
     }
 
-    static func notify(_ title: JSValue, _ informativeText: JSValue) -> Void {
+    static func notify(_ title: JSValue, _ informativeText: JSValue) {
         if title.isString {
             if informativeText.isString {
                 showNotification(title: title.toString(), informativeText: informativeText.toString())
@@ -37,8 +36,8 @@ import JavaScriptCore
         self.logToConsole = logToConsole
     }
 
-    @objc public class func getUrlParts(_ urlString: String) -> Dictionary<String, Any> {
-        let url: URL! = URL.init(string: urlString)
+    @objc public class func getUrlParts(_ urlString: String) -> [String: Any] {
+        let url: URL! = URL(string: urlString)
 
         guard url != nil else { return [:] }
 

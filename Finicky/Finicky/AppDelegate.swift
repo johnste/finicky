@@ -1,21 +1,20 @@
+import AppKit
 import Cocoa
 import Foundation
-import AppKit
 
 @NSApplicationMain
 class AppDelegate: NSObject, NSApplicationDelegate, NSUserNotificationCenterDelegate, NSTextFieldDelegate, NSTextViewDelegate {
-
     @IBOutlet var statusItemMenu: NSMenu!
-    @IBOutlet weak var testConfigWindow: NSWindow!
-    @IBOutlet weak var yourTextField: NSTextField!
-    @IBOutlet weak var textView: NSTextView!
+    @IBOutlet var testConfigWindow: NSWindow!
+    @IBOutlet var yourTextField: NSTextField!
+    @IBOutlet var textView: NSTextView!
 
     @objc var statusItem: NSStatusItem!
     var configLoader: FinickyConfig!
     var shortUrlResolver: FNShortUrlResolver = FNShortUrlResolver()
     @objc var isActive: Bool = true
 
-    func applicationWillFinishLaunching(_ aNotification: Notification) {
+    func applicationWillFinishLaunching(_: Notification) {
         yourTextField.delegate = self
         let bundleId = "net.kassett.Finicky"
         LSSetDefaultHandlerForURLScheme("http" as CFString, bundleId as CFString)
@@ -46,20 +45,20 @@ class AppDelegate: NSObject, NSApplicationDelegate, NSUserNotificationCenterDele
         }
 
         func updateStatus(valid: Bool) {
-            if (valid) {
+            if valid {
                 statusItem.image = img
-            } else{
+            } else {
                 statusItem.image = invalidImg
             }
         }
-        
+
         configLoader = FinickyConfig(toggleIconCallback: toggleIconCallback, logToConsoleCallback: logToConsole, setShortUrlProviders: setShortUrlProviders, updateStatus: updateStatus)
 
-        let appleEventManager:NSAppleEventManager = NSAppleEventManager.shared()
+        let appleEventManager: NSAppleEventManager = NSAppleEventManager.shared()
         appleEventManager.setEventHandler(self, andSelector: #selector(AppDelegate.handleGetURLEvent(_:withReplyEvent:)), forEventClass: AEEventClass(kInternetEventClass), andEventID: AEEventID(kAEGetURL))
     }
 
-    @IBAction func reloadConfig(_ sender: NSMenuItem) {
+    @IBAction func reloadConfig(_: NSMenuItem) {
         configLoader.listenToChanges(showInitialSuccess: true)
     }
 
@@ -70,8 +69,8 @@ class AppDelegate: NSObject, NSApplicationDelegate, NSUserNotificationCenterDele
 
     @IBAction func showTestConfigWindow(_ sender: Any?) {
         NSApp.activate(ignoringOtherApps: true)
-        self.testConfigWindow.center()
-        self.testConfigWindow.orderFront(sender)
+        testConfigWindow.center()
+        testConfigWindow.orderFront(sender)
     }
 
     func logToConsole(_ message: String) {
@@ -79,18 +78,18 @@ class AppDelegate: NSObject, NSApplicationDelegate, NSUserNotificationCenterDele
         let formatter = DateFormatter()
         formatter.dateFormat = "yyyy-MM-dd HH:mm:ss"
         let dateString = formatter.string(from: date)
-        self.textView.string = dateString + " - " + message + "\n\n" + self.textView.string.prefix(20000).trimmingCharacters(in: .whitespacesAndNewlines)
+        textView.string = dateString + " - " + message + "\n\n" + textView.string.prefix(20000).trimmingCharacters(in: .whitespacesAndNewlines)
     }
 
     @IBAction func testUrl(_ sender: NSTextField) {
         let value = sender.stringValue
 
-        if (!value.starts(with: "https://") && !value.starts(with: "http://")) {
+        if !value.starts(with: "https://"), !value.starts(with: "http://") {
             logToConsole("Finicky only understand https:// and http:// urls")
             return
         }
-        if let url = URL.init(string: value) {
-            shortUrlResolver.resolveUrl(url, callback: {(URL) -> Void in
+        if let url = URL(string: value) {
+            shortUrlResolver.resolveUrl(url, callback: { (URL) -> Void in
                 // Dispatch the call to the main thread
                 // https://developer.apple.com/documentation/code_diagnostics/main_thread_checker
                 DispatchQueue.main.async {
@@ -122,28 +121,27 @@ class AppDelegate: NSObject, NSApplicationDelegate, NSUserNotificationCenterDele
         var result: Bool
         if state {
             result = NSApp.setActivationPolicy(NSApplication.ActivationPolicy.regular)
-        }
-        else {
+        } else {
             result = NSApp.setActivationPolicy(NSApplication.ActivationPolicy.accessory)
         }
         return result
     }
 
-    @objc func handleGetURLEvent(_ event: NSAppleEventDescriptor?, withReplyEvent: NSAppleEventDescriptor?) {
-        let url : URL = URL(string: event!.paramDescriptor(forKeyword: AEKeyword(keyDirectObject))!.stringValue!)!
+    @objc func handleGetURLEvent(_ event: NSAppleEventDescriptor?, withReplyEvent _: NSAppleEventDescriptor?) {
+        let url: URL = URL(string: event!.paramDescriptor(forKeyword: AEKeyword(keyDirectObject))!.stringValue!)!
         let pid = event!.attributeDescriptor(forKeyword: AEKeyword(keySenderPIDAttr))!.int32Value
         let sourceBundleIdentifier = NSRunningApplication(processIdentifier: pid)?.bundleIdentifier
 
-        shortUrlResolver.resolveUrl(url, callback: {(URL) -> Void in
+        shortUrlResolver.resolveUrl(url, callback: { (URL) -> Void in
             self.callUrlHandlers(sourceBundleIdentifier, url: URL)
         })
     }
 
     @objc func callUrlHandlers(_ sourceBundleIdentifier: String?, url: URL) {
         if let appDescriptor = configLoader.determineOpeningApp(url: url, sourceBundleIdentifier: sourceBundleIdentifier) {
-            var bundleId : String?
+            var bundleId: String?
 
-            if (appDescriptor.appType == AppDescriptorType.bundleId) {
+            if appDescriptor.appType == AppDescriptorType.bundleId {
                 bundleId = appDescriptor.name
             } else {
                 if let path = NSWorkspace.shared.fullPath(forApplication: appDescriptor.name) {
@@ -153,31 +151,30 @@ class AppDelegate: NSObject, NSApplicationDelegate, NSUserNotificationCenterDele
                 }
             }
 
-            var missingAppName: String?;
-            if bundleId != nil && NSWorkspace.shared.absolutePathForApplication(withBundleIdentifier: bundleId!) == nil {
+            var missingAppName: String?
+            if bundleId != nil, NSWorkspace.shared.absolutePathForApplication(withBundleIdentifier: bundleId!) == nil {
                 missingAppName = bundleId
             } else if bundleId == nil {
                 missingAppName = appDescriptor.name
             }
 
-            if (missingAppName == nil) {
-                openUrlWithBrowser(appDescriptor.url, bundleIdentifier:bundleId!, openInBackground: appDescriptor.openInBackground )
+            if missingAppName == nil {
+                openUrlWithBrowser(appDescriptor.url, bundleIdentifier: bundleId!, openInBackground: appDescriptor.openInBackground)
                 return
             }
 
-            let description = "Finicky was unable to find the application \"" + appDescriptor.name + "\"";
+            let description = "Finicky was unable to find the application \"" + appDescriptor.name + "\""
             print(description)
             logToConsole(description)
             showNotification(title: "Unable to find application", informativeText: "Finicky was unable to find the application \"" + appDescriptor.name + "\"", error: true)
-
         }
     }
 
-    func userNotificationCenter(_ center: NSUserNotificationCenter, shouldPresent notification: NSUserNotification) -> Bool {
+    func userNotificationCenter(_: NSUserNotificationCenter, shouldPresent _: NSUserNotification) -> Bool {
         return true
     }
 
-    func userNotificationCenter(_ center: NSUserNotificationCenter, didActivate notification: NSUserNotification) -> Void {
+    func userNotificationCenter(_: NSUserNotificationCenter, didActivate _: NSUserNotification) {
         showTestConfigWindow(nil)
     }
 
@@ -187,25 +184,24 @@ class AppDelegate: NSObject, NSApplicationDelegate, NSUserNotificationCenterDele
         let openInBackground = openInBackground ?? !isActive
 
         print("opening " + url.absoluteString)
-        if (openInBackground) {
-            shell("open",  url.absoluteString , "-b", bundleIdentifier, "-g")
+        if openInBackground {
+            shell("open", url.absoluteString, "-b", bundleIdentifier, "-g")
         } else {
-            shell("open",url.absoluteString , "-b", bundleIdentifier)
+            shell("open", url.absoluteString, "-b", bundleIdentifier)
         }
     }
 
-    func application(_ sender: NSApplication, openFiles filenames: [String]) {
+    func application(_: NSApplication, openFiles filenames: [String]) {
         for filename in filenames {
-            self.callUrlHandlers(nil, url: URL(fileURLWithPath: filename ))
+            callUrlHandlers(nil, url: URL(fileURLWithPath: filename))
         }
     }
 
-    func applicationDidBecomeActive(_ aNotification: Notification) {
+    func applicationDidBecomeActive(_: Notification) {
         isActive = true
     }
 
-    func applicationDidResignActive(_ aNotification: Notification) {
+    func applicationDidResignActive(_: Notification) {
         isActive = false
     }
 }
-
