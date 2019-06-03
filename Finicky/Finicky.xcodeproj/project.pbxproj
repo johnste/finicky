@@ -120,15 +120,12 @@
 		54899CD21B20D5BC00647101 /* Finicky */ = {
 			isa = PBXGroup;
 			children = (
-				54DD12C8229A977100D5D2BF /* jsAPI.js */,
-				548479A12278ADB40003D51C /* fastidious.js */,
-				543EC33C21DE54DD004789DF /* processUrl.js */,
+				54CBA90D22A5C7EA0074A67F /* js */,
 				54899CD51B20D5BC00647101 /* AppDelegate.swift */,
 				54899CD91B20D5BC00647101 /* MainMenu.xib */,
 				54899CD31B20D5BC00647101 /* Supporting Files */,
 				54E33FD61B24E27000998E13 /* Config.swift */,
 				548F11CD1B2A43F700FDDC3C /* API.swift */,
-				543EC33E21DE54E9004789DF /* validateConfig.js */,
 				54B0E7021B4678CE003F8AEE /* ShortUrlResolver.swift */,
 				5479FDD321655A3400D15A3C /* Notifications.swift */,
 				54B5771522860D0B0016BF77 /* Credits.rtf */,
@@ -180,6 +177,17 @@
 				54899CF21B20D5D100647101 /* Cocoa.framework */,
 			);
 			name = Frameworks;
+			sourceTree = "<group>";
+		};
+		54CBA90D22A5C7EA0074A67F /* js */ = {
+			isa = PBXGroup;
+			children = (
+				54DD12C8229A977100D5D2BF /* jsAPI.js */,
+				548479A12278ADB40003D51C /* fastidious.js */,
+				543EC33C21DE54DD004789DF /* processUrl.js */,
+				543EC33E21DE54E9004789DF /* validateConfig.js */,
+			);
+			name = js;
 			sourceTree = "<group>";
 		};
 /* End PBXGroup section */
