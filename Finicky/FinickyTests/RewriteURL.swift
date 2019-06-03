@@ -13,7 +13,7 @@ class URLRewriteTests: XCTestCase {
     override func setUp() {
         super.setUp()
         configLoader = FinickyConfig()
-        _ = configLoader.createContext()
+        _ = configLoader.setupAPI()
     }
 
     override func tearDown() {

@@ -11,7 +11,7 @@ class AppDelegate: NSObject, NSApplicationDelegate, NSUserNotificationCenterDele
     @IBOutlet weak var textView: NSTextView!
 
     @objc var statusItem: NSStatusItem!
-    var configLoader: FinickyConfig = FinickyConfig()
+    var configLoader: FinickyConfig!
     var shortUrlResolver: FNShortUrlResolver = FNShortUrlResolver()
     @objc var isActive: Bool = true
 
@@ -25,12 +25,15 @@ class AppDelegate: NSObject, NSApplicationDelegate, NSUserNotificationCenterDele
         let img: NSImage! = NSImage(named: NSImage.Name(rawValue: "statusitem"))
         img.isTemplate = true
 
+        let invalidImg: NSImage! = NSImage(named: NSImage.Name(rawValue: "statusitemerror"))
+        invalidImg.isTemplate = true
+
         let bar = NSStatusBar.system
         // Workaround for some bug: -1 instead of NSVariableStatusItemLength
         statusItem = bar.statusItem(withLength: CGFloat(-1))
         statusItem.menu = statusItemMenu
         statusItem.highlightMode = true
-        statusItem.image = img
+        statusItem.image = invalidImg
         toggleDockIcon(showIcon: false)
 
         func toggleIconCallback(show: Bool) {
@@ -42,15 +45,22 @@ class AppDelegate: NSObject, NSApplicationDelegate, NSUserNotificationCenterDele
             shortUrlResolver = FNShortUrlResolver(shortUrlProviders: shortUrlProviders)
         }
 
-        configLoader = FinickyConfig(toggleIconCallback: toggleIconCallback, logToConsoleCallback: logToConsole, setShortUrlProviders: setShortUrlProviders)
-        configLoader.reload(showSuccess: false)
+        func updateStatus(valid: Bool) {
+            if (valid) {
+                statusItem.image = img
+            } else{
+                statusItem.image = invalidImg
+            }
+        }
+        
+        configLoader = FinickyConfig(toggleIconCallback: toggleIconCallback, logToConsoleCallback: logToConsole, setShortUrlProviders: setShortUrlProviders, updateStatus: updateStatus)
 
         let appleEventManager:NSAppleEventManager = NSAppleEventManager.shared()
         appleEventManager.setEventHandler(self, andSelector: #selector(AppDelegate.handleGetURLEvent(_:withReplyEvent:)), forEventClass: AEEventClass(kInternetEventClass), andEventID: AEEventID(kAEGetURL))
     }
 
     @IBAction func reloadConfig(_ sender: NSMenuItem) {
-        configLoader.reload(showSuccess: true)
+        configLoader.listenToChanges(showInitialSuccess: true)
     }
 
     @IBAction func showAboutPanel(_ sender: NSMenuItem) {
@@ -143,14 +153,23 @@ class AppDelegate: NSObject, NSApplicationDelegate, NSUserNotificationCenterDele
                 }
             }
 
-            if bundleId != nil {
-                openUrlWithBrowser(appDescriptor.url, bundleIdentifier:bundleId!, openInBackground: appDescriptor.openInBackground )
-            } else {
-                let description = "Finicky was unable to find the application \"" + appDescriptor.name + "\"";
-                print(description)
-                logToConsole(description)
-                showNotification(title: "Unable to find application", informativeText: "Finicky was unable to find the application \"" + appDescriptor.name + "\"", error: true)
+            var missingAppName: String?;
+            if bundleId != nil && NSWorkspace.shared.absolutePathForApplication(withBundleIdentifier: bundleId!) == nil {
+                missingAppName = bundleId
+            } else if bundleId == nil {
+                missingAppName = appDescriptor.name
             }
+
+            if (missingAppName == nil) {
+                openUrlWithBrowser(appDescriptor.url, bundleIdentifier:bundleId!, openInBackground: appDescriptor.openInBackground )
+                return
+            }
+
+            let description = "Finicky was unable to find the application \"" + appDescriptor.name + "\"";
+            print(description)
+            logToConsole(description)
+            showNotification(title: "Unable to find application", informativeText: "Finicky was unable to find the application \"" + appDescriptor.name + "\"", error: true)
+
         }
     }
 

@@ -9,11 +9,13 @@
 /* Begin PBXBuildFile section */
 		543EC33D21DE54DD004789DF /* processUrl.js in Resources */ = {isa = PBXBuildFile; fileRef = 543EC33C21DE54DD004789DF /* processUrl.js */; };
 		543EC33F21DE54EA004789DF /* validateConfig.js in Resources */ = {isa = PBXBuildFile; fileRef = 543EC33E21DE54E9004789DF /* validateConfig.js */; };
+		5443523E229DA01B00307E21 /* statusitemerror@2x.png in Resources */ = {isa = PBXBuildFile; fileRef = 5443523D229DA01B00307E21 /* statusitemerror@2x.png */; };
+		54435240229DB9E800307E21 /* statusitemerror.png in Resources */ = {isa = PBXBuildFile; fileRef = 5443523F229DB9E800307E21 /* statusitemerror.png */; };
 		544B57891B28B87900812908 /* statusitem.png in Resources */ = {isa = PBXBuildFile; fileRef = 544B57871B28B87900812908 /* statusitem.png */; };
 		544B578A1B28B87900812908 /* statusitem@2x.png in Resources */ = {isa = PBXBuildFile; fileRef = 544B57881B28B87900812908 /* statusitem@2x.png */; };
 		546F1678228B487F006C5375 /* Utilities.swift in Sources */ = {isa = PBXBuildFile; fileRef = 546F1677228B487F006C5375 /* Utilities.swift */; };
 		5479FDD421655A3400D15A3C /* Notifications.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5479FDD321655A3400D15A3C /* Notifications.swift */; };
-		548479A22278ADB40003D51C /* validate.js in Resources */ = {isa = PBXBuildFile; fileRef = 548479A12278ADB40003D51C /* validate.js */; };
+		548479A22278ADB40003D51C /* fastidious.js in Resources */ = {isa = PBXBuildFile; fileRef = 548479A12278ADB40003D51C /* fastidious.js */; };
 		54899CD61B20D5BC00647101 /* AppDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = 54899CD51B20D5BC00647101 /* AppDelegate.swift */; };
 		54899CD81B20D5BC00647101 /* Images.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 54899CD71B20D5BC00647101 /* Images.xcassets */; };
 		54899CDB1B20D5BC00647101 /* MainMenu.xib in Resources */ = {isa = PBXBuildFile; fileRef = 54899CD91B20D5BC00647101 /* MainMenu.xib */; };
@@ -23,11 +25,13 @@
 		548F11CC1B2A39F800FDDC3C /* finicky.icns in Resources */ = {isa = PBXBuildFile; fileRef = 548F11CB1B2A39F800FDDC3C /* finicky.icns */; };
 		548F11CE1B2A43F700FDDC3C /* API.swift in Sources */ = {isa = PBXBuildFile; fileRef = 548F11CD1B2A43F700FDDC3C /* API.swift */; };
 		54B0E7031B4678CE003F8AEE /* ShortUrlResolver.swift in Sources */ = {isa = PBXBuildFile; fileRef = 54B0E7021B4678CE003F8AEE /* ShortUrlResolver.swift */; };
+		54B12879229C59EC00990D0D /* AppDescriptor.swift in Sources */ = {isa = PBXBuildFile; fileRef = 54B12878229C59EC00990D0D /* AppDescriptor.swift */; };
 		54B5771622860D0B0016BF77 /* Credits.rtf in Resources */ = {isa = PBXBuildFile; fileRef = 54B5771522860D0B0016BF77 /* Credits.rtf */; };
 		54B5771822861D740016BF77 /* RewriteURL.swift in Sources */ = {isa = PBXBuildFile; fileRef = 54B5771722861D740016BF77 /* RewriteURL.swift */; };
 		54B5771A228623970016BF77 /* URLParts.swift in Sources */ = {isa = PBXBuildFile; fileRef = 54B57719228623970016BF77 /* URLParts.swift */; };
 		54B9A8B622823ABB00BF67DE /* Utilities.swift in Sources */ = {isa = PBXBuildFile; fileRef = 54B9A8B522823ABB00BF67DE /* Utilities.swift */; };
 		54B9A8B822823B3A00BF67DE /* ConfigAppResult.swift in Sources */ = {isa = PBXBuildFile; fileRef = 54B9A8B722823B3A00BF67DE /* ConfigAppResult.swift */; };
+		54DD12C9229A977200D5D2BF /* jsAPI.js in Resources */ = {isa = PBXBuildFile; fileRef = 54DD12C8229A977100D5D2BF /* jsAPI.js */; };
 		54E33FD71B24E27000998E13 /* Config.swift in Sources */ = {isa = PBXBuildFile; fileRef = 54E33FD61B24E27000998E13 /* Config.swift */; };
 /* End PBXBuildFile section */
 
@@ -44,11 +48,13 @@
 /* Begin PBXFileReference section */
 		543EC33C21DE54DD004789DF /* processUrl.js */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.javascript; path = processUrl.js; sourceTree = "<group>"; };
 		543EC33E21DE54E9004789DF /* validateConfig.js */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.javascript; path = validateConfig.js; sourceTree = "<group>"; };
+		5443523D229DA01B00307E21 /* statusitemerror@2x.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = "statusitemerror@2x.png"; sourceTree = "<group>"; };
+		5443523F229DB9E800307E21 /* statusitemerror.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = statusitemerror.png; sourceTree = "<group>"; };
 		544B57871B28B87900812908 /* statusitem.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = statusitem.png; sourceTree = "<group>"; };
 		544B57881B28B87900812908 /* statusitem@2x.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = "statusitem@2x.png"; sourceTree = "<group>"; };
 		546F1677228B487F006C5375 /* Utilities.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Utilities.swift; sourceTree = "<group>"; };
 		5479FDD321655A3400D15A3C /* Notifications.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Notifications.swift; sourceTree = "<group>"; };
-		548479A12278ADB40003D51C /* validate.js */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.javascript; path = validate.js; sourceTree = "<group>"; };
+		548479A12278ADB40003D51C /* fastidious.js */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.javascript; path = fastidious.js; sourceTree = "<group>"; };
 		54899CD01B20D5BC00647101 /* Finicky.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = Finicky.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		54899CD41B20D5BC00647101 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
 		54899CD51B20D5BC00647101 /* AppDelegate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppDelegate.swift; sourceTree = "<group>"; };
@@ -62,11 +68,13 @@
 		548F11CB1B2A39F800FDDC3C /* finicky.icns */ = {isa = PBXFileReference; lastKnownFileType = image.icns; path = finicky.icns; sourceTree = "<group>"; };
 		548F11CD1B2A43F700FDDC3C /* API.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = API.swift; sourceTree = "<group>"; };
 		54B0E7021B4678CE003F8AEE /* ShortUrlResolver.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = ShortUrlResolver.swift; sourceTree = "<group>"; };
+		54B12878229C59EC00990D0D /* AppDescriptor.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppDescriptor.swift; sourceTree = "<group>"; };
 		54B5771522860D0B0016BF77 /* Credits.rtf */ = {isa = PBXFileReference; lastKnownFileType = text.rtf; path = Credits.rtf; sourceTree = "<group>"; };
 		54B5771722861D740016BF77 /* RewriteURL.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RewriteURL.swift; sourceTree = "<group>"; };
 		54B57719228623970016BF77 /* URLParts.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = URLParts.swift; sourceTree = "<group>"; };
 		54B9A8B522823ABB00BF67DE /* Utilities.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Utilities.swift; sourceTree = "<group>"; };
 		54B9A8B722823B3A00BF67DE /* ConfigAppResult.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ConfigAppResult.swift; sourceTree = "<group>"; };
+		54DD12C8229A977100D5D2BF /* jsAPI.js */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.javascript; path = jsAPI.js; sourceTree = "<group>"; };
 		54E33FD61B24E27000998E13 /* Config.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = Config.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
@@ -112,7 +120,8 @@
 		54899CD21B20D5BC00647101 /* Finicky */ = {
 			isa = PBXGroup;
 			children = (
-				548479A12278ADB40003D51C /* validate.js */,
+				54DD12C8229A977100D5D2BF /* jsAPI.js */,
+				548479A12278ADB40003D51C /* fastidious.js */,
 				543EC33C21DE54DD004789DF /* processUrl.js */,
 				54899CD51B20D5BC00647101 /* AppDelegate.swift */,
 				54899CD91B20D5BC00647101 /* MainMenu.xib */,
@@ -124,6 +133,7 @@
 				5479FDD321655A3400D15A3C /* Notifications.swift */,
 				54B5771522860D0B0016BF77 /* Credits.rtf */,
 				546F1677228B487F006C5375 /* Utilities.swift */,
+				54B12878229C59EC00990D0D /* AppDescriptor.swift */,
 			);
 			path = Finicky;
 			sourceTree = "<group>";
@@ -131,6 +141,8 @@
 		54899CD31B20D5BC00647101 /* Supporting Files */ = {
 			isa = PBXGroup;
 			children = (
+				5443523F229DB9E800307E21 /* statusitemerror.png */,
+				5443523D229DA01B00307E21 /* statusitemerror@2x.png */,
 				54899CD71B20D5BC00647101 /* Images.xcassets */,
 				548F11CB1B2A39F800FDDC3C /* finicky.icns */,
 				544B57871B28B87900812908 /* statusitem.png */,
@@ -256,14 +268,17 @@
 			isa = PBXResourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				548479A22278ADB40003D51C /* validate.js in Resources */,
+				548479A22278ADB40003D51C /* fastidious.js in Resources */,
 				54B5771622860D0B0016BF77 /* Credits.rtf in Resources */,
 				544B57891B28B87900812908 /* statusitem.png in Resources */,
+				54435240229DB9E800307E21 /* statusitemerror.png in Resources */,
+				5443523E229DA01B00307E21 /* statusitemerror@2x.png in Resources */,
 				544B578A1B28B87900812908 /* statusitem@2x.png in Resources */,
 				548F11CC1B2A39F800FDDC3C /* finicky.icns in Resources */,
 				543EC33F21DE54EA004789DF /* validateConfig.js in Resources */,
 				54899CD81B20D5BC00647101 /* Images.xcassets in Resources */,
 				543EC33D21DE54DD004789DF /* processUrl.js in Resources */,
+				54DD12C9229A977200D5D2BF /* jsAPI.js in Resources */,
 				54899CDB1B20D5BC00647101 /* MainMenu.xib in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
@@ -304,6 +319,7 @@
 			files = (
 				546F1678228B487F006C5375 /* Utilities.swift in Sources */,
 				5479FDD421655A3400D15A3C /* Notifications.swift in Sources */,
+				54B12879229C59EC00990D0D /* AppDescriptor.swift in Sources */,
 				54E33FD71B24E27000998E13 /* Config.swift in Sources */,
 				54899CD61B20D5BC00647101 /* AppDelegate.swift in Sources */,
 				54B0E7031B4678CE003F8AEE /* ShortUrlResolver.swift in Sources */,

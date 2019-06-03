@@ -3,138 +3,128 @@ import JavaScriptCore
 
 var FNConfigPath: String = "~/.finicky.js"
 
-public enum AppDescriptorType: String {
-    case bundleId
-    case appName
-}
-
-public struct AppDescriptor {
-    public var name: String
-    public var appType: AppDescriptorType
-    public var url: URL
-    public var openInBackground: Bool?
-
-    public init(name: String, appType: AppDescriptorType, url: URL, openInBackground: Bool?) {
-        self.name = name
-        self.appType = appType
-        self.url = url
-        self.openInBackground = openInBackground
-    }
-}
+public typealias Callback<T> = (T) -> Void
 
 open class FinickyConfig {
     var ctx: JSContext!
-    var validateConfigJS : String?;
-    var processUrlJS : String?;
-    var validateLibJS : String?;
+    var validateConfigJS : String;
+    var processUrlJS : String;
+    var fastidiousLibJS : String;
+    var jsAPIJS: String;
     var hasError: Bool = false;
 
     var dispatchSource: DispatchSourceFileSystemObject?
     var fileDescriptor: Int32 = -1
-    var fileManager = FileManager.init();
     var lastModificationDate: Date? = nil;
-    var toggleIconCallback:((_ hide: Bool) -> Void)?;
-    var logToConsole:((_ message: String) -> Void)?;
-    var setShortUrlProviders:((_ urlShorteners: [String]?) -> Void)?;
+    var toggleIconCallback: Callback<Bool>?;
+    var logToConsole: Callback<String>?;
+    var setShortUrlProviders: Callback<[String]?>?
+    var updateStatus: Callback<Bool>?;
 
     public init() {
-        listenToChanges();
-
-        if let path = Bundle.main.path(forResource: "validate.js", ofType: nil ) {
-            validateLibJS = try! String(contentsOfFile: path, encoding: String.Encoding.utf8)
-        }
-
-        if let path = Bundle.main.path(forResource: "validateConfig.js", ofType: nil ) {
-            validateConfigJS = try! String(contentsOfFile: path, encoding: String.Encoding.utf8)
-        }
-
-        if let path = Bundle.main.path(forResource: "processUrl.js", ofType: nil ) {
-            processUrlJS = try! String(contentsOfFile: path, encoding: String.Encoding.utf8)
-        }
-
-        createContext()
+        fastidiousLibJS = loadJS("fastidious.js")
+        validateConfigJS = loadJS("validateConfig.js")
+        processUrlJS = loadJS("processUrl.js")
+        jsAPIJS = loadJS("jsAPI.js")
     }
 
-    public convenience init(toggleIconCallback: @escaping (_ hide: Bool) -> Void, logToConsoleCallback: @escaping (_ message: String) -> Void , setShortUrlProviders: @escaping (_ shortUrlProviders: [String]?) -> Void) {
+    public convenience init(toggleIconCallback: @escaping Callback<Bool>, logToConsoleCallback: @escaping Callback<String> , setShortUrlProviders: @escaping Callback<[String]?>, updateStatus: @escaping Callback<Bool>) {
         self.init();
         self.toggleIconCallback = toggleIconCallback
         self.logToConsole = logToConsoleCallback
         self.setShortUrlProviders = setShortUrlProviders
-
+        self.updateStatus = updateStatus
+        listenToChanges(showInitialSuccess: false);
     }
 
-    func getModificationDate(atPath: String) -> Date? {
-        do {
-            let attributes = try self.fileManager.attributesOfItem(atPath: atPath)
-            let modificationDate = attributes[FileAttributeKey.modificationDate] as? Date
-            guard modificationDate != nil else { return nil }
-            return modificationDate!
-        } catch (let msg) {
-            print("Error message: \(msg)")
-            return nil
+    func waitForFile() {
+        let filename: String = (FNConfigPath as NSString).resolvingSymlinksInPath
+        Timer.scheduledTimer(withTimeInterval: 2.0, repeats: true, block: { timer in
+            let fileDescriptor = open(filename, O_EVTONLY)
+            if (fileDescriptor != -1) {
+                timer.invalidate()
+                self.listenToChanges(showInitialSuccess: true)
+            }
+        })
+    }
+
+    func resetFileDescriptor() {
+        print("Cancel fileDescriptor")
+        if (self.fileDescriptor != -1) {
+            close(self.fileDescriptor)
+            self.fileDescriptor = -1
+            self.dispatchSource = nil
         }
     }
 
-    func listenToChanges() {
+    func listenToChanges(showInitialSuccess : Bool = false) {
+        print("Start listening to file changes")
+
+        resetFileDescriptor()
 
         let filename: String = (FNConfigPath as NSString).resolvingSymlinksInPath
-
-        guard dispatchSource == nil && fileDescriptor == -1 else { return }
-
         fileDescriptor = open(filename, O_EVTONLY)
-        if (fileDescriptor <= 0) {
-            print(strerror(errno));
-        }
 
-        guard fileDescriptor != -1 else { return }
+        self.reload(showSuccess: showInitialSuccess)
+
+        guard fileDescriptor != -1 else {
+            print("Couldn't find or read the file. Error: \(String(describing: strerror(errno)))")
+            waitForFile()
+            self.updateStatus!(false)
+            return
+        }
 
         lastModificationDate = getModificationDate(atPath: filename)
 
         dispatchSource =
-            DispatchSource.makeFileSystemObjectSource(fileDescriptor: fileDescriptor, eventMask: .attrib, queue: DispatchQueue.main)
+            DispatchSource.makeFileSystemObjectSource(fileDescriptor: fileDescriptor, eventMask: [.attrib , .delete] , queue: DispatchQueue.main)
 
         dispatchSource?.setEventHandler { [weak self] in
-            if let modificationDate = self?.getModificationDate(atPath: filename) {
+            print("Detected file change")
+            if let modificationDate = getModificationDate(atPath: filename) {
                 if !(self!.lastModificationDate != nil) || modificationDate > self!.lastModificationDate! {
+                    print("Reloading config")
                     self!.lastModificationDate = modificationDate
                     self!.reload(showSuccess: true)
                 }
+            } else {
+                self!.updateStatus!(false)
+                self!.waitForFile()
             }
         }
 
         dispatchSource?.setCancelHandler {
-            close(self.fileDescriptor)
-            self.fileDescriptor = -1
-            self.dispatchSource = nil
+            self.resetFileDescriptor();
         }
 
         dispatchSource?.resume()
     }
 
     @discardableResult
-    open func createContext() -> JSContext {
-        ctx = JSContext()
+    open func createJSContext() -> JSContext {
+        let ctx : JSContext = JSContext()
 
         ctx.exceptionHandler = {
             (context: JSContext!, exception: JSValue!) in
-                self.hasError = true;
-                //let stacktrace = exception.objectForKeyedSubscript("stack").toString()
-                //let lineNumber = exception.objectForKeyedSubscript("line").toString()
-                //let columnNumber = exception.objectForKeyedSubscript("column").toString()
-                //let message = "Error parsing config: \"\(String(describing: exception!))\" \nStack: \(stacktrace!):\(lineNumber!):\(columnNumber!)";
-                let message = "Configuration error: \(String(describing: exception!))";
+                self.hasError = true
+                self.updateStatus!(false)
+        
+                let stacktrace = exception.objectForKeyedSubscript("stack").toString()
+                let lineNumber = exception.objectForKeyedSubscript("line").toString()
+                let columnNumber = exception.objectForKeyedSubscript("column").toString()
+                let message = "Error parsing config: \"\(String(describing: exception!))\" \nStack: \(stacktrace!):\(lineNumber!):\(columnNumber!)";
+                let shortMessage = "Configuration: \(String(describing: exception!))";
                 print(message)
-                showNotification(title: "Configuration error", informativeText: String(describing: exception!), error: true)
+                showNotification(title: "Configuration", informativeText: String(describing: exception!), error: true)
                 if (self.logToConsole != nil) {
-                    self.logToConsole!(message)
+                    self.logToConsole!(shortMessage)
                 }
         }
 
         ctx.evaluateScript("const module = {}")
+        ctx.evaluateScript(fastidiousLibJS);
 
-        ctx.evaluateScript(validateLibJS!);
-
-        self.setupAPI(ctx)
+        print ("Created new context")
         return ctx
     }
 
@@ -146,11 +136,14 @@ open class FinickyConfig {
             return false;
         }
 
-        let validConfig = ctx.evaluateScript(validateConfigJS!)?.call(withArguments: [])
+        let validConfig = ctx.evaluateScript(validateConfigJS)?.call(withArguments: [])
 
         if let isBoolean = validConfig?.isBoolean {
+            print("Valid config: \(isBoolean)")
             if (isBoolean) {
-                if (!(validConfig?.toBool())!) {
+                let invalid = !(validConfig?.toBool())!
+                updateStatus!(!invalid)
+                if (invalid) {
                     let message = "Invalid config"
                     print(message)
                     showNotification(title: message, error: true)
@@ -161,6 +154,8 @@ open class FinickyConfig {
                 } else {
                     return true;
                 }
+            } else {
+                updateStatus!(false)
             }
         }
 
@@ -168,46 +163,45 @@ open class FinickyConfig {
     }
 
     func reload(showSuccess: Bool) {
+        print("Reload config. showSuccess: \(showSuccess)")
         self.hasError = false;
-        var error:NSError?
-        let filename: String = (FNConfigPath as NSString).standardizingPath
         var config: String?
+
         do {
+            let filename: String = (FNConfigPath as NSString).resolvingSymlinksInPath
             config = try String(contentsOfFile: filename, encoding: String.Encoding.utf8)
-        } catch let configError as NSError {
-            error = configError
+        } catch let error as NSError {
             config = nil
+            print("\(error.localizedDescription)", terminator: "")
         }
 
         if config == nil {
+            self.hasError = true;
             let message = "Config file could not be read or found"
             showNotification(title: message, subtitle: "Click here for assistance", error: true)
             print(message)
             if (self.logToConsole != nil) {
-                self.logToConsole!(message + "\n\n" + """
-                    // --------------------------------------------------------------
-                    // Example config, save as ~/.finicky.js
-                    // For more examples, see the Finicky github page https://github.com/johnste/finicky
+                self.logToConsole!(message + ". * Example configuration: \n" + """
+                    /**
+                    * Save as ~/.finicky.js
+                    */
                     module.exports = {
                         defaultBrowser: "Safari",
                         handlers: [
                             {
-                                match: finicky.matchDomains(["youtube.com", "facebook.com", "twitter.com", "linkedin.com"]),
+                                match: finicky.matchDomains(["youtube.com", "facebook.com"]),
                                 browser: "Google Chrome"
                             }
                         ]
                     };
-                    // --------------------------------------------------------------
+                    // For more examples, see the Finicky github page https://github.com/johnste/finicky
                 """)
             }
             return
         }
 
-        if let theError = error {
-            print("\(theError.localizedDescription)", terminator: "")
-        }
+        setupAPI()
 
-        ctx = createContext()
         if config != nil {
             let success = parseConfig(config!)
             if (success) {
@@ -228,16 +222,12 @@ open class FinickyConfig {
         }
     }
 
-    open func getHideIcon() -> Bool {
+    func getHideIcon() -> Bool {
         let hideIcon = ctx.evaluateScript("module.exports.options && module.exports.options.hideIcon")?.toBool()
-
-        if hideIcon == nil {
-            return false
-        }
-        return hideIcon!;
+        return hideIcon ?? false
     }
 
-    open func getShortUrlProviders() -> [String]? {
+    func getShortUrlProviders() -> [String]? {
         let urlShorteners = ctx.evaluateScript("module.exports.options && module.exports.options.urlShorteners || []")?.toArray()
         let list = urlShorteners as! [String]?;
         if (list?.count == 0) {
@@ -284,58 +274,18 @@ open class FinickyConfig {
             "urlString": url.absoluteString,
             "url": FinickyAPI.getUrlParts(url.absoluteString),
             ] as [AnyHashable : Any]
-        let result = ctx.evaluateScript(processUrlJS!)?.call(withArguments: [optionsDict])
+        let result = ctx.evaluateScript(processUrlJS)?.call(withArguments: [optionsDict])
         return result
     }
 
-    open func setupAPI(_ ctx: JSContext) {
+    open func setupAPI() {
+        self.ctx = createJSContext()
+
         if (self.logToConsole != nil) {
-            FinickyAPI.setLog(logToConsole!)
+            FinickyAPI.setLog(self.logToConsole!)
         }
         FinickyAPI.setContext(ctx)
         ctx.setObject(FinickyAPI.self, forKeyedSubscript: "finicky" as NSCopying & NSObjectProtocol)
-
-        ctx.evaluateScript("""
-            finicky.matchDomains = function(matchers, ...args) {
-                if (args.length > 0) {
-                    throw new Error("finicky.matchDomains(domains) only accepts one argument. See https://johnste.github.io/finicky-docs/interfaces/_finickyapi_.finicky.html#matchdomains for more information")
-                }
-
-                if (!Array.isArray(matchers)) {
-                    matchers = [matchers];
-                }
-
-                matchers.forEach(matcher => {
-                    if (matcher instanceof RegExp || typeof matcher === "string") {
-                        return;
-                    }
-                    throw new Error(`finicky.matchDomains(domains): Unrecognized domain "${matcher}"`);
-                });
-
-                return function({ url }) {
-                    const domain = url.host;
-                    return matchers.some(matcher => {
-                        if (matcher instanceof RegExp) {
-                            return matcher.test(domain);
-                        } else if (typeof matcher === "string") {
-                            return matcher === domain;
-                        }
-
-                        return false;
-                    });
-                }
-            }
-
-            // Warn when using deprecated API methods
-            finicky.onUrl = function() {
-                finicky.log("finicky.onUrl is no longer supported in this version of Finicky, please go to https://github.com/johnste/finicky for updated documentation");
-                finicky.notify("finicky.onUrl is no longer supported", "Check the Finicky website for updated documentation");
-            }
-
-            finicky.setDefaultBrowser = function() {
-                finicky.log("finicky.setDefaultBrowser is no longer supported in this version of Finicky, please go to https://github.com/johnste/finicky for updated documentation");
-                finicky.notify("finicky.setDefaultBrowser is no longer supported", "Check the Finicky website for updated documentation");
-            }
-        """)
+        ctx.evaluateScript(jsAPIJS)
     }
 }

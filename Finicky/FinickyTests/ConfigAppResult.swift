@@ -13,7 +13,7 @@ class ConfigAppResultTests: XCTestCase {
     override func setUp() {
         super.setUp()
         configLoader = FinickyConfig()
-        configLoader.createContext()
+        configLoader.setupAPI()
     }
 
     override func tearDown() {

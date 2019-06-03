@@ -50,6 +50,10 @@
       throw new Error("module is not defined");
     }
 
+    if (!module.exports) {
+      throw new Error("module.exports is not defined");
+    }
+
     const invalid = getErrors(module.exports, schema, "module.exports.");
 
     if (invalid.length === 0) {

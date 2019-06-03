@@ -4,7 +4,7 @@
   (global = global || self, factory(global.fastidious = {}));
 }(this, function (exports) { 'use strict';
 
-  /* fastidious 1.0.7 - https://github.com/johnste/fastidious */
+  /* fastidious 1.0.8 - https://github.com/johnste/fastidious */
 
   function isDefined(value) {
       return typeof value !== "undefined" && value !== null;
@@ -116,7 +116,7 @@
           // Check for extraneous properties in object
           getKeys(object).forEach(key => {
               if (!schemaKeys.includes(key)) {
-                  errors.push("unknown key ${key} at ${prefix + key}");
+                  errors.push(`unknown key ${key} at ${prefix + key}`);
               }
           });
       }
