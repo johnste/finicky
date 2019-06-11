@@ -53,6 +53,8 @@ func checkForUpdate(_ newVersionCallback: @escaping Callback<Version?>) {
                 } else {
                     newVersionCallback(nil)
                 }
+            } else {
+                newVersionCallback(nil)
             }
 
         } catch {
@@ -111,7 +113,7 @@ func getVersions(data: Data) throws -> [Version] {
         }
 
         return Version(title: release!["name"]! as! String, version: release!["tag_name"]! as! String, prerelease: release!["prerelease"] as! Bool)
-    }.compactMap { $0 }.filter { $0.prerelease }
+    }.compactMap { $0 }.filter { !$0.prerelease }
 
     return versions
 }
