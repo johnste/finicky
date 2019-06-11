@@ -11,11 +11,12 @@ class CompareVersionTests: XCTestCase {
     }
 
     func testRewrite() {
-        XCTAssertEqual(try compareVersions("1.2.3", "0.9"), ComparisonResult.orderedAscending)
-        XCTAssertEqual(try compareVersions("1.9.3", "0.9"), ComparisonResult.orderedAscending)
-        XCTAssertEqual(try compareVersions("10", "9"), ComparisonResult.orderedAscending)
-        XCTAssertEqual(try compareVersions("1.9.3.1", "1.9.3"), ComparisonResult.orderedAscending)
-        XCTAssertEqual(try compareVersions("1.9.3", "1.9.3"), ComparisonResult.orderedAscending)
+        XCTAssertEqual(try compareVersions("1.2.3", "0.9"), ComparisonResult.orderedDescending)
+        XCTAssertEqual(try compareVersions("1.9.3", "0.9"), ComparisonResult.orderedDescending)
+        XCTAssertEqual(try compareVersions("10", "9"), ComparisonResult.orderedDescending)
+        XCTAssertEqual(try compareVersions("1.9.3.1", "1.9.3"), ComparisonResult.orderedDescending)
+        XCTAssertEqual(try compareVersions("1.9.3", "1.9.3"), ComparisonResult.orderedSame)
+        XCTAssertEqual(try compareVersions("0.9.3", "1.9.3"), ComparisonResult.orderedAscending)
     }
 }
 

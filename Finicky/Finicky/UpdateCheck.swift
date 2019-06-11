@@ -90,14 +90,14 @@ public func compareVersions(_ versionA: String, _ versionB: String) throws -> Co
     for (el1, el2) in seq {
         if el1 < el2 {
             return .orderedAscending
-        } else if el1 < el2 {
+        } else if el1 > el2 {
             return .orderedDescending
         }
     }
 
     if partsA.count < partsB.count {
         return .orderedAscending
-    } else if partsB.count < partsA.count {
+    } else if partsA.count > partsB.count {
         return .orderedDescending
     }
 
