@@ -70,7 +70,7 @@ open class FinickyConfig {
         guard fileDescriptor != -1 else {
             print("Couldn't find or read the file. Error: \(String(describing: strerror(errno)))")
             waitForFile()
-            updateStatus!(false)
+            updateStatus?(false)
             return
         }
 
@@ -88,7 +88,7 @@ open class FinickyConfig {
                     self!.reload(showSuccess: true)
                 }
             } else {
-                self!.updateStatus!(false)
+                self!.updateStatus?(false)
                 self!.waitForFile()
             }
         }
@@ -107,7 +107,7 @@ open class FinickyConfig {
         ctx.exceptionHandler = {
             (_: JSContext!, exception: JSValue!) in
             self.hasError = true
-            self.updateStatus!(false)
+            self.updateStatus?(false)
 
             let stacktrace = exception.objectForKeyedSubscript("stack").toString()
             let lineNumber = exception.objectForKeyedSubscript("line").toString()
@@ -142,7 +142,7 @@ open class FinickyConfig {
             print("Valid config: \(isBoolean)")
             if isBoolean {
                 let invalid = !(validConfig?.toBool())!
-                updateStatus!(!invalid)
+                updateStatus?(!invalid)
                 if invalid {
                     let message = "Invalid config"
                     print(message)
@@ -155,7 +155,7 @@ open class FinickyConfig {
                     return true
                 }
             } else {
-                updateStatus!(false)
+                updateStatus?(false)
             }
         }
 

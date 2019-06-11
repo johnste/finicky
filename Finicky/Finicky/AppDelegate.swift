@@ -62,6 +62,26 @@ class AppDelegate: NSObject, NSApplicationDelegate, NSUserNotificationCenterDele
         configLoader.listenToChanges(showInitialSuccess: true)
     }
 
+    @IBAction func checkUpdates(_: NSMenuItem) {
+        checkForUpdate { (version: Version?) -> Void in
+            if version == nil {
+                showNotification(title: "No new version available")
+                DispatchQueue.main.async {
+                    self.logToConsole("No new version available")
+                }
+                return
+            }
+
+            if let version = version {
+                print("There is a newer version out there: \(version.title) \(version.version)")
+                showNotification(title: "New version available: \(version.title) \(version.version)")
+                DispatchQueue.main.async {
+                    self.logToConsole("There is a newer version out there: \(version.title) \(version.version). More information is available on https://github.com/johnste/finicky/releases")
+                }
+            }
+        }
+    }
+
     @IBAction func showAboutPanel(_ sender: NSMenuItem) {
         NSApp.activate(ignoringOtherApps: true)
         NSApp.orderFrontStandardAboutPanel(sender)
