@@ -56,6 +56,10 @@ class FNShortUrlResolver {
     }
 
     func isShortUrl(_ url: URL) -> Bool {
+        if (url.host == nil) {
+            return false;
+        }
+
         let isShortUrlProvider = shortUrlProviders.contains(url.host!)
 
         if !isShortUrlProvider {
