@@ -70,8 +70,8 @@ module.exports = {
     // Open any url including the string "workplace" in Firefox
     match: /workplace/,
     browser: "Firefox"
-  }];
-}
+  }]
+};
 ```
 
 ### Rewrite urls
