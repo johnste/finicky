@@ -31,6 +31,7 @@ Finicky is an macOS application that allows you to set up rules that decide whic
   - [Basic configuration](#basic-configuration)
   - [Rewrite urls](#rewrite-urls)
   - [Advanced usage, settings](#advanced-usage-settings)
+  - [Keyboard modifiers](#keyboard-modifiers)
   - [Configuration ideas](#configuration-ideas)
 - [API Reference](#api-reference)
 - [Issues](#issues)
@@ -48,7 +49,7 @@ Finicky is an macOS application that allows you to set up rules that decide whic
 1. Install Finicky:
 
 - Download [the latest release](https://github.com/johnste/finicky/releases), unzip and put `Finicky.app` in your application folder.
-<!-- - Alternatively, you can install with [homebrew-cask](https://github.com/caskroom/homebrew-cask): `brew cask install finicky`. -->
+  <!-- - Alternatively, you can install with [homebrew-cask](https://github.com/caskroom/homebrew-cask): `brew cask install finicky`. -->
 
 2. Create a file called `.finicky.js` with configuration
    ([examples](#example-configuration)) in your home directory.
@@ -123,6 +124,23 @@ module.exports = {
         // Force opening the link in the background
         openInBackground: true
       }
+    }
+  ]
+};
+```
+
+### Keyboard modifiers
+
+```js
+module.exports = {
+  defaultBrowser: "Google Chrome",
+  handlers: [
+    {
+      // Open links in Safari when the option key is pressed
+      // Valid keys are: shift, option, command, control, capsLock, and function.
+      // Please not that control usually opens a tooltip menu instead of visiting a link
+      match: ({ keys }) => keys.option,
+      browser: "Safari"
     }
   ]
 };

@@ -1,5 +1,6 @@
 import Foundation
 import JavaScriptCore
+import AppKit
 
 var FNConfigPath: String = "~/.finicky.js"
 
@@ -272,10 +273,22 @@ open class FinickyConfig {
         let optionsDict = [
             "sourceBundleIdentifier": sourceBundleIdentifier as Any,
             "urlString": url.absoluteString,
+            "keys": getModifierKeyFlags(),
             "url": FinickyAPI.getUrlParts(url.absoluteString),
         ] as [AnyHashable: Any]
         let result = ctx.evaluateScript(processUrlJS)?.call(withArguments: [optionsDict])
         return result
+    }
+
+    func getModifierKeyFlags() -> [String: Bool] {
+        return [
+            "shift": NSEvent.modifierFlags.contains(.shift),
+            "option": NSEvent.modifierFlags.contains(.option),
+            "command": NSEvent.modifierFlags.contains(.command),
+            "control": NSEvent.modifierFlags.contains(.control),
+            "capsLock": NSEvent.modifierFlags.contains(.capsLock),
+            "function": NSEvent.modifierFlags.contains(.function),
+        ]
     }
 
     open func setupAPI() {
