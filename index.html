@@ -1,155 +1,63 @@
 <!DOCTYPE html>
 <html>
+
   <head>
-    <meta charset='utf-8'>
-    <meta http-equiv="X-UA-Compatible" content="chrome=1">
-    <link href='https://fonts.googleapis.com/css?family=Chivo:900' rel='stylesheet' type='text/css'>
-    <link rel="stylesheet" type="text/css" href="stylesheets/stylesheet.css" media="screen">
-    <link rel="stylesheet" type="text/css" href="stylesheets/github-dark.css" media="screen">
-    <link rel="stylesheet" type="text/css" href="stylesheets/print.css" media="print">
-    <!--[if lt IE 9]>
-    <script src="//html5shiv.googlecode.com/svn/trunk/html5.js"></script>
-    <![endif]-->
-    <title>Finicky by johnste</title>
-  </head>
+    <meta charset="utf-8">
+    <meta name="theme-color" content="#ffffff">
 
-  <body>
-    <div id="container">
-      <div class="inner">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="Finicky">
+    <link rel="stylesheet" type="text/css" href="css/main.css">
+    <link rel="stylesheet" type="text/css" href="https://fonts.googleapis.com/css?family=Open+Sans">
 
-        <header>
-          <h1>Finicky<a id="finicky-" class="anchor" href="#finicky-" aria-hidden="true"><span class="octicon octicon-link"></span></a> <img src="https://raw.githubusercontent.com/johnste/finicky/master/Finicky/Finicky/statusitem%402x.png" alt="Finicky logo"></h1>
-          <h2>Finicky - alway opens the right browser</h2>
-        </header>
+  <title>Finicky by johnste</title>
+</head>
 
-        <section id="downloads" class="clearfix">
-          <a href="https://github.com/johnste/finicky/releases/download/v0.5/Finicky.zip" id="download-zip" class="button"><span>Download</span></a>
-          <a href="https://github.com/johnste/finicky" id="view-on-github" class="button"><span>View on GitHub</span></a>
-        </section>
+<body>
+  <div id="container">
+    <div class="inner">
 
-        <hr>
-
-        <section id="main_content">
-
-<p>Finicky is an OS X application that allows you to set up rules that decide which browser is opened for every link that would open the default browser. Open Facebook or Reddit in one browser, and Trello or LinkedIn in another. Or Spotify links in the Spotify client. Or whatever url in whatever app.</p>
-
-<p>Features include:</p>
-
-<ul>
-<li>Url rewriting</li>
-<li>Opening links in background</li>
-<li>Opening links in the currently activate browser</li>
-<li>Resolving short urls before running them through handlers</li>
-</ul>
-
-<h4>
-<a id="install" class="anchor" href="#install" aria-hidden="true"><span class="octicon octicon-link"></span></a>Install</h4>
-
-<ol>
-<li>Download <a href="https://github.com/johnste/finicky/releases">the latest release</a>, unzip and drop Finicky.app in your application folder. Or, if you have <a href="https://github.com/caskroom/homebrew-cask">homebrew-cask</a> set up, install with <code>brew cask install finicky</code>.</li>
-<li>Create a file called <code>.finicky.js</code> in your home directory and set up a default browser and some url handlers.</li>
-<li>Start finicky. Please allow it to be set as the default browser.</li>
-<li>And you're done. All http and https links clicked that would have opened a link in your default browser are now first handled by Finicky.</li>
-</ol>
-        </section>
-
-
-  <h4><a id="Documentation_1"></a>Documentation</h4>
-<p><a href="https://github.com/johnste/finicky/wiki/Javascript-API-Documentation">Javascript API Documentation</a></p>
-<h4><a id="Example_configuration_4"></a>Example configuration</h4>
-<pre><code class="language-javascript">
-finicky.setDefaultBrowser(<span class="hljs-string">'com.google.Chrome'</span>)
-
-<span class="hljs-comment">// Open social network links in Google Chrome</span>
-finicky.onUrl(<span class="hljs-function"><span class="hljs-keyword">function</span><span class="hljs-params">(url, opts)</span> </span>{
-    <span class="hljs-keyword">if</span> (url.match(<span class="hljs-regexp">/^https?:\/\/(youtube|facebook|twitter|linkedin)\.com/</span>)) {
-        <span class="hljs-keyword">return</span> {
-            bundleIdentifier: <span class="hljs-string">'com.google.Chrome'</span>
-        }
-    }
-});
-
-<span class="hljs-comment">// Open Spotify links in client</span>
-finicky.onUrl(<span class="hljs-function"><span class="hljs-keyword">function</span><span class="hljs-params">(url, opts)</span> </span>{
-    <span class="hljs-keyword">if</span> (url.match(<span class="hljs-regexp">/^https?:\/\/open\.spotify\.com/</span>)) {
-        <span class="hljs-keyword">return</span> {
-            bundleIdentifier: <span class="hljs-string">'com.spotify.client'</span>
-        }
-    }
-});
-
-<span class="hljs-comment">// Open Twitter links in client</span>
-finicky.onUrl(<span class="hljs-function"><span class="hljs-keyword">function</span><span class="hljs-params">(url, opts)</span> </span>{
-    <span class="hljs-keyword">var</span> matches = url.match(<span class="hljs-regexp">/^https?:\/\/twitter\.com\/.+\/status\/([0-9]+)/</span>)
-    <span class="hljs-keyword">if</span> (matches &amp;&amp; matches[<span class="hljs-number">1</span>]) {
-        <span class="hljs-keyword">var</span> statusId = matches[<span class="hljs-number">1</span>];
-        <span class="hljs-keyword">return</span> {
-            url: <span class="hljs-string">'twitter://status?id='</span> + statusId,
-            bundleIdentifier: <span class="hljs-string">'com.twitter.twitter-mac'</span>
-        }
-    }
-});
-
-<span class="hljs-comment">// Rewrite all Bing links to DuckDuckGo instead</span>
-finicky.onUrl(<span class="hljs-function"><span class="hljs-keyword">function</span><span class="hljs-params">(url, opts)</span> </span>{
-    <span class="hljs-keyword">var</span> url = url.replace(<span class="hljs-regexp">/^https?:\/\/www\.bing\.com\/search/</span>, <span class="hljs-string">'https://duckduckgo.com'</span>)
-    <span class="hljs-keyword">return</span> {
-        url: url
-    }
-});
-
-<span class="hljs-comment">// Always open links from Mail in Safari</span>
-finicky.onUrl(<span class="hljs-function"><span class="hljs-keyword">function</span><span class="hljs-params">(url, opts)</span> </span>{
-    <span class="hljs-keyword">var</span> sourceApplication = opts &amp;&amp; opts.sourceBundleIdentifier
-    <span class="hljs-keyword">if</span> (sourceApplication === <span class="hljs-string">'com.apple.mail'</span>) {
-        <span class="hljs-keyword">return</span> {
-            bundleIdentifier: <span class="hljs-string">'com.apple.safari'</span>
-        }
-    }
-});
-
-<span class="hljs-comment">// By supplying an array of bundle identifiers, finicky opens the url in the first one</span>
-<span class="hljs-comment">// that's currently running. If none are running, the first app in the array is started.</span>
-finicky.onUrl(<span class="hljs-function"><span class="hljs-keyword">function</span><span class="hljs-params">(url, opts)</span> </span>{
-    <span class="hljs-keyword">return</span> {
-        bundleIdentifier: [<span class="hljs-string">'org.mozilla.firefox'</span>, <span class="hljs-string">'com.apple.Safari'</span>, <span class="hljs-string">'com.google.Chrome'</span>]
-    }
-});
-
-
-</code></pre>
-
-        <footer>
-          Finicky is maintained by <a href="https://github.com/johnste">johnste</a><br>
-          Downloads: <span class="download-count"></span>
-          This page was generated by <a href="https://pages.github.com">GitHub Pages</a>. Tactile theme by <a href="https://twitter.com/jasonlong">Jason Long</a>.
-        </footer>
-        <script>
-          (function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){
-          (i[r].q=i[r].q||[]).push(arguments)},i[r].l=1*new Date();a=s.createElement(o),
-          m=s.getElementsByTagName(o)[0];a.async=1;a.src=g;m.parentNode.insertBefore(a,m)
-          })(window,document,'script','//www.google-analytics.com/analytics.js','ga');
-
-          ga('create', 'UA-41042466-2', 'auto');
-          ga('send', 'pageview');
-
-        </script>
-        <script src="https://ajax.googleapis.com/ajax/libs/jquery/2.1.4/jquery.min.js"></script>
-        <script>
-          $(function(){
-            $.ajax("https://api.github.com/repos/johnste/finicky/releases").done(function(result){
-              var downloads = result.reduce(function(prev, current){
-                if (current && current.assets && current.assets[0]) {
-                  return prev + current.assets[0].download_count;
-                } else {
-                  return prev;
-                }
-              }, 0);
-              $(".download-count").html(downloads);
-            });
-          })
-        </script>
-      </div>
+      <header>
+        <h1>Finicky<a id="finicky-" class="anchor" href="#finicky-" aria-hidden="true"><span class="octicon octicon-link"></span></a> <img src="https://raw.githubusercontent.com/johnste/finicky/master/Finicky/Finicky/statusitem%402x.png" alt="Finicky logo"></h1>
+     
+      </header>
+      <section>
+        <a href="https://github.com/johnste/finicky">GitHub</a>        
+      </section>
+     
+      <footer>
+        Finicky is maintained by <a href="https://github.com/johnste">johnste</a><br> Downloads: <pre class="download-count"></pre> 
+      </footer>
+      <script>
+        (function(i, s, o, g, r, a, m) {
+          i['GoogleAnalyticsObject'] = r;
+          i[r] = i[r] || function() {
+            (i[r].q = i[r].q || []).push(arguments)
+          }, i[r].l = 1 * new Date();
+          a = s.createElement(o),
+            m = s.getElementsByTagName(o)[0];
+          a.async = 1;
+          a.src = g;
+          m.parentNode.insertBefore(a, m)
+        })(window, document, 'script', '//www.google-analytics.com/analytics.js', 'ga');
+        ga('create', 'UA-41042466-2', 'auto');
+        ga('send', 'pageview');
+      </script>
+      <script src="https://ajax.googleapis.com/ajax/libs/jquery/2.1.4/jquery.min.js"></script>
+      <script>
+        $(function() {
+          $.ajax("https://api.github.com/repos/johnste/finicky/releases").done(function(result) {
+            var downloads = result.reduce(function(prev, current) {
+              if (current && current.assets && current.assets[0]) {
+                return { ...prev, [current.tag_name]:  current.assets[0].download_count }
+              }
+            }, {});
+            $(".download-count").html(JSON.stringify(downloads, null, 2));
+          });
+        })
+      </script>
     </div>
-  </body>
+  </div>
+</body>
+
 </html>
