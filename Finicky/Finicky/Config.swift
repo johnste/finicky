@@ -1,6 +1,6 @@
+import AppKit
 import Foundation
 import JavaScriptCore
-import AppKit
 
 var FNConfigPath: String = "~/.finicky.js"
 
