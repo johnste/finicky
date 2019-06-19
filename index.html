@@ -47,12 +47,14 @@
       <script>
         $(function() {
           $.ajax("https://api.github.com/repos/johnste/finicky/releases").done(function(result) {
-            var downloads = result.reduce(function(prev, current) {
+            let total = 0;
+            const downloads = result.reduce(function(prev, current) {
               if (current && current.assets && current.assets[0]) {
+                total += current.assets[0].download_count;
                 return { ...prev, [current.tag_name]:  current.assets[0].download_count }
               }
             }, {});
-            $(".download-count").html(JSON.stringify(downloads, null, 2));
+            $(".download-count").html(JSON.stringify({...downloads, total}, null, 2));
           });
         })
       </script>
