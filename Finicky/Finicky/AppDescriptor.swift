@@ -3,6 +3,7 @@ import Foundation
 public enum AppDescriptorType: String {
     case bundleId
     case appName
+    case none
 }
 
 public struct AppDescriptor {

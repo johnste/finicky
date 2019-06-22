@@ -1,14 +1,17 @@
 (function() {
   const { validate, getErrors } = fastidious;
 
-  const appDescriptorSchema = {
-    name: validate.string.isRequired,
-    appType: validate.oneOf([
-      validate.value("bundleId"),
-      validate.value("appName")
-    ]).isRequired,
-    openInBackground: validate.boolean
-  };
+  const appDescriptorSchema = validate.oneOf([
+    validate.shape({
+      name: validate.string,
+      appType: validate.oneOf([
+        validate.value("bundleId"),
+        validate.value("appName"),
+        validate.value("none")
+      ]).isRequired,
+      openInBackground: validate.boolean
+    })
+  ]).isRequired;
 
   const urlSchema = {
     url: validate.oneOf([
@@ -18,7 +21,7 @@
         username: validate.string,
         password: validate.string,
         host: validate.string.isRequired,
-        port: validate.number,
+        port: validate.oneOf([validate.number, validate.value(null)]),
         pathname: validate.string,
         search: validate.string,
         hash: validate.string
@@ -117,6 +120,10 @@
   }
 
   function getAppType(value) {
+    if (value === null) {
+      return "none";
+    }
+
     return isBundleIdentifier(value) ? "bundleId" : "appName";
   }
 
@@ -124,15 +131,18 @@
     let browser = resolveFn(handler, options);
 
     // If all we got was a string, try to figure out if it's a bundle identifier or an application name
-    if (typeof browser === "string") {
+    if (typeof browser === "string" || browser === null) {
       browser = {
         name: browser
       };
     }
 
-    if (typeof browser === "object" && browser.name && !browser.appType) {
+    if (typeof browser === "object" && !browser.appType) {
+      const name = browser.name === null ? "" : browser.name;
+
       browser = {
         ...browser,
+        name,
         appType: getAppType(browser.name)
       };
     }

@@ -123,7 +123,9 @@ class AppDelegate: NSObject, NSApplicationDelegate, NSUserNotificationCenterDele
         if let appDescriptor = configLoader.determineOpeningApp(url: url, sourceBundleIdentifier: "net.kassett.finicky") {
             var description = ""
 
-            if let openInBackground = appDescriptor.openInBackground {
+            if appDescriptor.appType == .none {
+                description = "Would not open any browser for this URL: \(appDescriptor.url)"
+            } else if let openInBackground = appDescriptor.openInBackground {
                 description = """
                 Would open \(AppDescriptorType.bundleId == appDescriptor.appType ? "bundleId" : "")\(appDescriptor.name) \(openInBackground ? "application in the background" : "") URL: \(appDescriptor.url)
                 """
@@ -159,6 +161,11 @@ class AppDelegate: NSObject, NSApplicationDelegate, NSUserNotificationCenterDele
 
     @objc func callUrlHandlers(_ sourceBundleIdentifier: String?, url: URL) {
         if let appDescriptor = configLoader.determineOpeningApp(url: url, sourceBundleIdentifier: sourceBundleIdentifier) {
+
+            if appDescriptor.appType == .none {
+                return;
+            }
+
             var bundleId: String?
 
             if appDescriptor.appType == AppDescriptorType.bundleId {

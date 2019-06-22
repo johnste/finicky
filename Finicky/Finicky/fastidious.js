@@ -4,10 +4,10 @@
   (global = global || self, factory(global.fastidious = {}));
 }(this, function (exports) { 'use strict';
 
-  /* fastidious 1.0.8 - https://github.com/johnste/fastidious */
+  /* fastidious 1.0.11 - https://github.com/johnste/fastidious */
 
   function isDefined(value) {
-      return typeof value !== "undefined" && value !== null;
+      return typeof value !== "undefined";
   }
   function formatValue(value) {
       if (value instanceof RegExp) {
@@ -92,7 +92,7 @@
       }
       const schemaKeys = getKeys(schema);
       const errors = [];
-      if (typeof object !== "object") {
+      if (typeof object !== "object" || object === null) {
           errors.push(`Expected an object to validate, but received ${typeof object} (path: ${prefix})`);
       }
       else {
@@ -145,7 +145,7 @@
       shape: (schema) => {
           const names = getNameType(schema);
           return createValidator(names, (value, key) => {
-              if (typeof value !== "object") {
+              if (typeof value !== "object" || value === null) {
                   return false;
               }
               return getErrors(value, schema, key + ".");

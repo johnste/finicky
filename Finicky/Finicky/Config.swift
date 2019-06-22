@@ -50,7 +50,6 @@ open class FinickyConfig {
     }
 
     func resetFileDescriptor() {
-        print("Cancel fileDescriptor")
         if fileDescriptor != -1 {
             close(fileDescriptor)
             fileDescriptor = -1

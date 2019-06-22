@@ -8,7 +8,8 @@
       appType: validate.oneOf(["appName", "bundleId"]),
       openInBackground: validate.boolean
     }),
-    validate.function("options")
+    validate.function("options"),
+    validate.value(null)
   ]);
 
   const matchSchema = validate.oneOf([
