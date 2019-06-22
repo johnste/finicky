@@ -4,7 +4,7 @@
   (global = global || self, factory(global.fastidious = {}));
 }(this, function (exports) { 'use strict';
 
-  /* fastidious 1.0.11 - https://github.com/johnste/fastidious */
+  /* fastidious 1.0.12 - https://github.com/johnste/fastidious */
 
   function isDefined(value) {
       return typeof value !== "undefined";
@@ -28,7 +28,7 @@
       else if (value === undefined) {
           return "[undefined]";
       }
-      return `[${JSON.stringify(value)}]`;
+      return `[${JSON.stringify(value, null, 2)}]`;
   }
   function getKeys(object) {
       return Object.keys(object).filter(key => Object.prototype.hasOwnProperty.call(object, key));
@@ -48,7 +48,7 @@
       if (typeof typeName === "string") {
           return typeName;
       }
-      return JSON.stringify(typeName);
+      return JSON.stringify(typeName, null, 2);
   }
   function createValidator(typeName, typeCallback) {
       function isOptional(value, key) {
