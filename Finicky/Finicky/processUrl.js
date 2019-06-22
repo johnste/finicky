@@ -17,7 +17,7 @@
     url: validate.oneOf([
       validate.string,
       validate.shape({
-        protocol: validate.string.isRequired,
+        protocol: validate.oneOf(["http", "https"]).isRequired,
         username: validate.string,
         password: validate.string,
         host: validate.string.isRequired,
