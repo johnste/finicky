@@ -21,10 +21,10 @@ class AppDelegate: NSObject, NSApplicationDelegate, NSUserNotificationCenterDele
         LSSetDefaultHandlerForURLScheme("https" as CFString, bundleId as CFString)
 
         NSUserNotificationCenter.default.delegate = self
-        let img: NSImage! = NSImage(named: NSImage.Name(rawValue: "statusitem"))
+        let img: NSImage! = NSImage(named: "statusitem")
         img.isTemplate = true
 
-        let invalidImg: NSImage! = NSImage(named: NSImage.Name(rawValue: "statusitemerror"))
+        let invalidImg: NSImage! = NSImage(named: "statusitemerror")
         invalidImg.isTemplate = true
 
         let bar = NSStatusBar.system
