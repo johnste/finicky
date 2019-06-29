@@ -47,7 +47,9 @@
     const errors = getErrors(value, schema, path);
     if (errors.length > 0) {
       throw new Error(
-        errors.join("\n") + "\nReceived value: " + JSON.stringify(value, null, 2)
+        errors.join("\n") +
+          "\nReceived value: " +
+          JSON.stringify(value, null, 2)
       );
     }
   }

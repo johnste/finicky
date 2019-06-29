@@ -121,19 +121,15 @@ class AppDelegate: NSObject, NSApplicationDelegate, NSUserNotificationCenterDele
 
     func performTest(url: URL) {
         if let appDescriptor = configLoader.determineOpeningApp(url: url, sourceBundleIdentifier: "net.kassett.finicky") {
-            var description = ""
+            let description = """
+                Testing config
+                Result:
 
-            if appDescriptor.appType == .none {
-                description = "Would not open any browser for this URL: \(appDescriptor.url)"
-            } else if let openInBackground = appDescriptor.openInBackground {
-                description = """
-                Would open \(AppDescriptorType.bundleId == appDescriptor.appType ? "bundleId" : "")\(appDescriptor.name) \(openInBackground ? "application in the background" : "") URL: \(appDescriptor.url)
-                """
-            } else {
-                description = """
-                Would open \(AppDescriptorType.bundleId == appDescriptor.appType ? "bundleId" : "")\(appDescriptor.name) URL: \(appDescriptor.url)
-                """
-            }
+                application: \(appDescriptor.appType == .none ? "None 🚫" : appDescriptor.name)
+                url: \(appDescriptor.url)
+                in background: \(appDescriptor.openInBackground == true ? "☒" : "☐")
+                private mode: \(appDescriptor.privateMode ? "☒" : "☐")
+            """
             logToConsole(description)
         }
     }
@@ -161,9 +157,8 @@ class AppDelegate: NSObject, NSApplicationDelegate, NSUserNotificationCenterDele
 
     @objc func callUrlHandlers(_ sourceBundleIdentifier: String?, url: URL) {
         if let appDescriptor = configLoader.determineOpeningApp(url: url, sourceBundleIdentifier: sourceBundleIdentifier) {
-
             if appDescriptor.appType == .none {
-                return;
+                return
             }
 
             var bundleId: String?
@@ -205,17 +200,48 @@ class AppDelegate: NSObject, NSApplicationDelegate, NSUserNotificationCenterDele
         showTestConfigWindow(nil)
     }
 
-    func openUrlWithBrowser(_ url: URL, bundleIdentifier: String, openInBackground: Bool?) {
+    func openUrlWithBrowser(_ url: URL, bundleIdentifier: String, openInBackground: Bool?, privateMode: Bool) {
         // Launch in background by default if finicky isn't active to avoid something that causes some bug to happen...
         // Too long ago to remember what actually happened
         let openInBackground = openInBackground ?? !isActive
 
-        print("opening " + url.absoluteString)
-        if openInBackground {
-            shell("open", url.absoluteString, "-b", bundleIdentifier, "-g")
-        } else {
-            shell("open", url.absoluteString, "-b", bundleIdentifier)
-        }
+        print("opening " + bundleIdentifier + " at: " + url.absoluteString)
+
+        // var command = ["open", "-b", bundleIdentifier]
+//
+//        if shouldStartNewInstance(bundleIdentifier) {
+//            command.append("-n")
+//        }
+//
+//        if openInBackground {
+//            command.append("-g")
+//        }
+//
+//        command.append(contentsOf: ["--args", url.absoluteString])
+//
+//        if privateMode {
+//            do {
+//                let privateFlags = try getPrivateFlags(bundleIdentifier)
+//                command.append(contentsOf: privateFlags)
+//            } catch BrowserError.browserCantBeLaunchedInPrivateMode {
+//                let message = "Can't launch this browser in private mode"
+//                logToConsole(message)
+//                showNotification(title: "Couldn't start in private mode", subtitle: message, error: true)
+//            } catch BrowserError.browserHasNoPrivateMode {
+//                let message = "This browser/app has no private mode"
+//                logToConsole(message)
+//                showNotification(title: "Couldn't start in private mode", subtitle: message, error: true)
+//            } catch let err {
+//                let message = err.localizedDescription
+//                logToConsole("Unknown error: " + message)
+//                showNotification(title: "Unknown Error", subtitle: message, error: true)
+//            }
+//        }
+
+        let command = getBrowserCommand(bundleIdentifier, url: url, openInBackground: openInBackground, privateMode: privateMode)
+
+        print(command)
+        shell(command)
     }
 
     func application(_: NSApplication, openFiles filenames: [String]) {

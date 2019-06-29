@@ -124,7 +124,6 @@ open class FinickyConfig {
         ctx.evaluateScript("const module = {}")
         ctx.evaluateScript(fastidiousLibJS)
 
-        print("Created new context")
         return ctx
     }
 
@@ -139,7 +138,12 @@ open class FinickyConfig {
         let validConfig = ctx.evaluateScript(validateConfigJS)?.call(withArguments: [])
 
         if let isBoolean = validConfig?.isBoolean {
-            print("Valid config: \(isBoolean)")
+            if isBoolean {
+                print("Valid config ✅")
+            } else {
+                print("Invalid config 🚫")
+            }
+
             if isBoolean {
                 let invalid = !(validConfig?.toBool())!
                 updateStatus?(!invalid)
@@ -163,7 +167,7 @@ open class FinickyConfig {
     }
 
     func reload(showSuccess: Bool) {
-        print("Reload config. showSuccess: \(showSuccess)")
+        print("Reloading config")
         hasError = false
         var config: String?
 
@@ -241,6 +245,7 @@ open class FinickyConfig {
 
         if (appValue?.isObject)! {
             let dict = appValue?.toDictionary()
+
             let appType = AppDescriptorType(rawValue: dict!["appType"] as! String)
 
             var finalUrl = url
