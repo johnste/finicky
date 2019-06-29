@@ -128,7 +128,6 @@ class AppDelegate: NSObject, NSApplicationDelegate, NSUserNotificationCenterDele
                 application: \(appDescriptor.appType == .none ? "None 🚫" : appDescriptor.name)
                 url: \(appDescriptor.url)
                 in background: \(appDescriptor.openInBackground == true ? "☒" : "☐")
-                private mode: \(appDescriptor.privateMode ? "☒" : "☐")
             """
             logToConsole(description)
         }
@@ -200,47 +199,13 @@ class AppDelegate: NSObject, NSApplicationDelegate, NSUserNotificationCenterDele
         showTestConfigWindow(nil)
     }
 
-    func openUrlWithBrowser(_ url: URL, bundleIdentifier: String, openInBackground: Bool?, privateMode: Bool) {
+    func openUrlWithBrowser(_ url: URL, bundleIdentifier: String, openInBackground: Bool?) {
         // Launch in background by default if finicky isn't active to avoid something that causes some bug to happen...
         // Too long ago to remember what actually happened
         let openInBackground = openInBackground ?? !isActive
 
         print("opening " + bundleIdentifier + " at: " + url.absoluteString)
-
-        // var command = ["open", "-b", bundleIdentifier]
-//
-//        if shouldStartNewInstance(bundleIdentifier) {
-//            command.append("-n")
-//        }
-//
-//        if openInBackground {
-//            command.append("-g")
-//        }
-//
-//        command.append(contentsOf: ["--args", url.absoluteString])
-//
-//        if privateMode {
-//            do {
-//                let privateFlags = try getPrivateFlags(bundleIdentifier)
-//                command.append(contentsOf: privateFlags)
-//            } catch BrowserError.browserCantBeLaunchedInPrivateMode {
-//                let message = "Can't launch this browser in private mode"
-//                logToConsole(message)
-//                showNotification(title: "Couldn't start in private mode", subtitle: message, error: true)
-//            } catch BrowserError.browserHasNoPrivateMode {
-//                let message = "This browser/app has no private mode"
-//                logToConsole(message)
-//                showNotification(title: "Couldn't start in private mode", subtitle: message, error: true)
-//            } catch let err {
-//                let message = err.localizedDescription
-//                logToConsole("Unknown error: " + message)
-//                showNotification(title: "Unknown Error", subtitle: message, error: true)
-//            }
-//        }
-
-        let command = getBrowserCommand(bundleIdentifier, url: url, openInBackground: openInBackground, privateMode: privateMode)
-
-        print(command)
+        let command = getBrowserCommand(bundleIdentifier, url: url, openInBackground: openInBackground)
         shell(command)
     }
 
