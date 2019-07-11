@@ -20,3 +20,8 @@ a:visited {
 section {
   margin-bottom: 1em;
 }
+
+section img {
+  width: 100%;
+  display: block;
+}
