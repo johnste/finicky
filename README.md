@@ -19,6 +19,10 @@ Finicky is an macOS application that allows you to set up rules that decide whic
 [![GitHub downloads](https://img.shields.io/github/downloads/johnste/finicky/total.svg?style=flat-square)](https://GitHub.com/johnste/finicky/releases/)
 [![GitHub release](https://img.shields.io/github/release-pre/johnste/finicky.svg?style=flat-square)](https://GitHub.com/johnste/finicky/releases/)
 
+<div align="center">
+<img src="https://raw.githubusercontent.com/johnste/finicky/gh-pages/Screenshot.png" alt="Finicky screenshot" width="75%"/>
+</div>
+
 ## Table of Contents
 
 <!-- To regenerate toc run `npx doctoc README.md --github` -->
