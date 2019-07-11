@@ -11,7 +11,7 @@
 
 </div>
 
-Finicky is an macOS application that allows you to set up rules that decide which browser is opened for every link or url . With Finicky as your default browser, you can tell it to open Facebook or Reddit in one browser, and Trello or LinkedIn in another. 
+Finicky is an macOS application that allows you to set up rules that decide which browser is opened for every link or url. With Finicky as your default browser, you can tell it to open Facebook or Reddit in one browser, and Trello or LinkedIn in another. 
 
 - Write rules to open urls in any browser
 - Rewrite and replace parts of urls before opening them
