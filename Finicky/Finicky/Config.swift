@@ -8,10 +8,9 @@ public typealias Callback<T> = (T) -> Void
 
 open class FinickyConfig {
     var ctx: JSContext!
-    var validateConfigJS: String
-    var processUrlJS: String
-    var fastidiousLibJS: String
     var jsAPIJS: String
+    var configAPIString: String
+    var configAPI: JSValue?
     var hasError: Bool = false
 
     var dispatchSource: DispatchSourceFileSystemObject?
@@ -23,9 +22,7 @@ open class FinickyConfig {
     var updateStatus: Callback<Bool>?
 
     public init() {
-        fastidiousLibJS = loadJS("fastidious.js")
-        validateConfigJS = loadJS("validateConfig.js")
-        processUrlJS = loadJS("processUrl.js")
+        configAPIString = loadJS("finickyConfigAPI.js")
         jsAPIJS = loadJS("jsAPI.js")
     }
 
@@ -122,7 +119,7 @@ open class FinickyConfig {
         }
 
         ctx.evaluateScript("const module = {}")
-        ctx.evaluateScript(fastidiousLibJS)
+        configAPI = ctx.evaluateScript(configAPIString)
 
         return ctx
     }
@@ -135,7 +132,8 @@ open class FinickyConfig {
             return false
         }
 
-        let validConfig = ctx.evaluateScript(validateConfigJS)?.call(withArguments: [])
+
+        let validConfig = ctx.evaluateScript("finickyConfigApi.validateConfig")?.call(withArguments: [])
 
         if let isBoolean = validConfig?.isBoolean {
             if isBoolean {
@@ -280,7 +278,7 @@ open class FinickyConfig {
             "keys": getModifierKeyFlags(),
             "url": FinickyAPI.getUrlParts(url.absoluteString),
         ] as [AnyHashable: Any]
-        let result = ctx.evaluateScript(processUrlJS)?.call(withArguments: [optionsDict])
+        let result : JSValue? = ctx.evaluateScript("finickyConfigApi.processUrl")?.call(withArguments: [optionsDict])
         return result
     }
 

@@ -1,3 +1,7 @@
+/**
+ * Extends finicky js api with some utility functions.
+ */
+
 finicky.matchDomains = function(matchers, ...args) {
   if (args.length > 0) {
     throw new Error(
