@@ -15,5 +15,4 @@ export default {
     name: "finickyConfigApi",
     noInterop: true
   }
-  //external: ["react", "styled-components"]
 };
