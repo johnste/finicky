@@ -12,6 +12,7 @@ open class FinickyConfig {
     var configAPIString: String
     var configAPI: JSValue?
     var hasError: Bool = false
+    var configObject: JSValue?
 
     var dispatchSource: DispatchSourceFileSystemObject?
     var fileDescriptor: Int32 = -1
@@ -125,15 +126,12 @@ open class FinickyConfig {
     }
 
     @discardableResult
-    open func parseConfig(_ config: String) -> Bool {
-        ctx.evaluateScript(config)
-
+    open func parseConfig(_ config: JSValue) -> Bool {
         if hasError {
             return false
         }
 
-
-        let validConfig = ctx.evaluateScript("finickyConfigApi.validateConfig")?.call(withArguments: [])
+        let validConfig = ctx.evaluateScript("finickyConfigApi.validateConfig")?.call(withArguments: [configObject!])
 
         if let isBoolean = validConfig?.isBoolean {
             if isBoolean {
@@ -204,8 +202,11 @@ open class FinickyConfig {
 
         setupAPI()
 
+        ctx.evaluateScript(config)
+        configObject = ctx.evaluateScript("module.exports")
+
         if config != nil {
-            let success = parseConfig(config!)
+            let success = parseConfig(configObject!)
             if success {
                 if toggleIconCallback != nil {
                     toggleIconCallback!(getHideIcon())
@@ -274,11 +275,9 @@ open class FinickyConfig {
     func getConfiguredAppValue(url: URL, sourceBundleIdentifier: String?) -> JSValue? {
         let optionsDict = [
             "sourceBundleIdentifier": sourceBundleIdentifier as Any,
-            "urlString": url.absoluteString,
             "keys": getModifierKeyFlags(),
-            "url": FinickyAPI.getUrlParts(url.absoluteString),
         ] as [AnyHashable: Any]
-        let result : JSValue? = ctx.evaluateScript("finickyConfigApi.processUrl")?.call(withArguments: [optionsDict])
+        let result : JSValue? = ctx.evaluateScript("finickyConfigApi.processUrl")?.call(withArguments: [configObject!, url.absoluteString, optionsDict])
         return result
     }
 

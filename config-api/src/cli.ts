@@ -26,7 +26,10 @@ function errorMessage(message: string, exception: Error | string) {
 // @ts-ignore
 global.finicky = finicky;
 
-const configPath = path.resolve(process.cwd(), args[1] || "./config.test.js");
+const configPath = path.resolve(
+  process.cwd(),
+  args[1] || "./.finicky.example.js"
+);
 
 const url = args[0] || "https://example.com/test";
 

@@ -1019,27 +1019,30 @@ var finickyConfigApi = (function (exports) {
     /**
      * Extends finicky js api with some utility functions.
      */
-    function createAPI() {
-        var log = function (message) {
-            // @ts-ignore
-            if (typeof finickyInternalAPI !== "undefined") {
+    function createAPI(options) {
+        if (options === void 0) { options = {}; }
+        var log = options.log ||
+            (function (message) {
                 // @ts-ignore
-                finickyInternalAPI.log(message);
-            }
-            else {
-                console.log("[finicky log] " + message);
-            }
-        };
-        var notify = function (title, subtitle) {
-            // @ts-ignore
-            if (typeof finickyInternalAPI !== "undefined") {
+                if (typeof finickyInternalAPI !== "undefined") {
+                    // @ts-ignore
+                    finickyInternalAPI.log(message);
+                }
+                else {
+                    console.log("[finicky log] " + message);
+                }
+            });
+        var notify = options.notify ||
+            (function (title, subtitle) {
                 // @ts-ignore
-                finickyInternalAPI.notify(title, subtitle);
-            }
-            else {
-                console.log("[finicky notify] " + title + " " + subtitle);
-            }
-        };
+                if (typeof finickyInternalAPI !== "undefined") {
+                    // @ts-ignore
+                    finickyInternalAPI.notify(title, subtitle);
+                }
+                else {
+                    console.log("[finicky notify] " + title + " " + subtitle);
+                }
+            });
         var getUrlParts = function (urlString) {
             var url = urlParse(urlString);
             // Mistake in the urlParse typings. query should be a string unless parsing of query is enabled
