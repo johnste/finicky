@@ -2,16 +2,33 @@
   "name": "finicky-ts",
   "version": "1.0.0",
   "description": "",
-  "main": "index.js",
-  "types": "index.d.ts",
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "bin": {
+    "url": "./dist/cli.js"
+  },
   "author": "John Sterling",
   "license": "MIT",
+  "bic": [
+    "src"
+  ],
   "scripts": {
-    "build": "rollup -c"
+    "build-api": "rollup -c rollup.config.js && cp ./dist/finickyConfigAPI.js ../Finicky/Finicky/finickyConfigAPI.js",
+    "build-cli": "rollup -c rollup.config.cli.js && chmod +x ./dist/cli.js ",
+    "build": "yarn build-api && yarn build-cli",
+    "cli": "node ./dist/cli.js"
   },
   "devDependencies": {
+    "@types/chalk": "^2.2.0",
+    "@types/url-parse": "^1.4.3",
     "rollup": "^1.16.7",
+    "rollup-plugin-commonjs": "^10.0.1",
+    "rollup-plugin-node-resolve": "^5.2.0",
     "rollup-plugin-typescript2": "^0.22.0",
-    "typescript": "^3.5.3"
+    "typescript": "^3.5.3",
+    "url-parse": "^1.4.7"
+  },
+  "dependencies": {
+    "chalk": "^2.4.2"
   }
 }

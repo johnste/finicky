@@ -1,3 +1,4 @@
+import urlParse from "url-parse";
 import { ISchema, IValidator } from "./fastidious/types";
 import { getErrors, validate } from "./fastidious/index";
 import {
@@ -9,7 +10,8 @@ import {
   urlSchema,
   BrowserResult,
   Browser,
-  UrlFunction
+  UrlFunction,
+  ProcessOptions
 } from "./types";
 
 declare const module:
@@ -35,8 +37,29 @@ const appDescriptorSchema = {
   openInBackground: validate.boolean
 };
 
-export function processUrl(options: Options) {
-  const config = module && module.exports;
+export function processUrl(
+  config: FinickyConfig,
+  url: string,
+  processOptions?: ProcessOptions
+) {
+  if (!processOptions) {
+    processOptions = {
+      keys: {
+        capsLock: false,
+        command: false,
+        shift: false,
+        option: false,
+        control: false,
+        function: false
+      }
+    };
+  }
+
+  let options = {
+    urlString: url,
+    url: finicky.getUrlParts(url),
+    ...processOptions
+  };
 
   if (!config) {
     return processBrowserResult("Safari", options);
