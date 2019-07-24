@@ -67,7 +67,7 @@ export interface Handler {
 /**
  * A rewriter contains a matcher and a url. If the matcher matches when opening a url, the final url will be changed to whatever the url property is.
  */
-interface Rewriter {
+export interface Rewriter {
   match: Matcher | Matcher[];
   url: Url | UrlFunction;
 }
@@ -91,7 +91,7 @@ export type Browser = string | BrowserObject;
 /**
  * Represents a browser or app to open
  */
-interface BrowserObject {
+export interface BrowserObject {
   name: string;
   appType?: "appName" | "bundleId" | "none";
   openInBackground?: boolean;

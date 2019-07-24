@@ -8,7 +8,6 @@ public typealias Callback<T> = (T) -> Void
 
 open class FinickyConfig {
     var ctx: JSContext!
-    var jsAPIJS: String
     var configAPIString: String
     var configAPI: JSValue?
     var hasError: Bool = false
@@ -24,7 +23,6 @@ open class FinickyConfig {
 
     public init() {
         configAPIString = loadJS("finickyConfigAPI.js")
-        jsAPIJS = loadJS("jsAPI.js")
     }
 
     public convenience init(toggleIconCallback: @escaping Callback<Bool>, logToConsoleCallback: @escaping Callback<String>, setShortUrlProviders: @escaping Callback<[String]?>, updateStatus: @escaping Callback<Bool>) {
@@ -299,7 +297,7 @@ open class FinickyConfig {
             FinickyAPI.setLog(logToConsole!)
         }
         FinickyAPI.setContext(ctx)
-        ctx.setObject(FinickyAPI.self, forKeyedSubscript: "finicky" as NSCopying & NSObjectProtocol)
-        ctx.evaluateScript(jsAPIJS)
+        ctx.setObject(FinickyAPI.self, forKeyedSubscript: "finickyInternalAPI" as NSCopying & NSObjectProtocol)        
+        ctx.evaluateScript("var finicky = finickyConfigApi.createAPI();")
     }
 }

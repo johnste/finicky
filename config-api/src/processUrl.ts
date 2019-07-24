@@ -11,7 +11,8 @@ import {
   BrowserResult,
   Browser,
   UrlFunction,
-  ProcessOptions
+  ProcessOptions,
+  BrowserObject
 } from "./types";
 
 declare const module:
@@ -106,7 +107,7 @@ function rewriteUrl(config: FinickyConfig, options: Options) {
   if (Array.isArray(config.rewrite)) {
     for (let rewrite of config.rewrite) {
       if (isMatch(rewrite.match, options)) {
-        let urlResult = resolveFn(rewrite.url, options);
+        let urlResult = resolveUrl(rewrite.url, options);
 
         validateSchema({ url: urlResult }, urlSchema);
 
@@ -151,12 +152,21 @@ function isMatch(matcher: Matcher | Matcher[], options: Options) {
 }
 
 // Recursively resolve handler to value
-function resolveFn<T>(result: T, options: Options) {
-  if (typeof result === "function") {
-    return result(options);
+function resolveBrowser(result: BrowserResult, options: Options) {
+  if (typeof result !== "function") {
+    return result;
   }
 
-  return result;
+  return result(options);
+}
+
+// Recursively resolve handler to value
+function resolveUrl(result: Url | UrlFunction, options: Options) {
+  if (typeof result !== "function") {
+    return result;
+  }
+
+  return result(options);
 }
 
 function getAppType(value: string) {
@@ -168,7 +178,7 @@ function getAppType(value: string) {
 }
 
 function processBrowserResult(result: BrowserResult, options: Options) {
-  let browser = resolveFn(result, options);
+  let browser = resolveBrowser(result, options);
 
   if (!Array.isArray(browser)) {
     browser = [browser];
