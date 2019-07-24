@@ -67,7 +67,7 @@ export interface Handler {
 /**
  * A rewriter contains a matcher and a url. If the matcher matches when opening a url, the final url will be changed to whatever the url property is.
  */
-interface Rewriter {
+export interface Rewriter {
   match: Matcher | Matcher[];
   url: Url | UrlFunction;
 }
@@ -91,7 +91,7 @@ export type Browser = string | BrowserObject;
 /**
  * Represents a browser or app to open
  */
-interface BrowserObject {
+export interface BrowserObject {
   name: string;
   appType?: "appName" | "bundleId" | "none";
   openInBackground?: boolean;
@@ -127,13 +127,9 @@ export interface UrlObject {
 export type UrlFunction = (options: Options) => Url;
 
 /**
- * Options sent as the argument to [[MatcherFunction]], [[BrowserFunction]] and [[UrlFunction]]
+ * Options sent as the argument to [[ProcessUrl]]
  */
-export interface Options {
-  /** The url being opened */
-  urlString: string;
-  /** The url being opened as an object */
-  url: UrlObject;
+export interface ProcessOptions {
   /** If opened in from an app, this string contains the bundle identifier from that app */
   sourceBundleIdentifier?: string;
   /** The state of keyboard state. E.g. shift === true if pressed. */
@@ -145,6 +141,16 @@ export interface Options {
     capsLock: boolean;
     function: boolean;
   };
+}
+
+/**
+ * Options sent as the argument to [[MatcherFunction]], [[BrowserFunction]] and [[UrlFunction]]
+ */
+export interface Options extends ProcessOptions {
+  /** The url being opened */
+  urlString: string;
+  /** The url being opened as an object */
+  url: UrlObject;
 }
 
 export const urlSchema = {

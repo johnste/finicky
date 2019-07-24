@@ -4,7 +4,6 @@ import JavaScriptCore
 @objc protocol FinickyAPIExports: JSExport {
     static func log(_ message: String?) -> Void
     static func notify(_ title: JSValue, _ subtitle: JSValue) -> Void
-    static func getUrlParts(_ url: String) -> [String: Any]
 }
 
 @objc open class FinickyAPI: NSObject, FinickyAPIExports {
@@ -34,33 +33,5 @@ import JavaScriptCore
 
     @objc class func setLog(_ logToConsole: @escaping (_ message: String) -> Void) {
         self.logToConsole = logToConsole
-    }
-
-    @objc public class func getUrlParts(_ urlString: String) -> [String: Any] {
-        let url: URL! = URL(string: urlString)
-
-        guard url != nil else { return [:] }
-
-        let _protocol = url.scheme ?? ""
-        let username = url.user ?? ""
-        let password = url.password ?? ""
-        let host = url.host ?? ""
-        let port = url.port ?? nil
-        let pathname = url.path
-        let search = url.query ?? ""
-        let hash = url.fragment ?? ""
-
-        let urlDict = [
-            "hash": hash as Any,
-            "host": host as Any,
-            "protocol": _protocol as Any,
-            "port": port as Any,
-            "username": username as Any,
-            "password": password as Any,
-            "pathname": pathname,
-            "search": search as Any,
-        ]
-
-        return urlDict
-    }
+    }  
 }

@@ -1,3 +1,4 @@
+import urlParse from "url-parse";
 import { ISchema, IValidator } from "./fastidious/types";
 import { getErrors, validate } from "./fastidious/index";
 import {
@@ -9,7 +10,9 @@ import {
   urlSchema,
   BrowserResult,
   Browser,
-  UrlFunction
+  UrlFunction,
+  ProcessOptions,
+  BrowserObject
 } from "./types";
 
 declare const module:
@@ -35,8 +38,29 @@ const appDescriptorSchema = {
   openInBackground: validate.boolean
 };
 
-export function processUrl(options: Options) {
-  const config = module && module.exports;
+export function processUrl(
+  config: FinickyConfig,
+  url: string,
+  processOptions?: ProcessOptions
+) {
+  if (!processOptions) {
+    processOptions = {
+      keys: {
+        capsLock: false,
+        command: false,
+        shift: false,
+        option: false,
+        control: false,
+        function: false
+      }
+    };
+  }
+
+  let options = {
+    urlString: url,
+    url: finicky.getUrlParts(url),
+    ...processOptions
+  };
 
   if (!config) {
     return processBrowserResult("Safari", options);
@@ -83,7 +107,7 @@ function rewriteUrl(config: FinickyConfig, options: Options) {
   if (Array.isArray(config.rewrite)) {
     for (let rewrite of config.rewrite) {
       if (isMatch(rewrite.match, options)) {
-        let urlResult = resolveFn(rewrite.url, options);
+        let urlResult = resolveUrl(rewrite.url, options);
 
         validateSchema({ url: urlResult }, urlSchema);
 
@@ -128,12 +152,21 @@ function isMatch(matcher: Matcher | Matcher[], options: Options) {
 }
 
 // Recursively resolve handler to value
-function resolveFn<T>(result: T, options: Options) {
-  if (typeof result === "function") {
-    return result(options);
+function resolveBrowser(result: BrowserResult, options: Options) {
+  if (typeof result !== "function") {
+    return result;
   }
 
-  return result;
+  return result(options);
+}
+
+// Recursively resolve handler to value
+function resolveUrl(result: Url | UrlFunction, options: Options) {
+  if (typeof result !== "function") {
+    return result;
+  }
+
+  return result(options);
 }
 
 function getAppType(value: string) {
@@ -145,7 +178,7 @@ function getAppType(value: string) {
 }
 
 function processBrowserResult(result: BrowserResult, options: Options) {
-  let browser = resolveFn(result, options);
+  let browser = resolveBrowser(result, options);
 
   if (!Array.isArray(browser)) {
     browser = [browser];
