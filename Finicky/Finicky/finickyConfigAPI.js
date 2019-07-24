@@ -339,7 +339,7 @@ var finickyConfigApi = (function (exports) {
             for (var _i = 0, _a = config.rewrite; _i < _a.length; _i++) {
                 var rewrite = _a[_i];
                 if (isMatch(rewrite.match, options)) {
-                    var urlResult = resolveFn(rewrite.url, options);
+                    var urlResult = resolveUrl(rewrite.url, options);
                     validateSchema({ url: urlResult }, urlSchema);
                     if (typeof urlResult === "string") {
                         options = __assign({}, options, { url: finicky.getUrlParts(urlResult), urlString: urlResult });
@@ -371,11 +371,18 @@ var finickyConfigApi = (function (exports) {
         });
     }
     // Recursively resolve handler to value
-    function resolveFn(result, options) {
-        if (typeof result === "function") {
-            return result(options);
+    function resolveBrowser(result, options) {
+        if (typeof result !== "function") {
+            return result;
         }
-        return result;
+        return result(options);
+    }
+    // Recursively resolve handler to value
+    function resolveUrl(result, options) {
+        if (typeof result !== "function") {
+            return result;
+        }
+        return result(options);
     }
     function getAppType(value) {
         if (value === null) {
@@ -384,12 +391,19 @@ var finickyConfigApi = (function (exports) {
         return looksLikeBundleIdentifier(value) ? "bundleId" : "appName";
     }
     function processBrowserResult(result, options) {
-        var browser = resolveFn(result, options);
+        var browser = resolveBrowser(result, options);
         if (!Array.isArray(browser)) {
             browser = [browser];
         }
         var browsers = browser.map(createBrowser);
-        return { browsers: browsers, url: options.urlString };
+        // FIXME: Time limited hack to return just one browser for now. Uncomment below statement when fixing.
+        // return { browsers, url: options.urlString };
+        return {
+            browser: browsers[0].name,
+            appType: browsers[0].appType,
+            openInBackground: browsers[0].openInBackground,
+            url: options.urlString
+        };
     }
     function createBrowser(browser) {
         // If all we got was a string, try to figure out if it's a bundle identifier or an application name

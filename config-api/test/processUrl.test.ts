@@ -114,141 +114,142 @@ const createConfig = ({
   };
 };
 
-describe("Handlers", () => {
-  describe("Matcher", () => {
-    beforeAll(() => {
-      // @ts-ignore
-      global.finicky = createAPI();
-    });
+// FIXME: Uncomment when adding back multiple browser support
+// describe("Handlers", () => {
+//   describe("Matcher", () => {
+//     beforeAll(() => {
+//       // @ts-ignore
+//       global.finicky = createAPI();
+//     });
 
-    test("function that returns true", () => {
-      const config = createConfig({
-        handlers: [{ browser: CHANGED_BROWSER, match: () => true }]
-      });
-      const result = processUrl(config, EXAMPLE_URL);
-      expect(result.browsers[0].name).toBe(CHANGED_BROWSER);
-    });
+//     test("function that returns true", () => {
+//       const config = createConfig({
+//         handlers: [{ browser: CHANGED_BROWSER, match: () => true }]
+//       });
+//       const result = processUrl(config, EXAMPLE_URL);
+//       expect(result.browsers[0].name).toBe(CHANGED_BROWSER);
+//     });
 
-    test("function that returns false", () => {
-      const config = createConfig({
-        handlers: [{ browser: CHANGED_BROWSER, match: () => false }]
-      });
-      const result = processUrl(config, EXAMPLE_URL);
-      expect(result.browsers[0].name).not.toBe(CHANGED_BROWSER);
-    });
+//     test("function that returns false", () => {
+//       const config = createConfig({
+//         handlers: [{ browser: CHANGED_BROWSER, match: () => false }]
+//       });
+//       const result = processUrl(config, EXAMPLE_URL);
+//       expect(result.browsers[0].name).not.toBe(CHANGED_BROWSER);
+//     });
 
-    test("match regular expression", () => {
-      const config = createConfig({
-        handlers: [{ browser: CHANGED_BROWSER, match: /test\.example/ }]
-      });
-      const result = processUrl(config, EXAMPLE_URL);
-      expect(result.browsers[0].name).toBe(CHANGED_BROWSER);
-    });
+//     test("match regular expression", () => {
+//       const config = createConfig({
+//         handlers: [{ browser: CHANGED_BROWSER, match: /test\.example/ }]
+//       });
+//       const result = processUrl(config, EXAMPLE_URL);
+//       expect(result.browsers[0].name).toBe(CHANGED_BROWSER);
+//     });
 
-    test("match string", () => {
-      const config = createConfig({
-        handlers: [{ browser: CHANGED_BROWSER, match: EXAMPLE_URL }]
-      });
-      const result = processUrl(config, EXAMPLE_URL);
-      expect(result.browsers[0].name).toBe(CHANGED_BROWSER);
-    });
-  });
+//     test("match string", () => {
+//       const config = createConfig({
+//         handlers: [{ browser: CHANGED_BROWSER, match: EXAMPLE_URL }]
+//       });
+//       const result = processUrl(config, EXAMPLE_URL);
+//       expect(result.browsers[0].name).toBe(CHANGED_BROWSER);
+//     });
+//   });
 
-  describe("Browser", () => {
-    describe("Browser name", () => {
-      test("string", () => {
-        const config = createConfig({
-          handlers: [{ browser: CHANGED_BROWSER, match: () => true }]
-        });
-        const result = processUrl(config, EXAMPLE_URL);
-        expect(result.browsers[0]).toEqual({
-          name: CHANGED_BROWSER,
-          appType: "appName"
-        });
-      });
+//   describe("Browser", () => {
+//     describe("Browser name", () => {
+//       test("string", () => {
+//         const config = createConfig({
+//           handlers: [{ browser: CHANGED_BROWSER, match: () => true }]
+//         });
+//         const result = processUrl(config, EXAMPLE_URL);
+//         expect(result.browsers[0]).toEqual({
+//           name: CHANGED_BROWSER,
+//           appType: "appName"
+//         });
+//       });
 
-      test("string function", () => {
-        const config = createConfig({
-          handlers: [{ browser: () => CHANGED_BROWSER, match: () => true }]
-        });
-        const result = processUrl(config, EXAMPLE_URL);
-        expect(result.browsers[0]).toEqual({
-          name: CHANGED_BROWSER,
-          appType: "appName"
-        });
-      });
+//       test("string function", () => {
+//         const config = createConfig({
+//           handlers: [{ browser: () => CHANGED_BROWSER, match: () => true }]
+//         });
+//         const result = processUrl(config, EXAMPLE_URL);
+//         expect(result.browsers[0]).toEqual({
+//           name: CHANGED_BROWSER,
+//           appType: "appName"
+//         });
+//       });
 
-      test("object", () => {
-        const config = createConfig({
-          handlers: [{ browser: { name: CHANGED_BROWSER }, match: () => true }]
-        });
-        const result = processUrl(config, EXAMPLE_URL);
-        expect(result.browsers[0]).toEqual({
-          name: CHANGED_BROWSER,
-          appType: "appName"
-        });
-      });
+//       test("object", () => {
+//         const config = createConfig({
+//           handlers: [{ browser: { name: CHANGED_BROWSER }, match: () => true }]
+//         });
+//         const result = processUrl(config, EXAMPLE_URL);
+//         expect(result.browsers[0]).toEqual({
+//           name: CHANGED_BROWSER,
+//           appType: "appName"
+//         });
+//       });
 
-      test("object function", () => {
-        const config = createConfig({
-          handlers: [
-            { browser: () => ({ name: CHANGED_BROWSER }), match: () => true }
-          ]
-        });
-        const result = processUrl(config, EXAMPLE_URL);
-        expect(result.browsers[0]).toEqual({
-          name: CHANGED_BROWSER,
-          appType: "appName"
-        });
-      });
-    });
+//       test("object function", () => {
+//         const config = createConfig({
+//           handlers: [
+//             { browser: () => ({ name: CHANGED_BROWSER }), match: () => true }
+//           ]
+//         });
+//         const result = processUrl(config, EXAMPLE_URL);
+//         expect(result.browsers[0]).toEqual({
+//           name: CHANGED_BROWSER,
+//           appType: "appName"
+//         });
+//       });
+//     });
 
-    describe("Bundle id", () => {
-      test("string", () => {
-        const config = createConfig({
-          handlers: [{ browser: EXAMPLE_BUNDLEID, match: () => true }]
-        });
-        const result = processUrl(config, EXAMPLE_URL);
-        expect(result.browsers[0]).toEqual({
-          name: EXAMPLE_BUNDLEID,
-          appType: "bundleId"
-        });
-      });
+//     describe("Bundle id", () => {
+//       test("string", () => {
+//         const config = createConfig({
+//           handlers: [{ browser: EXAMPLE_BUNDLEID, match: () => true }]
+//         });
+//         const result = processUrl(config, EXAMPLE_URL);
+//         expect(result.browsers[0]).toEqual({
+//           name: EXAMPLE_BUNDLEID,
+//           appType: "bundleId"
+//         });
+//       });
 
-      test("string function", () => {
-        const config = createConfig({
-          handlers: [{ browser: () => EXAMPLE_BUNDLEID, match: () => true }]
-        });
-        const result = processUrl(config, EXAMPLE_URL);
-        expect(result.browsers[0]).toEqual({
-          name: EXAMPLE_BUNDLEID,
-          appType: "bundleId"
-        });
-      });
+//       test("string function", () => {
+//         const config = createConfig({
+//           handlers: [{ browser: () => EXAMPLE_BUNDLEID, match: () => true }]
+//         });
+//         const result = processUrl(config, EXAMPLE_URL);
+//         expect(result.browsers[0]).toEqual({
+//           name: EXAMPLE_BUNDLEID,
+//           appType: "bundleId"
+//         });
+//       });
 
-      test("object", () => {
-        const config = createConfig({
-          handlers: [{ browser: { name: EXAMPLE_BUNDLEID }, match: () => true }]
-        });
-        const result = processUrl(config, EXAMPLE_URL);
-        expect(result.browsers[0]).toEqual({
-          name: EXAMPLE_BUNDLEID,
-          appType: "bundleId"
-        });
-      });
+//       test("object", () => {
+//         const config = createConfig({
+//           handlers: [{ browser: { name: EXAMPLE_BUNDLEID }, match: () => true }]
+//         });
+//         const result = processUrl(config, EXAMPLE_URL);
+//         expect(result.browsers[0]).toEqual({
+//           name: EXAMPLE_BUNDLEID,
+//           appType: "bundleId"
+//         });
+//       });
 
-      test("object function", () => {
-        const config = createConfig({
-          handlers: [
-            { browser: () => ({ name: EXAMPLE_BUNDLEID }), match: () => true }
-          ]
-        });
-        const result = processUrl(config, EXAMPLE_URL);
-        expect(result.browsers[0]).toEqual({
-          name: EXAMPLE_BUNDLEID,
-          appType: "bundleId"
-        });
-      });
-    });
-  });
-});
+//       test("object function", () => {
+//         const config = createConfig({
+//           handlers: [
+//             { browser: () => ({ name: EXAMPLE_BUNDLEID }), match: () => true }
+//           ]
+//         });
+//         const result = processUrl(config, EXAMPLE_URL);
+//         expect(result.browsers[0]).toEqual({
+//           name: EXAMPLE_BUNDLEID,
+//           appType: "bundleId"
+//         });
+//       });
+//     });
+//   });
+// });

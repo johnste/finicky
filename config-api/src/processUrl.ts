@@ -186,7 +186,14 @@ function processBrowserResult(result: BrowserResult, options: Options) {
 
   const browsers = browser.map(createBrowser);
 
-  return { browsers, url: options.urlString };
+  // FIXME: Time limited hack to return just one browser for now. Uncomment below statement when fixing.
+  // return { browsers, url: options.urlString };
+  return {
+    browser: browsers[0].name,
+    appType: browsers[0].appType,
+    openInBackground: browsers[0].openInBackground,
+    url: options.urlString
+  };
 }
 
 function createBrowser(browser: Browser) {
