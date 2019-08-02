@@ -43,7 +43,7 @@ if (protocol !== "http" && protocol !== "https") {
   process.exit(1);
 }
 
-// console.log(chalk`Opening configuration file {dim ${configPath}}`);
+console.log(chalk`Opening configuration file {dim ${configPath}}`);
 
 let config;
 

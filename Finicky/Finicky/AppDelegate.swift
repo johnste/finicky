@@ -125,9 +125,9 @@ class AppDelegate: NSObject, NSApplicationDelegate, NSUserNotificationCenterDele
                 Testing config
                 Result:
 
-                application: \(appDescriptor.appType == .none ? "None 🚫" : appDescriptor.name)
-                url: \(appDescriptor.url)
-                in background: \(appDescriptor.openInBackground == true ? "☒" : "☐")
+                Application: \(appDescriptor.appType == .none ? "None 🚫" : appDescriptor.name)
+                URL: \(appDescriptor.url)
+                opens in background: \(appDescriptor.openInBackground == true ? "☒" : "☐")
             """
             logToConsole(description)
         }
