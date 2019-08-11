@@ -33,6 +33,7 @@ Finicky is an macOS application that allows you to set up rules that decide whic
 - [Installation](#installation)
 - [Example configuration](#example-configuration)
   - [Basic configuration](#basic-configuration)
+  - [Wildcard matching](#wildcard-matching)
   - [Rewrite urls](#rewrite-urls)
   - [Advanced usage, settings](#advanced-usage-settings)
   - [Keyboard modifiers](#keyboard-modifiers)
@@ -75,6 +76,22 @@ module.exports = {
     // Open any url including the string "workplace" in Firefox
     match: /workplace/,
     browser: "Firefox"
+  }]
+};
+```
+
+### Wildcard matching
+
+```js
+module.exports = {
+  defaultBrowser: "Safari",
+  handlers: [{
+    // Open google.com and *.google.com urls in Google Chrome
+    match: finicky.matchDomains([
+    "google.com",     // match google.com domain as string (to make regular expression less complicated)
+    /.*\.google.com$/ // match all google.com subdomains
+    ]),
+    browser: "Google Chrome"
   }]
 };
 ```
