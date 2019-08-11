@@ -33,6 +33,7 @@ Finicky is an macOS application that allows you to set up rules that decide whic
 - [Installation](#installation)
 - [Example configuration](#example-configuration)
   - [Basic configuration](#basic-configuration)
+  - [Wildcard matching](#wildcard-matching)
   - [Rewrite urls](#rewrite-urls)
   - [Advanced usage, settings](#advanced-usage-settings)
   - [Keyboard modifiers](#keyboard-modifiers)
