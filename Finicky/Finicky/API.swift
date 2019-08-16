@@ -13,7 +13,7 @@ import JavaScriptCore
     static func log(_ message: String?) {
         if message != nil {
             NSLog(message!)
-            logToConsole!(message!)
+            logToConsole?(message!)
         }
     }
 
@@ -33,5 +33,5 @@ import JavaScriptCore
 
     @objc class func setLog(_ logToConsole: @escaping (_ message: String) -> Void) {
         self.logToConsole = logToConsole
-    }  
+    }
 }
