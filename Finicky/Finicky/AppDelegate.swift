@@ -121,14 +121,25 @@ class AppDelegate: NSObject, NSApplicationDelegate, NSUserNotificationCenterDele
 
     func performTest(url: URL) {
         if let appDescriptor = configLoader.determineOpeningApp(url: url, sourceBundleIdentifier: "net.kassett.finicky") {
-            let description = """
-                Testing config
-                Result:
+            print(appDescriptor)
+            var description = """
 
-                application: \(appDescriptor.appType == .none ? "None 🚫" : appDescriptor.name)
-                url: \(appDescriptor.url)
-                in background: \(appDescriptor.openInBackground == true ? "☒" : "☐")
+            Would open url: \(appDescriptor.url)
+
             """
+
+            if appDescriptor.browsers.count == 1 {
+                if let browser = appDescriptor.browsers.first {
+                    description += "Browser:\n"
+                    description += "    \(browser.name) \(browser.openInBackground ?? false ? "(opens in background)" : "")\n"
+                } else {}
+            } else {
+                description += "First active browser of:\n"
+                for (index, browser) in appDescriptor.browsers.enumerated() {
+                    description += "    [\(index)]: \(browser.name) \(browser.openInBackground ?? false ? "(opens in background)" : "")\n"
+                }
+            }
+
             logToConsole(description)
         }
     }
@@ -154,40 +165,47 @@ class AppDelegate: NSObject, NSApplicationDelegate, NSUserNotificationCenterDele
         })
     }
 
-    @objc func callUrlHandlers(_ sourceBundleIdentifier: String?, url: URL) {
-        if let appDescriptor = configLoader.determineOpeningApp(url: url, sourceBundleIdentifier: sourceBundleIdentifier) {
-            if appDescriptor.appType == .none {
-                return
-            }
+    func getActiveApp(browsers: [BrowserOpts]) -> BrowserOpts? {
+        if browsers.count == 0 {
+            return nil
+        }
 
-            var bundleId: String?
+        if browsers.count == 1 {
+            return browsers.first
+        }
 
-            if appDescriptor.appType == AppDescriptorType.bundleId {
-                bundleId = appDescriptor.name
-            } else {
-                if let path = NSWorkspace.shared.fullPath(forApplication: appDescriptor.name) {
-                    if let bundle = Bundle(path: path) {
-                        bundleId = bundle.bundleIdentifier
-                    }
+        for browser in browsers {
+            let apps = NSRunningApplication.runningApplications(withBundleIdentifier: browser.bundleId)
+            if !apps.isEmpty {
+                let app: NSRunningApplication = apps[0]
+                let bundleIdentifier = app.bundleIdentifier
+                if bundleIdentifier != nil {
+                    return browser
                 }
             }
+        }
 
-            var missingAppName: String?
-            if bundleId != nil, NSWorkspace.shared.absolutePathForApplication(withBundleIdentifier: bundleId!) == nil {
-                missingAppName = bundleId
-            } else if bundleId == nil {
-                missingAppName = appDescriptor.name
+        // If we are here, no apps are running, so we return the first bundleIds in the array instead.
+        return browsers.first
+    }
+
+    @objc func callUrlHandlers(_ sourceBundleIdentifier: String?, url: URL) {
+        if let appDescriptor = configLoader.determineOpeningApp(url: url, sourceBundleIdentifier: sourceBundleIdentifier) {
+            if let appToStart = getActiveApp(browsers: appDescriptor.browsers) {
+                if NSWorkspace.shared.absolutePathForApplication(withBundleIdentifier: appToStart.bundleId) != nil {
+                    openUrlWithBrowser(appDescriptor.url, bundleIdentifier: appToStart.bundleId, openInBackground: appToStart.openInBackground)
+                } else {
+                    let description = "Finicky was unable to find the application \"" + appToStart.name + "\""
+                    print(description)
+                    logToConsole(description)
+                    showNotification(title: "Unable to find application", informativeText: "Finicky was unable to find the application \"" + appToStart.name + "\"", error: true)
+                }
+            } else {
+                let description = "Finicky did not understand what application to start"
+                print(description)
+                logToConsole(description)
+                showNotification(title: description, informativeText: "Finicky was unable to find the application", error: true)
             }
-
-            if missingAppName == nil {
-                openUrlWithBrowser(appDescriptor.url, bundleIdentifier: bundleId!, openInBackground: appDescriptor.openInBackground)
-                return
-            }
-
-            let description = "Finicky was unable to find the application \"" + appDescriptor.name + "\""
-            print(description)
-            logToConsole(description)
-            showNotification(title: "Unable to find application", informativeText: "Finicky was unable to find the application \"" + appDescriptor.name + "\"", error: true)
         }
     }
 
@@ -202,8 +220,8 @@ class AppDelegate: NSObject, NSApplicationDelegate, NSUserNotificationCenterDele
     func openUrlWithBrowser(_ url: URL, bundleIdentifier: String, openInBackground: Bool?) {
         // Launch in background by default if finicky isn't active to avoid something that causes some bug to happen...
         // Too long ago to remember what actually happened
-        let openInBackground = openInBackground ?? !isActive
 
+        let openInBackground = openInBackground ?? !isActive
         print("opening " + bundleIdentifier + " at: " + url.absoluteString)
         let command = getBrowserCommand(bundleIdentifier, url: url, openInBackground: openInBackground)
         shell(command)

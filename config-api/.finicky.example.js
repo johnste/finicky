@@ -13,7 +13,8 @@ module.exports = {
     {
       // Open workplace related sites in work browser
       match: [/workplace/],
-      browser: "Google Chrome Canary"
+      browser: [{ name: "Google Chrome Canary", openInBackground: true }, "Safari"]
+
     }
   ]
 };

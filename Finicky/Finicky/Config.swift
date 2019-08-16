@@ -112,9 +112,7 @@ open class FinickyConfig {
             let shortMessage = "Configuration: \(String(describing: exception!))"
             print(message)
             showNotification(title: "Configuration", informativeText: String(describing: exception!), error: true)
-            if self.logToConsole != nil {
-                self.logToConsole!(shortMessage)
-            }
+            self.logToConsole?(shortMessage)
         }
 
         ctx.evaluateScript("const module = {}")
@@ -124,7 +122,7 @@ open class FinickyConfig {
     }
 
     @discardableResult
-    open func parseConfig(_ config: JSValue) -> Bool {
+    open func parseConfig(_: JSValue) -> Bool {
         if hasError {
             return false
         }
@@ -145,9 +143,9 @@ open class FinickyConfig {
                     let message = "Invalid config"
                     print(message)
                     showNotification(title: message, error: true)
-                    if logToConsole != nil {
-                        logToConsole!(message)
-                    }
+
+                    logToConsole?(message)
+
                     return false
                 } else {
                     return true
@@ -176,25 +174,23 @@ open class FinickyConfig {
         if config == nil {
             hasError = true
             let message = "Config file could not be read or found"
-            showNotification(title: message, subtitle: "Click here for assistance", error: true)
-            print(message)
-            if logToConsole != nil {
-                logToConsole!(message + ". * Example configuration: \n" + """
-                    /**
-                    * Save as ~/.finicky.js
-                    */
-                    module.exports = {
-                        defaultBrowser: "Safari",
-                        handlers: [
-                            {
-                                match: finicky.matchDomains(["youtube.com", "facebook.com"]),
-                                browser: "Google Chrome"
-                            }
-                        ]
-                    };
-                    // For more examples, see the Finicky github page https://github.com/johnste/finicky
-                """)
-            }
+            showNotification(title: message, subtitle: "Click here for help", error: true)
+            logToConsole?("Config file could not be read or found. * Example configuration: \n" + """
+                /**
+                * Save as ~/.finicky.js
+                */
+                module.exports = {
+                    defaultBrowser: "Safari",
+                    handlers: [
+                        {
+                            match: finicky.matchDomains(["youtube.com", "facebook.com"]),
+                            browser: "Google Chrome"
+                        }
+                    ]
+                };
+                // For more examples, see the Finicky github page https://github.com/johnste/finicky
+            """)
+
             return
         }
 
@@ -206,18 +202,14 @@ open class FinickyConfig {
         if config != nil {
             let success = parseConfig(configObject!)
             if success {
-                if toggleIconCallback != nil {
-                    toggleIconCallback!(getHideIcon())
-                }
-                if setShortUrlProviders != nil {
-                    setShortUrlProviders!(getShortUrlProviders())
-                }
+                toggleIconCallback?(getHideIcon())
+
+                setShortUrlProviders?(getShortUrlProviders())
 
                 if showSuccess {
                     showNotification(title: "Reloaded config successfully")
-                    if logToConsole != nil {
-                        logToConsole!("Reloaded config successfully")
-                    }
+
+                    logToConsole?("Reloaded config successfully")
                 }
             }
         }
@@ -238,32 +230,43 @@ open class FinickyConfig {
     }
 
     open func determineOpeningApp(url: URL, sourceBundleIdentifier: String? = nil) -> AppDescriptor? {
-        let appValue = getConfiguredAppValue(url: url, sourceBundleIdentifier: sourceBundleIdentifier)
-
-        if (appValue?.isObject)! {
-            let dict = appValue?.toDictionary()
-
-            let appType = AppDescriptorType(rawValue: dict!["appType"] as! String)
-
-            var finalUrl = url
-
-            if let newUrl = dict!["url"] as? String {
-                if let rewrittenUrl = URL(string: newUrl) {
-                    finalUrl = rewrittenUrl
-                } else if logToConsole != nil {
-                    logToConsole!("Couldn't generate url from handler \(newUrl), falling back to original url")
-                }
+        if let appValue = getConfiguredAppValue(url: url, sourceBundleIdentifier: sourceBundleIdentifier) {
+            if !appValue.isObject {
+                return nil
             }
 
-            if appType == nil {
-                let message = "Unrecognized app type \"\(String(describing: appType))\""
-                showNotification(title: message, error: true)
-                if logToConsole != nil {
-                    logToConsole!(message)
+            if let browsersArray = appValue.forProperty("browsers")?.toArray() {
+                let browsers = browsersArray.compactMap { (raw) -> BrowserOpts? in
+
+                    let dict = raw as! NSMutableDictionary
+                    let appType = AppDescriptorType(rawValue: dict["appType"] as! String)
+                    let openInBackground: Bool? = dict["openInBackground"] as? Bool
+
+                    do {
+                        let browser = try BrowserOpts(name: dict["name"] as! String, appType: appType!, openInBackground: openInBackground)
+                        return browser
+                    } catch let error as BrowserError {
+                        showNotification(title: "Couldn't find browser", subtitle: error.localizedDescription)
+                        logToConsole?(error.localizedDescription)
+                        return nil
+                    } catch let msg {
+                        print("Unknown error resolving browser: \(msg)")
+                        showNotification(title: "Unknown error resolving browser", subtitle: msg.localizedDescription)
+                        return nil
+                    }
                 }
-            } else {
-                let openInBackground = dict!["openInBackground"] as? Bool
-                return AppDescriptor(name: dict!["name"] as! String, appType: appType!, url: finalUrl, openInBackground: openInBackground)
+
+                var finalUrl = url
+
+                if let newUrl = appValue.forProperty("url")?.toString() {
+                    if let rewrittenUrl = URL(string: newUrl) {
+                        finalUrl = rewrittenUrl
+                    } else {
+                        logToConsole?("Couldn't generate url from handler \(newUrl), falling back to original url")
+                    }
+                }
+
+                return AppDescriptor(browsers: browsers, url: finalUrl)
             }
         }
 
@@ -275,7 +278,7 @@ open class FinickyConfig {
             "sourceBundleIdentifier": sourceBundleIdentifier as Any,
             "keys": getModifierKeyFlags(),
         ] as [AnyHashable: Any]
-        let result : JSValue? = ctx.evaluateScript("finickyConfigApi.processUrl")?.call(withArguments: [configObject!, url.absoluteString, optionsDict])
+        let result: JSValue? = ctx.evaluateScript("finickyConfigApi.processUrl")?.call(withArguments: [configObject!, url.absoluteString, optionsDict])
         return result
     }
 
@@ -297,7 +300,7 @@ open class FinickyConfig {
             FinickyAPI.setLog(logToConsole!)
         }
         FinickyAPI.setContext(ctx)
-        ctx.setObject(FinickyAPI.self, forKeyedSubscript: "finickyInternalAPI" as NSCopying & NSObjectProtocol)        
+        ctx.setObject(FinickyAPI.self, forKeyedSubscript: "finickyInternalAPI" as NSCopying & NSObjectProtocol)
         ctx.evaluateScript("var finicky = finickyConfigApi.createAPI();")
     }
 }

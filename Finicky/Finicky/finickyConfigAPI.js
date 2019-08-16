@@ -396,14 +396,7 @@ var finickyConfigApi = (function (exports) {
             browser = [browser];
         }
         var browsers = browser.map(createBrowser);
-        // FIXME: Time limited hack to return just one browser for now. Uncomment below statement when fixing.
-        // return { browsers, url: options.urlString };
-        return {
-            browser: browsers[0].name,
-            appType: browsers[0].appType,
-            openInBackground: browsers[0].openInBackground,
-            url: options.urlString
-        };
+        return { browsers: browsers, url: options.urlString };
     }
     function createBrowser(browser) {
         // If all we got was a string, try to figure out if it's a bundle identifier or an application name
