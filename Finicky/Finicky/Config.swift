@@ -242,6 +242,11 @@ open class FinickyConfig {
                     let appType = AppDescriptorType(rawValue: dict["appType"] as! String)
                     let openInBackground: Bool? = dict["openInBackground"] as? Bool
                     let browserName = dict["name"] as! String
+
+                    if browserName == "" {
+                        return nil
+                    }
+
                     do {
                         let browser = try BrowserOpts(name: browserName, appType: appType!, openInBackground: openInBackground)
                         return browser

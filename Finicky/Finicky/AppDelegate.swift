@@ -132,7 +132,9 @@ class AppDelegate: NSObject, NSApplicationDelegate, NSUserNotificationCenterDele
                 if let browser = appDescriptor.browsers.first {
                     description += "Browser:\n"
                     description += "    \(browser.name) \(browser.openInBackground ?? false ? "(opens in background)" : "")\n"
-                } else {}
+                }
+            } else if appDescriptor.browsers.count == 0 {
+                description += "Won't open any browser"
             } else {
                 description += "First active browser of:\n"
                 for (index, browser) in appDescriptor.browsers.enumerated() {
@@ -200,11 +202,6 @@ class AppDelegate: NSObject, NSApplicationDelegate, NSUserNotificationCenterDele
                     logToConsole(description)
                     showNotification(title: "Unable to find application", informativeText: "Finicky was unable to find the application \"" + appToStart.name + "\"", error: true)
                 }
-            } else {
-                let description = "Finicky did not understand what application to start"
-                print(description)
-                logToConsole(description)
-                showNotification(title: description, informativeText: "Finicky was unable to find the application", error: true)
             }
         }
     }
