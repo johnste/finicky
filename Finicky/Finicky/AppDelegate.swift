@@ -219,10 +219,8 @@ class AppDelegate: NSObject, NSApplicationDelegate, NSUserNotificationCenterDele
 
     func openUrlWithBrowser(_ url: URL, bundleIdentifier: String, openInBackground: Bool?) {
         // Launch in background by default if finicky isn't active to avoid something that causes some bug to happen...
-        // Too long ago to remember what actually happened
-
         let openInBackground = openInBackground ?? !isActive
-        print("opening " + bundleIdentifier + " at: " + url.absoluteString)
+        print("Opening " + bundleIdentifier + " at: " + url.absoluteString)
         let command = getBrowserCommand(bundleIdentifier, url: url, openInBackground: openInBackground)
         shell(command)
     }

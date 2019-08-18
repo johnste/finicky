@@ -241,13 +241,13 @@ open class FinickyConfig {
                     let dict = raw as! NSMutableDictionary
                     let appType = AppDescriptorType(rawValue: dict["appType"] as! String)
                     let openInBackground: Bool? = dict["openInBackground"] as? Bool
-
+                    let browserName = dict["name"] as! String
                     do {
-                        let browser = try BrowserOpts(name: dict["name"] as! String, appType: appType!, openInBackground: openInBackground)
+                        let browser = try BrowserOpts(name: browserName, appType: appType!, openInBackground: openInBackground)
                         return browser
-                    } catch let error as BrowserError {
-                        showNotification(title: "Couldn't find browser", subtitle: error.localizedDescription)
-                        logToConsole?(error.localizedDescription)
+                    } catch _ as BrowserError {
+                        showNotification(title: "Couldn't find browser \"\(browserName)\"")
+                        logToConsole?("Couldn't find browser \"\(browserName)\"")
                         return nil
                     } catch let msg {
                         print("Unknown error resolving browser: \(msg)")
