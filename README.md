@@ -71,7 +71,7 @@ module.exports = {
   handlers: [
     {
       // Open apple.com and example.org urls in Safari
-      match: finicky.matchDomains(["apple.com", "example.org"]),
+      match: finicky.matchHostnames(["apple.com", "example.org"]),
       browser: "Safari"
     },
     {
@@ -91,7 +91,7 @@ module.exports = {
   handlers: [
     {
       // Open google.com and *.google.com urls in Google Chrome
-      match: finicky.matchDomains([
+      match: finicky.matchHostnames([
         "google.com", // match google.com domain as string (to make regular expression less complicated)
         /.*\.google.com$/ // match all google.com subdomains
       ]),
@@ -108,7 +108,7 @@ module.exports = {
   defaultBrowser: "Safari",
   handlers: [
     {
-      match: finicky.matchDomains(["example.com"]),
+      match: finicky.matchHostnames(["example.com"]),
       // Opens the first running browsers in the list. If none are running, the first one will be started.
       browser: ["Google Chrome", "Safari", "Firefox"]
     }

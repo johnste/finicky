@@ -22,7 +22,8 @@ declare const module:
   | undefined;
 
 declare const finicky: {
-  matchDomains(domains: string | string[]): boolean;
+  matchDomains(hostnames: string | string[]): boolean;
+  matchHostnames(hostnames: string | string[]): boolean;
   log(value: string): void;
   notify(title: string, subtitle?: string): void;
   getUrlParts(url: string): UrlObject;

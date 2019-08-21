@@ -1071,7 +1071,7 @@ var finickyConfigApi = (function (exports) {
                 args[_i - 1] = arguments[_i];
             }
             if (args.length > 0) {
-                throw new Error("finicky.matchDomains(domains) only accepts one argument. See https://johnste.github.io/finicky-docs/interfaces/_finickyapi_.finicky.html#matchdomains for more information");
+                throw new Error("finicky.matchDomains/matchHostnames only accepts one argument. See https://johnste.github.io/finicky-docs/interfaces/_finickyapi_.finicky.html#matchdomains for more information");
             }
             if (!Array.isArray(matchers)) {
                 matchers = [matchers];
@@ -1080,7 +1080,7 @@ var finickyConfigApi = (function (exports) {
                 if (matcher instanceof RegExp || typeof matcher === "string") {
                     return;
                 }
-                throw new Error("finicky.matchDomains(domains): Unrecognized domain \"" + matcher + "\"");
+                throw new Error("finicky.matchDomains/matchHostnames: Unrecognized hostname \"" + matcher + "\"");
             });
             return function (_a) {
                 var url = _a.url;
@@ -1109,6 +1109,7 @@ var finickyConfigApi = (function (exports) {
             log: log,
             notify: notify,
             matchDomains: matchDomains,
+            matchHostnames: matchDomains,
             getUrlParts: getUrlParts,
             onUrl: onUrl,
             setDefaultBrowser: setDefaultBrowser

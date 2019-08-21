@@ -58,7 +58,7 @@ export function createAPI(
   const matchDomains = (matchers: Matcher | Matcher[], ...args: any[]) => {
     if (args.length > 0) {
       throw new Error(
-        "finicky.matchDomains(domains) only accepts one argument. See https://johnste.github.io/finicky-docs/interfaces/_finickyapi_.finicky.html#matchdomains for more information"
+        "finicky.matchDomains/matchHostnames only accepts one argument. See https://johnste.github.io/finicky-docs/interfaces/_finickyapi_.finicky.html#matchdomains for more information"
       );
     }
 
@@ -71,7 +71,7 @@ export function createAPI(
         return;
       }
       throw new Error(
-        `finicky.matchDomains(domains): Unrecognized domain "${matcher}"`
+        `finicky.matchDomains/matchHostnames: Unrecognized hostname "${matcher}"`
       );
     });
 
@@ -114,6 +114,7 @@ export function createAPI(
     log,
     notify,
     matchDomains,
+    matchHostnames: matchDomains,
     getUrlParts,
     onUrl,
     setDefaultBrowser

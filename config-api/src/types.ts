@@ -16,7 +16,7 @@ import { validate } from "./fastidious/index";
  *      hideIcon: false
  *    },
  *    handlers: [{
- *      match: finicky.matchDomains("example.com'),
+ *      match: finicky.matchHostnames("example.com'),
  *      browser: "Firefox"
  *    }]
  *  }
