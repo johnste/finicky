@@ -16,7 +16,7 @@ import { validate } from "./fastidious/index";
  *      hideIcon: false
  *    },
  *    handlers: [{
- *      match: finicky.matchDomains("example.com'),
+ *      match: finicky.matchHostnames("example.com'),
  *      browser: "Firefox"
  *    }]
  *  }
@@ -157,7 +157,7 @@ export const urlSchema = {
   url: validate.oneOf([
     validate.string,
     validate.shape({
-      protocol: validate.oneOf(["http", "https"]).isRequired,
+      protocol: validate.oneOf(["http", "https", "file"]).isRequired,
       username: validate.string,
       password: validate.string,
       host: validate.string.isRequired,

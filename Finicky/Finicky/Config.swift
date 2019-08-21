@@ -183,7 +183,7 @@ open class FinickyConfig {
                     defaultBrowser: "Safari",
                     handlers: [
                         {
-                            match: finicky.matchDomains(["youtube.com", "facebook.com"]),
+                            match: finicky.matchHostnames(["youtube.com", "facebook.com"]),
                             browser: "Google Chrome"
                         }
                     ]

@@ -121,7 +121,6 @@ class AppDelegate: NSObject, NSApplicationDelegate, NSUserNotificationCenterDele
 
     func performTest(url: URL) {
         if let appDescriptor = configLoader.determineOpeningApp(url: url, sourceBundleIdentifier: "net.kassett.finicky") {
-            print(appDescriptor)
             var description = """
 
             Would open url: \(appDescriptor.url)

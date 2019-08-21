@@ -35,9 +35,9 @@ const url = args[0] || "https://example.com/test";
 
 const protocol = urlParse(url).protocol.replace(":", "");
 
-if (protocol !== "http" && protocol !== "https") {
+if (protocol !== "http" && protocol !== "https" && protocol !== "file") {
   errorMessage(
-    chalk`Finicky only processes {underline http and https} urls. Supplied url has protocol:`,
+    chalk`Finicky only processes {underline file, http and https} urls. Supplied url has protocol:`,
     protocol
   );
   process.exit(1);
