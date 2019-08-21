@@ -11,7 +11,7 @@
 
 </div>
 
-Finicky is an macOS application that allows you to set up rules that decide which browser is opened for every link or url. With Finicky as your default browser, you can tell it to open Facebook or Reddit in one browser, and Trello or LinkedIn in another. 
+Finicky is an macOS application that allows you to set up rules that decide which browser is opened for every link or url. With Finicky as your default browser, you can tell it to open Facebook or Reddit in one browser, and Trello or LinkedIn in another.
 
 - Write rules to open urls in any browser
 - Rewrite and replace parts of urls before opening them
@@ -29,11 +29,11 @@ Finicky is an macOS application that allows you to set up rules that decide whic
 <!-- START doctoc generated TOC please keep comment here to allow auto update -->
 <!-- DON'T EDIT THIS SECTION, INSTEAD RE-RUN doctoc TO UPDATE -->
 
-
 - [Installation](#installation)
 - [Example configuration](#example-configuration)
   - [Basic configuration](#basic-configuration)
   - [Wildcard matching](#wildcard-matching)
+  - [Opening preferred browser](#opening-preferred-browser)
   - [Rewrite urls](#rewrite-urls)
   - [Advanced usage, settings](#advanced-usage-settings)
   - [Keyboard modifiers](#keyboard-modifiers)
@@ -68,15 +68,18 @@ Finicky is an macOS application that allows you to set up rules that decide whic
 ```js
 module.exports = {
   defaultBrowser: "Google Chrome",
-  handlers: [{
-    // Open apple.com and example.org urls in Safari
-    match: finicky.matchDomains(["apple.com", "example.org"]),
-    browser: "Safari"
-  }, {
-    // Open any url including the string "workplace" in Firefox
-    match: /workplace/,
-    browser: "Firefox"
-  }]
+  handlers: [
+    {
+      // Open apple.com and example.org urls in Safari
+      match: finicky.matchDomains(["apple.com", "example.org"]),
+      browser: "Safari"
+    },
+    {
+      // Open any url including the string "workplace" in Firefox
+      match: /workplace/,
+      browser: "Firefox"
+    }
+  ]
 };
 ```
 
@@ -85,14 +88,31 @@ module.exports = {
 ```js
 module.exports = {
   defaultBrowser: "Safari",
-  handlers: [{
-    // Open google.com and *.google.com urls in Google Chrome
-    match: finicky.matchDomains([
-      "google.com",     // match google.com domain as string (to make regular expression less complicated)
-      /.*\.google.com$/ // match all google.com subdomains
-    ]),
-    browser: "Google Chrome"
-  }]
+  handlers: [
+    {
+      // Open google.com and *.google.com urls in Google Chrome
+      match: finicky.matchDomains([
+        "google.com", // match google.com domain as string (to make regular expression less complicated)
+        /.*\.google.com$/ // match all google.com subdomains
+      ]),
+      browser: "Google Chrome"
+    }
+  ]
+};
+```
+
+### Opening preferred browser
+
+```js
+module.exports = {
+  defaultBrowser: "Safari",
+  handlers: [
+    {
+      match: finicky.matchDomains(["example.com"]),
+      // Opens the first running browsers in the list. If none are running, the first one will be started.
+      browser: ["Google Chrome", "Safari", "Firefox"]
+    }
+  ]
 };
 ```
 
@@ -145,6 +165,11 @@ module.exports = {
         // Force opening the link in the background
         openInBackground: true
       }
+    },
+    {
+      match: ["http://example.com"],
+      // Don't open any browser for this url, effectively blocking it
+      browser: null
     }
   ]
 };
