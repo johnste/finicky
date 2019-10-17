@@ -15,7 +15,7 @@ Finicky is an macOS application that allows you to set up rules that decide whic
 
 - Write rules to open urls in any browser
 - Rewrite and replace parts of urls before opening them
-- Automatically resolves urls from short url providers
+- Automatically resolves the destination url from short url providers
 
 [![GitHub downloads](https://img.shields.io/github/downloads/johnste/finicky/total.svg?style=flat-square)](https://GitHub.com/johnste/finicky/releases/)
 [![GitHub release](https://img.shields.io/github/release-pre/johnste/finicky.svg?style=flat-square)](https://GitHub.com/johnste/finicky/releases/)
