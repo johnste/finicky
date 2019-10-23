@@ -39,7 +39,6 @@ Finicky is an macOS application that allows you to set up rules that decide whic
   - [Advanced usage, settings](#advanced-usage-settings)
   - [Keyboard modifiers](#keyboard-modifiers)
   - [Configuration ideas](#configuration-ideas)
-- [API Reference](#api-reference)
 - [Issues](#issues)
   - [Bugs](#bugs)
   - [Feature Requests](#feature-requests)
@@ -202,11 +201,6 @@ module.exports = {
 ### Configuration ideas
 
 See the wiki page for other [configuration ideas](https://github.com/johnste/finicky/wiki/Configuration-ideas)
-
-## API Reference
-
-- [Configuration Reference](https://johnste.github.io/finicky-docs/interfaces/_finickyconfig_.finickyconfig.html)
-- [API Reference](https://johnste.github.io/finicky-docs/interfaces/_finickyapi_.finicky.html)
 
 ## Issues
 
