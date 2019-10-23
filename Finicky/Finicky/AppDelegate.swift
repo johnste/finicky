@@ -14,7 +14,7 @@ class AppDelegate: NSObject, NSApplicationDelegate, NSUserNotificationCenterDele
     var shortUrlResolver: FNShortUrlResolver = FNShortUrlResolver()
     @objc var isActive: Bool = true
 
-    func applicationDidFinishLaunching(_: Notification) {
+    func applicationWillFinishLaunching(_: Notification) {
         yourTextField.delegate = self
         let bundleId = "net.kassett.Finicky"
         LSSetDefaultHandlerForURLScheme("http" as CFString, bundleId as CFString)
@@ -171,6 +171,7 @@ class AppDelegate: NSObject, NSApplicationDelegate, NSUserNotificationCenterDele
     }
 
     @objc func handleGetURLEvent(_ event: NSAppleEventDescriptor?, withReplyEvent _: NSAppleEventDescriptor?) {
+        toggleDockIcon(showIcon: false)
         let url: URL = URL(string: event!.paramDescriptor(forKeyword: AEKeyword(keyDirectObject))!.stringValue!)!
         let pid = event!.attributeDescriptor(forKeyword: AEKeyword(keySenderPIDAttr))!.int32Value
         let sourceBundleIdentifier = NSRunningApplication(processIdentifier: pid)?.bundleIdentifier
@@ -237,6 +238,7 @@ class AppDelegate: NSObject, NSApplicationDelegate, NSUserNotificationCenterDele
     }
 
     func application(_: NSApplication, openFiles filenames: [String]) {
+        toggleDockIcon(showIcon: false)
         for filename in filenames {
             callUrlHandlers(nil, url: URL(fileURLWithPath: filename), sourceProcessPath: nil)
         }

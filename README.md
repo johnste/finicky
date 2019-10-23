@@ -160,6 +160,12 @@ module.exports = {
       browser: "Safari"
     },
     {
+      // You can get the path of the process that triggered Finicky (EXPERIMENTAL)
+      match: ({ sourceProcessPath }) =>
+        sourceProcessPath.startsWith("/Applications/Slack.app/"),
+      browser: "Firefox"
+    },
+    {
       match: ["http://zombo.com"],
       browser: {
         name: "Google Chrome Canary",
