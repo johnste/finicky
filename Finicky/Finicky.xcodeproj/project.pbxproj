@@ -48,6 +48,7 @@
 		544B57881B28B87900812908 /* statusitem@2x.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = "statusitem@2x.png"; sourceTree = "<group>"; };
 		546F1677228B487F006C5375 /* Utilities.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Utilities.swift; sourceTree = "<group>"; };
 		5479FDD321655A3400D15A3C /* Notifications.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Notifications.swift; sourceTree = "<group>"; };
+		548376AB2360C7D100834B68 /* Finicky-Bridging-Header.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = "Finicky-Bridging-Header.h"; sourceTree = "<group>"; };
 		54899CD01B20D5BC00647101 /* Finicky.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = Finicky.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		54899CD41B20D5BC00647101 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
 		54899CD51B20D5BC00647101 /* AppDelegate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppDelegate.swift; sourceTree = "<group>"; };
@@ -110,6 +111,7 @@
 		54899CD21B20D5BC00647101 /* Finicky */ = {
 			isa = PBXGroup;
 			children = (
+				548376AB2360C7D100834B68 /* Finicky-Bridging-Header.h */,
 				54CBA90D22A5C7EA0074A67F /* js */,
 				54899CD51B20D5BC00647101 /* AppDelegate.swift */,
 				54899CD91B20D5BC00647101 /* MainMenu.xib */,
@@ -463,8 +465,10 @@
 				INFOPLIST_FILE = Finicky/Info.plist;
 				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/../Frameworks";
 				MACOSX_DEPLOYMENT_TARGET = 10.12;
+				MARKETING_VERSION = v2.2.2;
 				PRODUCT_BUNDLE_IDENTIFIER = net.kassett.finicky;
 				PRODUCT_NAME = "$(TARGET_NAME)";
+				SWIFT_OBJC_BRIDGING_HEADER = "Finicky/Finicky-Bridging-Header.h";
 				SWIFT_VERSION = 5.0;
 			};
 			name = Debug;
@@ -478,8 +482,10 @@
 				INFOPLIST_FILE = Finicky/Info.plist;
 				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/../Frameworks";
 				MACOSX_DEPLOYMENT_TARGET = 10.12;
+				MARKETING_VERSION = v2.2.2;
 				PRODUCT_BUNDLE_IDENTIFIER = net.kassett.finicky;
 				PRODUCT_NAME = "$(TARGET_NAME)";
+				SWIFT_OBJC_BRIDGING_HEADER = "Finicky/Finicky-Bridging-Header.h";
 				SWIFT_VERSION = 5.0;
 			};
 			name = Release;

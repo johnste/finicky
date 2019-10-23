@@ -55,7 +55,7 @@ Finicky is an macOS application that allows you to set up rules that decide whic
 1. Installation alternatives:
 
 - Download [the latest release](https://github.com/johnste/finicky/releases), unzip and put `Finicky.app` in your application folder.
-- Install with [homebrew-cask](https://github.com/caskroom/homebrew-cask): `brew cask install finicky`. 
+- Install with [homebrew-cask](https://github.com/caskroom/homebrew-cask): `brew cask install finicky`.
 
 2. Create a file called `.finicky.js` with configuration
    ([examples](#example-configuration)) in your home directory.
@@ -158,6 +158,12 @@ module.exports = {
       match: ({ sourceBundleIdentifier }) =>
         sourceBundleIdentifier === "com.tinyspeck.slackmacgap",
       browser: "Safari"
+    },
+    {
+      // You can get the path of the process that triggered Finicky (EXPERIMENTAL)
+      match: ({ sourceProcessPath }) =>
+        sourceProcessPath.startsWith("/Applications/Slack.app/"),
+      browser: "Firefox"
     },
     {
       match: ["http://zombo.com"],

@@ -156,13 +156,29 @@ class AppDelegate: NSObject, NSApplicationDelegate, NSUserNotificationCenterDele
         return result
     }
 
+    func getPidPath(pid: Int32) -> String? {
+        let pathBuffer = UnsafeMutablePointer<UInt8>.allocate(capacity: Int(MAXPATHLEN))
+       defer {
+           pathBuffer.deallocate()
+       }
+       let pathLength = proc_pidpath(pid, pathBuffer, UInt32(MAXPATHLEN))
+
+       if pathLength > 0 {
+           let path = String(cString: pathBuffer)
+            return path
+       }
+        return nil
+    }
+
     @objc func handleGetURLEvent(_ event: NSAppleEventDescriptor?, withReplyEvent _: NSAppleEventDescriptor?) {
+        toggleDockIcon(showIcon: false)
         let url: URL = URL(string: event!.paramDescriptor(forKeyword: AEKeyword(keyDirectObject))!.stringValue!)!
         let pid = event!.attributeDescriptor(forKeyword: AEKeyword(keySenderPIDAttr))!.int32Value
         let sourceBundleIdentifier = NSRunningApplication(processIdentifier: pid)?.bundleIdentifier
+        let path = getPidPath(pid: pid)
 
         shortUrlResolver.resolveUrl(url, callback: { (URL) -> Void in
-            self.callUrlHandlers(sourceBundleIdentifier, url: URL)
+            self.callUrlHandlers(sourceBundleIdentifier, url: URL, sourceProcessPath: path)
         })
     }
 
@@ -190,8 +206,8 @@ class AppDelegate: NSObject, NSApplicationDelegate, NSUserNotificationCenterDele
         return browsers.first
     }
 
-    @objc func callUrlHandlers(_ sourceBundleIdentifier: String?, url: URL) {
-        if let appDescriptor = configLoader.determineOpeningApp(url: url, sourceBundleIdentifier: sourceBundleIdentifier) {
+    @objc func callUrlHandlers(_ sourceBundleIdentifier: String?, url: URL, sourceProcessPath: String?) {
+        if let appDescriptor = configLoader.determineOpeningApp(url: url, sourceBundleIdentifier: sourceBundleIdentifier, sourceProcessPath: sourceProcessPath) {
             if let appToStart = getActiveApp(browsers: appDescriptor.browsers) {
                 if NSWorkspace.shared.absolutePathForApplication(withBundleIdentifier: appToStart.bundleId) != nil {
                     openUrlWithBrowser(appDescriptor.url, bundleIdentifier: appToStart.bundleId, openInBackground: appToStart.openInBackground)
@@ -222,8 +238,9 @@ class AppDelegate: NSObject, NSApplicationDelegate, NSUserNotificationCenterDele
     }
 
     func application(_: NSApplication, openFiles filenames: [String]) {
+        toggleDockIcon(showIcon: false)
         for filename in filenames {
-            callUrlHandlers(nil, url: URL(fileURLWithPath: filename))
+            callUrlHandlers(nil, url: URL(fileURLWithPath: filename), sourceProcessPath: nil)
         }
     }
 
