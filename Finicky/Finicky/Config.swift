@@ -229,8 +229,8 @@ open class FinickyConfig {
         return list
     }
 
-    open func determineOpeningApp(url: URL, sourceBundleIdentifier: String? = nil) -> AppDescriptor? {
-        if let appValue = getConfiguredAppValue(url: url, sourceBundleIdentifier: sourceBundleIdentifier) {
+    open func determineOpeningApp(url: URL, sourceBundleIdentifier: String? = nil, sourceProcessPath: String? = nil) -> AppDescriptor? {
+        if let appValue = getConfiguredAppValue(url: url, sourceBundleIdentifier: sourceBundleIdentifier, sourceProcessPath: sourceProcessPath) {
             if !appValue.isObject {
                 return nil
             }
@@ -278,9 +278,10 @@ open class FinickyConfig {
         return nil
     }
 
-    func getConfiguredAppValue(url: URL, sourceBundleIdentifier: String?) -> JSValue? {
+    func getConfiguredAppValue(url: URL, sourceBundleIdentifier: String?, sourceProcessPath: String?) -> JSValue? {
         let optionsDict = [
             "sourceBundleIdentifier": sourceBundleIdentifier as Any,
+            "sourceProcessPath": sourceProcessPath as Any,
             "keys": getModifierKeyFlags(),
         ] as [AnyHashable: Any]
         let result: JSValue? = ctx.evaluateScript("finickyConfigApi.processUrl")?.call(withArguments: [configObject!, url.absoluteString, optionsDict])
