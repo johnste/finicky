@@ -161,7 +161,7 @@ module.exports = {
     {
       // You can get the path of the process that triggered Finicky (EXPERIMENTAL)
       match: ({ sourceProcessPath }) =>
-        sourceProcessPath.startsWith("/Applications/Slack.app"),
+        sourceProcessPath && sourceProcessPath.startsWith("/Applications/Slack.app"),
       browser: "Firefox"
     },
     {
