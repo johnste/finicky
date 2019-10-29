@@ -2,8 +2,6 @@
 <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
 <plist version="1.0">
 <dict>
-	<key>NSAppleEventsUsageDescription</key>
-	<string>Please give Finicky access to control this browser</string>
 	<key>CFBundleDevelopmentRegion</key>
 	<string>en</string>
 	<key>CFBundleDocumentTypes</key>
@@ -74,6 +72,8 @@
 	<string>public.app-category.utilities</string>
 	<key>LSMinimumSystemVersion</key>
 	<string>$(MACOSX_DEPLOYMENT_TARGET)</string>
+	<key>NSAppleEventsUsageDescription</key>
+	<string>Please give Finicky access to control this browser</string>
 	<key>NSHumanReadableCopyright</key>
 	<string>Copyright © 2019 John Sterling. All rights reserved. Hand icon by WPZOOM.com (CC BY-SA 3.0)</string>
 	<key>NSMainNibFile</key>
