@@ -20,5 +20,10 @@ module.exports = {
       match: [/test/],
       browser: [null, "Safari"]
     },
+    {
+      // Test private flag
+      match: [/workplace/],
+      browser: [{ name: "Google Chrome", private: true }]
+    },
   ]
 };

@@ -36,7 +36,8 @@ const appDescriptorSchema = {
     validate.value("appName"),
     validate.value("none")
   ]).isRequired,
-  openInBackground: validate.boolean
+  openInBackground: validate.boolean,
+  private: validate.boolean
 };
 
 export function processUrl(

@@ -210,7 +210,7 @@ class AppDelegate: NSObject, NSApplicationDelegate, NSUserNotificationCenterDele
         if let appDescriptor = configLoader.determineOpeningApp(url: url, sourceBundleIdentifier: sourceBundleIdentifier, sourceProcessPath: sourceProcessPath) {
             if let appToStart = getActiveApp(browsers: appDescriptor.browsers) {
                 if NSWorkspace.shared.absolutePathForApplication(withBundleIdentifier: appToStart.bundleId) != nil {
-                    openUrlWithBrowser(appDescriptor.url, bundleIdentifier: appToStart.bundleId, openInBackground: appToStart.openInBackground)
+                    openUrlWithBrowser(appDescriptor.url, app: appToStart)
                 } else {
                     let description = "Finicky was unable to find the application \"" + appToStart.name + "\""
                     print(description)
@@ -229,12 +229,12 @@ class AppDelegate: NSObject, NSApplicationDelegate, NSUserNotificationCenterDele
         showTestConfigWindow(nil)
     }
 
-    func openUrlWithBrowser(_ url: URL, bundleIdentifier: String, openInBackground: Bool?) {
+    func openUrlWithBrowser(_ url: URL, app: BrowserOpts) {
         // Launch in background by default if finicky isn't active to avoid something that causes some bug to happen...
-        let openInBackground = openInBackground ?? !isActive
-        print("Opening " + bundleIdentifier + " at: " + url.absoluteString)
-        let command = getBrowserCommand(bundleIdentifier, url: url, openInBackground: openInBackground)
-        shell(command)
+
+        print("Opening " + app.bundleId + " at: " + url.absoluteString)
+        startBrowser(app: app, url: url, defaultOpenInBackground: !isActive)
+
     }
 
     func application(_: NSApplication, openFiles filenames: [String]) {
@@ -252,3 +252,5 @@ class AppDelegate: NSObject, NSApplicationDelegate, NSUserNotificationCenterDele
         isActive = false
     }
 }
+
+

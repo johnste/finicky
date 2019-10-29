@@ -1,0 +1,5 @@
+[hub]
+        protocol = https
+[user]
+		name = John Sterling
+		email = john@johnste.se

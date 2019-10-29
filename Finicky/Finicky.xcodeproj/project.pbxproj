@@ -111,6 +111,7 @@
 		54899CD21B20D5BC00647101 /* Finicky */ = {
 			isa = PBXGroup;
 			children = (
+				5491188E2368194000346410 /* Chrome */,
 				548376AB2360C7D100834B68 /* Finicky-Bridging-Header.h */,
 				54CBA90D22A5C7EA0074A67F /* js */,
 				54899CD51B20D5BC00647101 /* AppDelegate.swift */,
@@ -167,6 +168,13 @@
 				54899CF21B20D5D100647101 /* Cocoa.framework */,
 			);
 			name = Frameworks;
+			sourceTree = "<group>";
+		};
+		5491188E2368194000346410 /* Chrome */ = {
+			isa = PBXGroup;
+			children = (
+			);
+			name = Chrome;
 			sourceTree = "<group>";
 		};
 		54CBA90D22A5C7EA0074A67F /* js */ = {

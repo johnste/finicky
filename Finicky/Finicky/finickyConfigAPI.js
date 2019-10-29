@@ -245,7 +245,8 @@ var finickyConfigApi = (function (exports) {
         validate.shape({
             name: validate.string.isRequired,
             appType: validate.oneOf(["appName", "bundleId"]),
-            openInBackground: validate.boolean
+            openInBackground: validate.boolean,
+            private: validate.boolean
         }),
         validate.function("options"),
         validate.value(null)
@@ -288,7 +289,8 @@ var finickyConfigApi = (function (exports) {
             validate.value("appName"),
             validate.value("none")
         ]).isRequired,
-        openInBackground: validate.boolean
+        openInBackground: validate.boolean,
+        private: validate.boolean
     };
     function processUrl(config, url, processOptions) {
         if (!processOptions) {
