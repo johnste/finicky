@@ -158,15 +158,15 @@ class AppDelegate: NSObject, NSApplicationDelegate, NSUserNotificationCenterDele
 
     func getPidPath(pid: Int32) -> String? {
         let pathBuffer = UnsafeMutablePointer<UInt8>.allocate(capacity: Int(MAXPATHLEN))
-       defer {
-           pathBuffer.deallocate()
-       }
-       let pathLength = proc_pidpath(pid, pathBuffer, UInt32(MAXPATHLEN))
+        defer {
+            pathBuffer.deallocate()
+        }
+        let pathLength = proc_pidpath(pid, pathBuffer, UInt32(MAXPATHLEN))
 
-       if pathLength > 0 {
-           let path = String(cString: pathBuffer)
+        if pathLength > 0 {
+            let path = String(cString: pathBuffer)
             return path
-       }
+        }
         return nil
     }
 
@@ -229,9 +229,8 @@ class AppDelegate: NSObject, NSApplicationDelegate, NSUserNotificationCenterDele
         showTestConfigWindow(nil)
     }
 
-    func openUrlWithBrowser(_ url: URL, bundleIdentifier: String, openInBackground: Bool?) {
-        // Launch in background by default if finicky isn't active to avoid something that causes some bug to happen...
-        let openInBackground = openInBackground ?? !isActive
+    func openUrlWithBrowser(_ url: URL, bundleIdentifier: String, openInBackground: Bool?) {        
+        let openInBackground = openInBackground ?? false
         print("Opening " + bundleIdentifier + " at: " + url.absoluteString)
         let command = getBrowserCommand(bundleIdentifier, url: url, openInBackground: openInBackground)
         shell(command)

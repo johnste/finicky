@@ -229,7 +229,7 @@ var finickyConfigApi = (function (exports) {
         url: validate.oneOf([
             validate.string,
             validate.shape({
-                protocol: validate.oneOf(["http", "https", "file"]).isRequired,
+                protocol: validate.string.isRequired,
                 username: validate.string,
                 password: validate.string,
                 host: validate.string.isRequired,

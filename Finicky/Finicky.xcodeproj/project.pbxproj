@@ -465,7 +465,7 @@
 				INFOPLIST_FILE = Finicky/Info.plist;
 				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/../Frameworks";
 				MACOSX_DEPLOYMENT_TARGET = 10.12;
-				MARKETING_VERSION = v2.2.2;
+				MARKETING_VERSION = v2.2.3;
 				PRODUCT_BUNDLE_IDENTIFIER = net.kassett.finicky;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SWIFT_OBJC_BRIDGING_HEADER = "Finicky/Finicky-Bridging-Header.h";
@@ -482,7 +482,7 @@
 				INFOPLIST_FILE = Finicky/Info.plist;
 				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/../Frameworks";
 				MACOSX_DEPLOYMENT_TARGET = 10.12;
-				MARKETING_VERSION = v2.2.2;
+				MARKETING_VERSION = v2.2.3;
 				PRODUCT_BUNDLE_IDENTIFIER = net.kassett.finicky;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SWIFT_OBJC_BRIDGING_HEADER = "Finicky/Finicky-Bridging-Header.h";
