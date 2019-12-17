@@ -58,7 +58,7 @@
                 return { ...prev, [current.tag_name]:  current.assets[0].download_count }
               }
             }, {});
-            $(".download-count").html(JSON.stringify({...downloads, total}, null, 2));
+            $(".download-count").html(JSON.stringify({total, ...downloads}, null, 2));
           });
         })
         
