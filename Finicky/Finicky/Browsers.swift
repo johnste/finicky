@@ -12,8 +12,11 @@ enum Browser: String {
     case Opera = "com.operasoftware.Opera"
 }
 
-public func getBrowserCommand(_ bundleId: String, url: URL, openInBackground: Bool) -> [String] {
+public func getBrowserCommand(_ bundleId: String, profileName:String = "Default", url: URL, openInBackground: Bool) -> [String] {
     var command = ["open", url.absoluteString, "-b", bundleId]
+    if(bundleId == "com.google.Chrome"){
+        command = ["/Applications/Google Chrome.app/Contents/MacOS/Google Chrome",   String(format: "--profile-directory=%@", profileName),  url.absoluteString]
+    }
 
     if openInBackground {
         command.append("-g")

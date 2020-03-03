@@ -210,7 +210,7 @@ class AppDelegate: NSObject, NSApplicationDelegate, NSUserNotificationCenterDele
         if let appDescriptor = configLoader.determineOpeningApp(url: url, sourceBundleIdentifier: sourceBundleIdentifier, sourceProcessPath: sourceProcessPath) {
             if let appToStart = getActiveApp(browsers: appDescriptor.browsers) {
                 if NSWorkspace.shared.absolutePathForApplication(withBundleIdentifier: appToStart.bundleId) != nil {
-                    openUrlWithBrowser(appDescriptor.url, bundleIdentifier: appToStart.bundleId, openInBackground: appToStart.openInBackground)
+                    openUrlWithBrowser(appDescriptor.url, bundleIdentifier: appToStart.bundleId, profileName:appToStart.profileName, openInBackground: appToStart.openInBackground)
                 } else {
                     let description = "Finicky was unable to find the application \"" + appToStart.name + "\""
                     print(description)
@@ -229,10 +229,10 @@ class AppDelegate: NSObject, NSApplicationDelegate, NSUserNotificationCenterDele
         showTestConfigWindow(nil)
     }
 
-    func openUrlWithBrowser(_ url: URL, bundleIdentifier: String, openInBackground: Bool?) {        
+    func openUrlWithBrowser(_ url: URL, bundleIdentifier: String, profileName:String,  openInBackground: Bool?) {
         let openInBackground = openInBackground ?? false
         print("Opening " + bundleIdentifier + " at: " + url.absoluteString)
-        let command = getBrowserCommand(bundleIdentifier, url: url, openInBackground: openInBackground)
+        let command = getBrowserCommand(bundleIdentifier, profileName:profileName, url: url, openInBackground: openInBackground)
         shell(command)
     }
 

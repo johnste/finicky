@@ -15,10 +15,12 @@ public struct BrowserOpts {
     public var name: String
     public var openInBackground: Bool?
     public var bundleId: String
+    public var profileName:String
 
-    public init(name: String, appType: AppDescriptorType, openInBackground: Bool?) throws {
+    public init(name: String, appType: AppDescriptorType, openInBackground: Bool?, profileName: String) throws {
         self.name = name
         self.openInBackground = openInBackground
+        self.profileName = profileName
 
         if appType == AppDescriptorType.bundleId {
             bundleId = name
