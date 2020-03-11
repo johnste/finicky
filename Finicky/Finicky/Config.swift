@@ -243,8 +243,8 @@ open class FinickyConfig {
                     let openInBackground: Bool? = dict["openInBackground"] as? Bool
                     
                     let browserAndProfile = (dict["name"] as! String).components(separatedBy:["#"]);
-                    let browserName = browserAndProfile[0];
-                    let profileName = browserAndProfile[1];
+                    let browserName = browserAndProfile[0]
+                    let profileName = browserAndProfile.count > 1 ? browserAndProfile[1] : ""
                     
                     if browserName == "" {
                         return nil
