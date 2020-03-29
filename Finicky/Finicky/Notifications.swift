@@ -1,21 +1,12 @@
 import AppKit
 import Foundation
 
-func showNotification(title: String, subtitle: String? = nil, informativeText: String? = nil, error: Bool = false) {
+func showNotification(at center: NSUserNotificationCenter = .default, title: String, subtitle: String? = nil, informativeText: String? = nil, error: Bool = false) {
     let notification = NSUserNotification()
-
     notification.title = title
-    if subtitle != nil {
-        notification.subtitle = subtitle!
-    }
+    notification.subtitle = subtitle
+    notification.informativeText = informativeText
+    notification.soundName = error ? NSUserNotificationDefaultSoundName : nil
 
-    if informativeText != nil {
-        notification.informativeText = informativeText!
-    }
-
-    if error {
-        notification.soundName = NSUserNotificationDefaultSoundName
-    }
-
-    NSUserNotificationCenter.default.deliver(notification)
+    center.deliver(notification)
 }

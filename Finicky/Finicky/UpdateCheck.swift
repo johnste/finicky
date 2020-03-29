@@ -17,10 +17,9 @@ struct defaultsKeys {
 }
 
 func checkForUpdate(_ newVersionCallback: @escaping Callback<Version?>) {
-    let version = Bundle.main.infoDictionary!["CFBundleShortVersionString"] as! String
-    let url = URL(string: "https://api.github.com/repos/johnste/finicky/releases")
-    guard url != nil else { return }
-    var request = URLRequest(url: url!)
+    guard let version = Bundle.main.infoDictionary?["CFBundleShortVersionString"] as? String,
+      let url = URL(string: "https://api.github.com/repos/johnste/finicky/releases") else {return}
+    var request = URLRequest(url: url)
     request.setValue("finicky/\(version)", forHTTPHeaderField: "User-Agent")
 
     let session = URLSession(configuration: URLSessionConfiguration.default, delegate: nil, delegateQueue: nil)
@@ -29,34 +28,23 @@ func checkForUpdate(_ newVersionCallback: @escaping Callback<Version?>) {
 
     let task = session.dataTask(with: request, completionHandler: { (data, _, _) -> Void in
         do {
-            if data == nil {
-                return
-            }
+            guard let data = data else { return }
 
-            let versions = try getVersions(data: data!)
+            let versions = try getVersions(data: data)
 
             let sortedVersions = try versions.sorted(by: { (versionA, versionB) -> Bool in
                 try compareVersions(versionA.version, versionB.version) == .orderedDescending
             })
 
-            if let latestVersion = sortedVersions.first {
-                let laterThanCurrent = try compareVersions(version, latestVersion.version)
-
-                if laterThanCurrent == ComparisonResult.orderedAscending {
-                    if let latestSeenBefore = defaults.string(forKey: defaultsKeys.keyLatestVersionSeen) {
-                        print("latestSeenBefore \(latestSeenBefore)")
-                        if latestSeenBefore != latestVersion.version {
-                            defaults.set(latestVersion.version, forKey: defaultsKeys.keyLatestVersionSeen)
-                            newVersionCallback(latestVersion)
-                        }
-                    }
-                } else {
-                    newVersionCallback(nil)
-                }
-            } else {
-                newVersionCallback(nil)
+          guard let latestVersion = sortedVersions.first else { newVersionCallback(nil); return }
+          let laterThanCurrent = try compareVersions(version, latestVersion.version)
+          guard laterThanCurrent == ComparisonResult.orderedAscending else { newVersionCallback(nil); return }
+          guard let latestSeenBefore = defaults.string(forKey: defaultsKeys.keyLatestVersionSeen) else { return }
+            print("latestSeenBefore \(latestSeenBefore)")
+            if latestSeenBefore != latestVersion.version {
+              defaults.set(latestVersion.version, forKey: defaultsKeys.keyLatestVersionSeen)
+              newVersionCallback(latestVersion)
             }
-
         } catch {
             print("error")
         }
@@ -71,13 +59,11 @@ enum VersionParseError: Error {
 }
 
 func makeVersionParts(_ version: String) throws -> [Int] {
-    return try version.replacingOccurrences(of: #"[^0-9\.]"#, with: "", options: .regularExpression).split(separator: ".").map { (v) -> Int in
-        let number = Int(v)
-
-        guard number != nil else {
+    return try version.replacingOccurrences(of: #"[^0-9\.]"#, with: "", options: .regularExpression).split(separator: ".").map {
+        guard let number = Int($0) else {
             throw VersionParseError.badVersion(msg: "Could not parse version: \(version)")
         }
-        return number!
+        return number
     }
 }
 
