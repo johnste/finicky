@@ -77,7 +77,7 @@ class FinickyUnitTests: XCTestCase {
   }
 
   func test_getVersions() throws {
-    let expected = [
+    let expected = Set([
       Version(title: "Finicky 2.2.3 - Minor fixes", version: "v2.2.3", prerelease: false),
       Version(title: "Finicky 2.3 ALPHA - Private/Incognito mode for Chrome", version: "v2.3-alpha", prerelease: true),
       Version(title: "Finicky 2.2.2 - Source process path & Dock icon bug fix", version: "v2.2.2", prerelease: false),
@@ -94,7 +94,7 @@ class FinickyUnitTests: XCTestCase {
       Version(title: "Finicky v0.3", version: "v0.3", prerelease: true),
       Version(title: "Finicky v0.2", version: "v0.2", prerelease: true),
       Version(title: "Finicky v0.1", version: "v0.1", prerelease: true)
-    ]
+    ])
 
     let fixtureURL = Bundle(identifier: "net.kassett.FinickyTests")!
       .bundleURL
@@ -104,7 +104,7 @@ class FinickyUnitTests: XCTestCase {
       .appendingPathComponent("github-fixture")
       .appendingPathExtension("json")
 
-    let fixture = try Fixture<[Version]>(url: fixtureURL)
+    let fixture = try Fixture<Set<Version>>(url: fixtureURL)
     fixture.assert(expected)
 
     let actualData = try Data(contentsOf: fixtureURL)
@@ -117,7 +117,7 @@ class FinickyUnitTests: XCTestCase {
       Version(title: "Finicky 2.1.0 - Keyboard support", version: "v2.1.0", prerelease: false),
       Version(title: "Finicky 2.0", version: "v2.0", prerelease: false)
     ])
-
+   
   }
 
 }
