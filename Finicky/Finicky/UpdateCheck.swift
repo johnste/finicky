@@ -1,15 +1,15 @@
 import Foundation
 
-public struct Version {
-    public var title: String
-    public var version: String
-    public var prerelease: Bool
+public struct Version: Decodable, Equatable  {
+  public let title: String
+  public let version: String
+  public let prerelease: Bool
 
-    public init(title: String, version: String, prerelease: Bool) {
-        self.title = title
-        self.version = version
-        self.prerelease = prerelease
-    }
+  enum CodingKeys: String, CodingKey {
+    case title = "name"
+    case version = "tag_name"
+    case prerelease
+  }
 }
 
 struct defaultsKeys {

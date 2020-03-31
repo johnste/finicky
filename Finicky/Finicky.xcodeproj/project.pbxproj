@@ -28,6 +28,7 @@
 		54C6DECF22A793D300341DC6 /* FinickyUnitTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 54C6DECE22A793D300341DC6 /* FinickyUnitTests.swift */; };
 		54E33FD71B24E27000998E13 /* Config.swift in Sources */ = {isa = PBXBuildFile; fileRef = 54E33FD61B24E27000998E13 /* Config.swift */; };
 		54E4B1EB22971F7B002FA6F4 /* UpdateCheck.swift in Sources */ = {isa = PBXBuildFile; fileRef = 54E4B1EA22971F7B002FA6F4 /* UpdateCheck.swift */; };
+		7804C1542433F40800E595D9 /* Fixtures in Resources */ = {isa = PBXBuildFile; fileRef = 7804C1532433F40700E595D9 /* Fixtures */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -67,6 +68,7 @@
 		54C6DECE22A793D300341DC6 /* FinickyUnitTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FinickyUnitTests.swift; sourceTree = "<group>"; };
 		54E33FD61B24E27000998E13 /* Config.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = Config.swift; sourceTree = "<group>"; };
 		54E4B1EA22971F7B002FA6F4 /* UpdateCheck.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = UpdateCheck.swift; sourceTree = "<group>"; };
+		7804C1532433F40700E595D9 /* Fixtures */ = {isa = PBXFileReference; lastKnownFileType = folder; path = Fixtures; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -147,6 +149,7 @@
 			isa = PBXGroup;
 			children = (
 				54899CE41B20D5BC00647101 /* Supporting Files */,
+				7804C1532433F40700E595D9 /* Fixtures */,
 				54C6DECE22A793D300341DC6 /* FinickyUnitTests.swift */,
 			);
 			path = FinickyTests;
@@ -278,6 +281,7 @@
 			isa = PBXResourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				7804C1542433F40800E595D9 /* Fixtures in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
