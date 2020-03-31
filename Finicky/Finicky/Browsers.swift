@@ -12,12 +12,21 @@ enum Browser: String {
     case Opera = "com.operasoftware.Opera"
 }
 
-public func getBrowserCommand(_ bundleId: String, url: URL, openInBackground: Bool) -> [String] {
-    var command = ["open", url.absoluteString, "-b", bundleId]
+public func getBrowserCommand(_ browserOpts: BrowserOpts, url: URL) -> [String] {
+    var command = ["open", url.absoluteString]
+    
+    // appPath takes priority over bundleId as it is always unique.
+    if let appPath = browserOpts.appPath {
+        command.append(contentsOf: ["-a", appPath])
+    } else if let bundleId = browserOpts.bundleId {
+        command.append(contentsOf: ["-b", bundleId])
+    }
 
-    if openInBackground {
+    if browserOpts.openInBackground {
         command.append("-g")
     }
+    
+    print(command)
 
     return command
 }

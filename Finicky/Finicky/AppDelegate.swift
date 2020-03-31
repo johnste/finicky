@@ -130,14 +130,14 @@ class AppDelegate: NSObject, NSApplicationDelegate, NSUserNotificationCenterDele
             if appDescriptor.browsers.count == 1 {
                 if let browser = appDescriptor.browsers.first {
                     description += "Browser:\n"
-                    description += "    \(browser.name) \(browser.openInBackground ?? false ? "(opens in background)" : "")\n"
+                    description += "    \(browser.name) \(browser.openInBackground ? "(opens in background)" : "")\n"
                 }
             } else if appDescriptor.browsers.count == 0 {
                 description += "Won't open any browser"
             } else {
                 description += "First active browser of:\n"
                 for (index, browser) in appDescriptor.browsers.enumerated() {
-                    description += "    [\(index)]: \(browser.name) \(browser.openInBackground ?? false ? "(opens in background)" : "")\n"
+                    description += "    [\(index)]: \(browser.name) \(browser.openInBackground ? "(opens in background)" : "")\n"
                 }
             }
 
@@ -192,13 +192,17 @@ class AppDelegate: NSObject, NSApplicationDelegate, NSUserNotificationCenterDele
         }
 
         for browser in browsers {
-            let apps = NSRunningApplication.runningApplications(withBundleIdentifier: browser.bundleId)
-            if !apps.isEmpty {
-                let app: NSRunningApplication = apps[0]
-                let bundleIdentifier = app.bundleIdentifier
-                if bundleIdentifier != nil {
-                    return browser
+            if let bundleId = browser.bundleId {
+                let apps = NSRunningApplication.runningApplications(withBundleIdentifier: bundleId)
+                if !apps.isEmpty {
+                    let app: NSRunningApplication = apps[0]
+                    let bundleIdentifier = app.bundleIdentifier
+                    if bundleIdentifier != nil {
+                        return browser
+                    }
                 }
+            } else if browser.appPath != nil {
+                return browser
             }
         }
 
@@ -209,13 +213,23 @@ class AppDelegate: NSObject, NSApplicationDelegate, NSUserNotificationCenterDele
     @objc func callUrlHandlers(_ sourceBundleIdentifier: String?, url: URL, sourceProcessPath: String?) {
         if let appDescriptor = configLoader.determineOpeningApp(url: url, sourceBundleIdentifier: sourceBundleIdentifier, sourceProcessPath: sourceProcessPath) {
             if let appToStart = getActiveApp(browsers: appDescriptor.browsers) {
-                if NSWorkspace.shared.absolutePathForApplication(withBundleIdentifier: appToStart.bundleId) != nil {
-                    openUrlWithBrowser(appDescriptor.url, bundleIdentifier: appToStart.bundleId, openInBackground: appToStart.openInBackground)
-                } else {
-                    let description = "Finicky was unable to find the application \"" + appToStart.name + "\""
+                var success = false
+                if let bundleId = appToStart.bundleId {
+                    if NSWorkspace.shared.absolutePathForApplication(withBundleIdentifier: bundleId) != nil {
+                        openUrlWithBrowser(appDescriptor.url, browserOpts: appToStart)
+                        success = true
+                    }
+                } else if let appPath = appToStart.appPath {
+                    if BrowserOpts.isAppDirectory(appPath) {
+                        openUrlWithBrowser(appDescriptor.url, browserOpts: appToStart)
+                        success = true
+                    }
+                }
+                if !success {
+                    let description = "Finicky was unable to find the application \"\(appToStart)\""
                     print(description)
                     logToConsole(description)
-                    showNotification(title: "Unable to find application", informativeText: "Finicky was unable to find the application \"" + appToStart.name + "\"", error: true)
+                    showNotification(title: "Unable to find application", informativeText: description, error: true)
                 }
             }
         }
@@ -229,10 +243,9 @@ class AppDelegate: NSObject, NSApplicationDelegate, NSUserNotificationCenterDele
         showTestConfigWindow(nil)
     }
 
-    func openUrlWithBrowser(_ url: URL, bundleIdentifier: String, openInBackground: Bool?) {        
-        let openInBackground = openInBackground ?? false
-        print("Opening " + bundleIdentifier + " at: " + url.absoluteString)
-        let command = getBrowserCommand(bundleIdentifier, url: url, openInBackground: openInBackground)
+    func openUrlWithBrowser(_ url: URL, browserOpts: BrowserOpts) {
+        print("Opening \(browserOpts) at: " + url.absoluteString)
+        let command = getBrowserCommand(browserOpts, url: url)
         shell(command)
     }
 

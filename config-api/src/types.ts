@@ -93,7 +93,7 @@ export type Browser = string | BrowserObject;
  */
 export interface BrowserObject {
   name: string;
-  appType?: "appName" | "bundleId" | "none";
+  appType?: "appName" | "bundleId" | "appPath" | "none";
   openInBackground?: boolean;
 }
 
