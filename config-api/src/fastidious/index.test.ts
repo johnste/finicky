@@ -146,7 +146,7 @@ describe("test", () => {
         v.string,
         v.shape({
           name: v.string.isRequired,
-          appType: v.oneOf(["appName", "bundleId"]),
+          appType: v.oneOf(["appName", "bundleId", "appPath"]),
           openInBackground: v.boolean
         }),
         v.function("options"),
@@ -204,7 +204,7 @@ describe("Complex", () => {
         v.string,
         v.shape({
           name: v.string.isRequired,
-          appType: v.oneOf(["appName", "bundleId"]),
+          appType: v.oneOf(["appName", "bundleId", "appPath"]),
           openInBackground: v.boolean
         })
       ]).isRequired
@@ -231,7 +231,7 @@ describe("Complex", () => {
         v.string,
         v.shape({
           name: v.string.isRequired,
-          appType: v.oneOf(["appName", "bundleId"]),
+          appType: v.oneOf(["appName", "bundleId", "appPath"]),
           openInBackground: v.boolean,
           anotherShape: v.shape({
             boool: v.boolean
@@ -324,7 +324,7 @@ test.only("test x", () => {
     v.string,
     v.shape({
       name: v.string.isRequired,
-      appType: v.oneOf(["appName", "bundleId"]),
+      appType: v.oneOf(["appName", "bundleId", "appPath"]),
       openInBackground: v.boolean
     }),
     v.function("options"),
