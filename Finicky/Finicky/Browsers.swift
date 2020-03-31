@@ -20,13 +20,13 @@ public func getBrowserCommand(_ browserOpts: BrowserOpts, url: URL) -> [String] 
         command.append(contentsOf: ["-a", appPath])
     } else if let bundleId = browserOpts.bundleId {
         command.append(contentsOf: ["-b", bundleId])
+    } else {
+        
     }
 
     if browserOpts.openInBackground {
         command.append("-g")
     }
-    
-    print(command)
 
     return command
 }
