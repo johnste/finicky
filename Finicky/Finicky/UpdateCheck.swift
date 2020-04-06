@@ -1,15 +1,15 @@
 import Foundation
 
-public struct Version {
-    public var title: String
-    public var version: String
-    public var prerelease: Bool
+public struct Version: Decodable, Hashable  {
+  public let title: String
+  public let version: String
+  public let prerelease: Bool
 
-    public init(title: String, version: String, prerelease: Bool) {
-        self.title = title
-        self.version = version
-        self.prerelease = prerelease
-    }
+  enum CodingKeys: String, CodingKey {
+    case title = "name"
+    case version = "tag_name"
+    case prerelease
+  }
 }
 
 struct defaultsKeys {
@@ -31,7 +31,6 @@ func checkForUpdate(_ newVersionCallback: @escaping Callback<Version?>) {
             guard let data = data else { return }
 
             let versions = try getVersions(data: data)
-
             let sortedVersions = try versions.sorted(by: { (versionA, versionB) -> Bool in
                 try compareVersions(versionA.version, versionB.version) == .orderedDescending
             })
@@ -90,16 +89,7 @@ public func compareVersions(_ versionA: String, _ versionB: String) throws -> Co
     return .orderedSame
 }
 
-func getVersions(data: Data) throws -> [Version] {
-    let json = try JSONSerialization.jsonObject(with: data) as! [AnyObject]
-
-    let versions = json.map { (release: AnyObject?) -> Version? in
-        if release == nil || release!["name"] == nil || release!["tag_name"] == nil || release!["prerelease"] == nil {
-            return nil
-        }
-
-        return Version(title: release!["name"]! as! String, version: release!["tag_name"]! as! String, prerelease: release!["prerelease"] as! Bool)
-    }.compactMap { $0 }.filter { !$0.prerelease }
-
-    return versions
+func getVersions(data: Data) throws -> Set<Version> {
+  let versions = try JSONDecoder().decode(Set<Version>.self, from: data)
+  return versions.filter{!$0.prerelease}
 }

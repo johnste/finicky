@@ -15,15 +15,13 @@ func loadJS(_ path: String) -> String {
     return try! String(contentsOfFile: bundlePath, encoding: String.Encoding.utf8)
 }
 
-func getModificationDate(atPath: String) -> Date? {
+func getModificationDate(fileManager: FileManager = FileManager.default, atPath: String) -> Date? {
     do {
         let fileManager = FileManager()
         let attributes = try fileManager.attributesOfItem(atPath: atPath)
-        let modificationDate = attributes[FileAttributeKey.modificationDate] as? Date
-        guard modificationDate != nil else { return nil }
-        return modificationDate!
-    } catch let msg {
-        print("Error message: \(msg)")
+        return attributes[FileAttributeKey.modificationDate] as? Date
+    } catch {
+      print("Error message: \(error.localizedDescription)")
         return nil
     }
 }
