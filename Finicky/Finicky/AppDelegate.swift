@@ -201,8 +201,6 @@ class AppDelegate: NSObject, NSApplicationDelegate, NSUserNotificationCenterDele
                         return browser
                     }
                 }
-            } else if browser.appPath != nil {
-                return browser
             }
         }
 

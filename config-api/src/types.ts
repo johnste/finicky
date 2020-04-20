@@ -173,7 +173,7 @@ const browserSchema = validate.oneOf([
   validate.string,
   validate.shape({
     name: validate.string.isRequired,
-    appType: validate.oneOf(["appName", "bundleId"]),
+    appType: validate.oneOf(["appName", "appPath", "bundleId"]),
     openInBackground: validate.boolean
   }),
   validate.function("options"),
