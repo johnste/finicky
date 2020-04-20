@@ -308,6 +308,5 @@ open class FinickyConfig {
         FinickyAPI.setContext(ctx)
         ctx.setObject(FinickyAPI.self, forKeyedSubscript: "finickyInternalAPI" as NSCopying & NSObjectProtocol)
         ctx.evaluateScript("var finicky = finickyConfigApi.createAPI();")
-        let foo = ctx.evaluateScript("Object.keys(this)");
     }
 }
