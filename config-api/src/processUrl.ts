@@ -34,6 +34,7 @@ const appDescriptorSchema = {
   appType: validate.oneOf([
     validate.value("bundleId"),
     validate.value("appName"),
+    validate.value("appPath"),
     validate.value("none")
   ]).isRequired,
   openInBackground: validate.boolean
@@ -175,7 +176,15 @@ function getAppType(value: string) {
     return "none";
   }
 
-  return looksLikeBundleIdentifier(value) ? "bundleId" : "appName";
+  if (looksLikeBundleIdentifier(value)) {
+    return "bundleId";
+  }
+
+  if (looksLikeAbsolutePath(value)) {
+    return "appPath";
+  }
+
+  return "appName";
 }
 
 function processBrowserResult(result: BrowserResult, options: Options) {
@@ -221,4 +230,8 @@ function looksLikeBundleIdentifier(value: string) {
     return true;
   }
   return false;
+}
+
+function looksLikeAbsolutePath(value: string) {
+  return value.startsWith("/");
 }

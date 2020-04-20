@@ -244,7 +244,7 @@ var finickyConfigApi = (function (exports) {
         validate.string,
         validate.shape({
             name: validate.string.isRequired,
-            appType: validate.oneOf(["appName", "bundleId"]),
+            appType: validate.oneOf(["appName", "appPath", "bundleId"]),
             openInBackground: validate.boolean
         }),
         validate.function("options"),
@@ -286,6 +286,7 @@ var finickyConfigApi = (function (exports) {
         appType: validate.oneOf([
             validate.value("bundleId"),
             validate.value("appName"),
+            validate.value("appPath"),
             validate.value("none")
         ]).isRequired,
         openInBackground: validate.boolean
@@ -388,7 +389,13 @@ var finickyConfigApi = (function (exports) {
         if (value === null) {
             return "none";
         }
-        return looksLikeBundleIdentifier(value) ? "bundleId" : "appName";
+        if (looksLikeBundleIdentifier(value)) {
+            return "bundleId";
+        }
+        if (looksLikeAbsolutePath(value)) {
+            return "appPath";
+        }
+        return "appName";
     }
     function processBrowserResult(result, options) {
         var browser = resolveBrowser(result, options);
@@ -420,6 +427,9 @@ var finickyConfigApi = (function (exports) {
             return true;
         }
         return false;
+    }
+    function looksLikeAbsolutePath(value) {
+        return value.startsWith("/");
     }
 
     function validateConfig(config) {

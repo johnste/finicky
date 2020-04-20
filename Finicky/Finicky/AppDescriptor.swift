@@ -34,7 +34,7 @@ public struct BrowserOpts : CustomStringConvertible {
 
         if appType == AppDescriptorType.bundleId {
             self.bundleId = name
-        } else if appType == AppDescriptorType.appPath || BrowserOpts.isAppDirectory(name) {
+        } else if appType == AppDescriptorType.appPath {
             self.appPath = name
         } else if let path = NSWorkspace.shared.fullPath(forApplication: name) {
             if let bundle = Bundle(path: path) {
