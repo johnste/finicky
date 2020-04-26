@@ -8,7 +8,7 @@ export default {
   plugins: [
     resolve({ preferBuiltins: true }),
     commonjs(),
-    typescript(/*{ plugin options }*/)
+    typescript(/*{ plugin options }*/),
   ],
   external: ["path", "chalk"],
   output: {
@@ -20,6 +20,5 @@ export default {
     file: "dist/cli.js",
     format: "cjs",
     name: "finickyConfigCli",
-    noInterop: true
-  }
+  },
 };

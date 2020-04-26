@@ -15,6 +15,5 @@ export default {
     file: "dist/finickyConfigAPI.js",
     format: "iife",
     name: "finickyConfigApi",
-    noInterop: true
-  }
+  },
 };

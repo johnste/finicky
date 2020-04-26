@@ -33,6 +33,14 @@ var finickyConfigApi = (function (exports) {
         return __assign.apply(this, arguments);
     };
 
+    function __spreadArrays() {
+        for (var s = 0, i = 0, il = arguments.length; i < il; i++) s += arguments[i].length;
+        for (var r = Array(s), k = 0, i = 0; i < il; i++)
+            for (var a = arguments[i], j = 0, jl = a.length; j < jl; j++, k++)
+                r[k] = a[j];
+        return r;
+    }
+
     function isDefined(value) {
         return typeof value !== "undefined";
     }
@@ -190,7 +198,7 @@ var finickyConfigApi = (function (exports) {
                 return value.reduce(function (errors, item, index) {
                     var result = validator(item, key + "[" + index + "]");
                     if (typeof result === "string") {
-                        return errors.concat([result]);
+                        return __spreadArrays(errors, [result]);
                     }
                     return errors;
                 }, []);
@@ -342,10 +350,10 @@ var finickyConfigApi = (function (exports) {
                     var urlResult = resolveUrl(rewrite.url, options);
                     validateSchema({ url: urlResult }, urlSchema);
                     if (typeof urlResult === "string") {
-                        options = __assign({}, options, { url: finicky.getUrlParts(urlResult), urlString: urlResult });
+                        options = __assign(__assign({}, options), { url: finicky.getUrlParts(urlResult), urlString: urlResult });
                     }
                     else {
-                        options = __assign({}, options, { url: urlResult, urlString: createUrl(urlResult) });
+                        options = __assign(__assign({}, options), { url: urlResult, urlString: createUrl(urlResult) });
                     }
                 }
             }
@@ -407,7 +415,7 @@ var finickyConfigApi = (function (exports) {
         }
         if (typeof browser === "object" && !browser.appType) {
             var name_1 = browser.name === null ? "" : browser.name;
-            browser = __assign({}, browser, { name: name_1, appType: getAppType(browser.name) });
+            browser = __assign(__assign({}, browser), { name: name_1, appType: getAppType(browser.name) });
         }
         validateSchema(browser, appDescriptorSchema);
         return browser;
