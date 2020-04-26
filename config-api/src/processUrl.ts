@@ -12,7 +12,7 @@ import {
   Browser,
   UrlFunction,
   ProcessOptions,
-  BrowserObject
+  BrowserObject,
 } from "./types";
 
 declare const module:
@@ -35,9 +35,9 @@ const appDescriptorSchema = {
     validate.value("bundleId"),
     validate.value("appName"),
     validate.value("appPath"),
-    validate.value("none")
+    validate.value("none"),
   ]).isRequired,
-  openInBackground: validate.boolean
+  openInBackground: validate.boolean,
 };
 
 export function processUrl(
@@ -53,15 +53,15 @@ export function processUrl(
         shift: false,
         option: false,
         control: false,
-        function: false
-      }
+        function: false,
+      },
     };
   }
 
   let options = {
     urlString: url,
     url: finicky.getUrlParts(url),
-    ...processOptions
+    ...processOptions,
   };
 
   if (!config) {
@@ -117,13 +117,13 @@ function rewriteUrl(config: FinickyConfig, options: Options) {
           options = {
             ...options,
             url: finicky.getUrlParts(urlResult),
-            urlString: urlResult
+            urlString: urlResult,
           };
         } else {
           options = {
             ...options,
             url: urlResult,
-            urlString: createUrl(urlResult)
+            urlString: createUrl(urlResult),
           };
         }
       }
@@ -140,7 +140,7 @@ function isMatch(matcher: Matcher | Matcher[], options: Options) {
 
   const matchers = Array.isArray(matcher) ? matcher : [matcher];
 
-  return matchers.some(matcher => {
+  return matchers.some((matcher) => {
     if (matcher instanceof RegExp) {
       return matcher.test(options.urlString);
     } else if (typeof matcher === "string") {
@@ -203,7 +203,7 @@ function createBrowser(browser: Browser) {
   // If all we got was a string, try to figure out if it's a bundle identifier or an application name
   if (typeof browser === "string" || browser === null) {
     browser = {
-      name: browser
+      name: browser,
     };
   }
 
@@ -213,7 +213,7 @@ function createBrowser(browser: Browser) {
     browser = {
       ...browser,
       name,
-      appType: getAppType(browser.name)
+      appType: getAppType(browser.name),
     };
   }
 
@@ -233,5 +233,5 @@ function looksLikeBundleIdentifier(value: string) {
 }
 
 function looksLikeAbsolutePath(value: string) {
-  return value.startsWith("/");
+  return value.startsWith("/") || value.startsWith("~");
 }

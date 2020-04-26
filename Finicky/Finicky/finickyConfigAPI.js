@@ -295,9 +295,9 @@ var finickyConfigApi = (function (exports) {
             validate.value("bundleId"),
             validate.value("appName"),
             validate.value("appPath"),
-            validate.value("none")
+            validate.value("none"),
         ]).isRequired,
-        openInBackground: validate.boolean
+        openInBackground: validate.boolean,
     };
     function processUrl(config, url, processOptions) {
         if (!processOptions) {
@@ -308,8 +308,8 @@ var finickyConfigApi = (function (exports) {
                     shift: false,
                     option: false,
                     control: false,
-                    function: false
-                }
+                    function: false,
+                },
             };
         }
         var options = __assign({ urlString: url, url: finicky.getUrlParts(url) }, processOptions);
@@ -417,7 +417,7 @@ var finickyConfigApi = (function (exports) {
         // If all we got was a string, try to figure out if it's a bundle identifier or an application name
         if (typeof browser === "string" || browser === null) {
             browser = {
-                name: browser
+                name: browser,
             };
         }
         if (typeof browser === "object" && !browser.appType) {
@@ -437,7 +437,7 @@ var finickyConfigApi = (function (exports) {
         return false;
     }
     function looksLikeAbsolutePath(value) {
-        return value.startsWith("/");
+        return value.startsWith("/") || value.startsWith("~");
     }
 
     function validateConfig(config) {
