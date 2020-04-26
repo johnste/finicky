@@ -1080,7 +1080,7 @@ var finickyConfigApi = (function (exports) {
                 search: search.replace("?", ""),
                 password: url.password,
                 port: url.port ? +url.port : undefined,
-                hash: url.hash.replace("#", "")
+                hash: url.hash.replace("#", ""),
             };
         };
         var matchDomains = function (matchers) {

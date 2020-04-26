@@ -12,19 +12,19 @@ enum BrowserError: Error {
     case cantFindBrowser(msg: String)
 }
 
-public struct BrowserOpts : CustomStringConvertible {
+public struct BrowserOpts: CustomStringConvertible {
     public var name: String
     public var openInBackground: Bool
     public var bundleId: String?
     public var appPath: String?
-    
+
     public var description: String {
         if let bundleId = self.bundleId {
             return bundleId
         } else if let appPath = self.appPath {
             return appPath
         } else {
-            return self.name
+            return name
         }
     }
 
@@ -33,13 +33,13 @@ public struct BrowserOpts : CustomStringConvertible {
         self.openInBackground = openInBackground ?? false
 
         if appType == AppDescriptorType.bundleId {
-            self.bundleId = name
+            bundleId = name
         } else if appType == AppDescriptorType.appPath {
-            self.appPath = name
+            appPath = name
         } else if let path = NSWorkspace.shared.fullPath(forApplication: name) {
             if let bundle = Bundle(path: path) {
-                self.bundleId = bundle.bundleIdentifier!
-                self.appPath = path
+                bundleId = bundle.bundleIdentifier!
+                appPath = path
             } else {
                 throw BrowserError.cantFindBrowser(msg: "Couldn't find application \"\(name)\"")
             }
@@ -47,7 +47,7 @@ public struct BrowserOpts : CustomStringConvertible {
             throw BrowserError.cantFindBrowser(msg: "Couldn't find application \"\(name)\"")
         }
     }
-    
+
     public static func isAppDirectory(_ path: String) -> Bool {
         var isDirectory = ObjCBool(true)
         let exists = FileManager.default.fileExists(atPath: path, isDirectory: &isDirectory)

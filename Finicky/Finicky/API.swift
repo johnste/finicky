@@ -8,12 +8,12 @@ import JavaScriptCore
 
 @objc open class FinickyAPI: NSObject, FinickyAPIExports {
     fileprivate static var context: JSContext!
-    fileprivate static var logToConsole: ((_ message: String) -> Void)?
+    fileprivate static var logToConsole: ((_ message: String, _ clearConsole: Bool) -> Void)?
 
     static func log(_ message: String?) {
         if message != nil {
             NSLog(message!)
-            logToConsole?(message!)
+            logToConsole?(message!, false)
         }
     }
 
@@ -31,7 +31,7 @@ import JavaScriptCore
         self.context = context
     }
 
-    @objc class func setLog(_ logToConsole: @escaping (_ message: String) -> Void) {
+    @objc class func setLog(_ logToConsole: @escaping (_ message: String, _ clearConsole: Bool) -> Void) {
         self.logToConsole = logToConsole
     }
 }

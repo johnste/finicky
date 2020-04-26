@@ -9,6 +9,10 @@ class AppDelegate: NSObject, NSApplicationDelegate, NSUserNotificationCenterDele
     @IBOutlet var yourTextField: NSTextField!
     @IBOutlet var textView: NSTextView!
 
+    @IBAction func ClearConsole(_: Any? = nil) {
+        textView.string = ""
+    }
+
     @objc var statusItem: NSStatusItem!
     var configLoader: FinickyConfig!
     var shortUrlResolver: FNShortUrlResolver = FNShortUrlResolver()
@@ -16,6 +20,7 @@ class AppDelegate: NSObject, NSApplicationDelegate, NSUserNotificationCenterDele
 
     func applicationWillFinishLaunching(_: Notification) {
         yourTextField.delegate = self
+        ClearConsole()
         let bundleId = "net.kassett.Finicky"
         LSSetDefaultHandlerForURLScheme("http" as CFString, bundleId as CFString)
         LSSetDefaultHandlerForURLScheme("https" as CFString, bundleId as CFString)
@@ -93,12 +98,13 @@ class AppDelegate: NSObject, NSApplicationDelegate, NSUserNotificationCenterDele
         testConfigWindow.orderFront(sender)
     }
 
-    func logToConsole(_ message: String) {
+    func logToConsole(_ message: String, clearConsole _: Bool = false) {
         let date = Date()
         let formatter = DateFormatter()
         formatter.dateFormat = "yyyy-MM-dd HH:mm:ss"
         let dateString = formatter.string(from: date)
-        textView.string = dateString + " - " + message + "\n\n" + textView.string.prefix(20000).trimmingCharacters(in: .whitespacesAndNewlines)
+        textView.string = textView.string + dateString + " - " + message + "\n"
+        textView.scrollToEndOfDocument(self)
     }
 
     @IBAction func testUrl(_ sender: NSTextField) {
@@ -121,26 +127,22 @@ class AppDelegate: NSObject, NSApplicationDelegate, NSUserNotificationCenterDele
 
     func performTest(url: URL) {
         if let appDescriptor = configLoader.determineOpeningApp(url: url, sourceBundleIdentifier: "net.kassett.finicky") {
-            var description = """
-
-            Would open url: \(appDescriptor.url)
-
-            """
+            var description = ""
 
             if appDescriptor.browsers.count == 1 {
                 if let browser = appDescriptor.browsers.first {
-                    description += "Browser:\n"
-                    description += "    \(browser.name) \(browser.openInBackground ? "(opens in background)" : "")\n"
+                    description += "Opens browser: \(browser.name)\(browser.openInBackground ? " (opens in background)" : "")"
                 }
             } else if appDescriptor.browsers.count == 0 {
                 description += "Won't open any browser"
             } else {
-                description += "First active browser of:\n"
+                description += "Opens first active browser of: "
                 for (index, browser) in appDescriptor.browsers.enumerated() {
-                    description += "    [\(index)]: \(browser.name) \(browser.openInBackground ? "(opens in background)" : "")\n"
+                    description += "[\(index)]: \(browser.name) \(browser.openInBackground ? "(opens in background)" : "")"
                 }
             }
 
+            description += ", url: \(appDescriptor.url)"
             logToConsole(description)
         }
     }

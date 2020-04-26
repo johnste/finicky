@@ -52,7 +52,7 @@ final class FNShortUrlResolver {
 
     func isShortUrl(_ url: URL) -> Bool {
         guard let host = url.host,
-          shortUrlProviders.contains(host) else {return false}
+            shortUrlProviders.contains(host) else { return false }
 
         // Can't load insecure cleartext HTTP
         // https://stackoverflow.com/questions/31254725/transport-security-has-blocked-a-cleartext-http

@@ -1,15 +1,15 @@
 import Foundation
 
-public struct Version: Decodable, Hashable  {
-  public let title: String
-  public let version: String
-  public let prerelease: Bool
+public struct Version: Decodable, Hashable {
+    public let title: String
+    public let version: String
+    public let prerelease: Bool
 
-  enum CodingKeys: String, CodingKey {
-    case title = "name"
-    case version = "tag_name"
-    case prerelease
-  }
+    enum CodingKeys: String, CodingKey {
+        case title = "name"
+        case version = "tag_name"
+        case prerelease
+    }
 }
 
 struct defaultsKeys {
@@ -18,7 +18,7 @@ struct defaultsKeys {
 
 func checkForUpdate(_ newVersionCallback: @escaping Callback<Version?>) {
     guard let version = Bundle.main.infoDictionary?["CFBundleShortVersionString"] as? String,
-      let url = URL(string: "https://api.github.com/repos/johnste/finicky/releases") else {return}
+        let url = URL(string: "https://api.github.com/repos/johnste/finicky/releases") else { return }
     var request = URLRequest(url: url)
     request.setValue("finicky/\(version)", forHTTPHeaderField: "User-Agent")
 
@@ -35,14 +35,14 @@ func checkForUpdate(_ newVersionCallback: @escaping Callback<Version?>) {
                 try compareVersions(versionA.version, versionB.version) == .orderedDescending
             })
 
-          guard let latestVersion = sortedVersions.first else { newVersionCallback(nil); return }
-          let laterThanCurrent = try compareVersions(version, latestVersion.version)
-          guard laterThanCurrent == ComparisonResult.orderedAscending else { newVersionCallback(nil); return }
-          guard let latestSeenBefore = defaults.string(forKey: defaultsKeys.keyLatestVersionSeen) else { return }
+            guard let latestVersion = sortedVersions.first else { newVersionCallback(nil); return }
+            let laterThanCurrent = try compareVersions(version, latestVersion.version)
+            guard laterThanCurrent == ComparisonResult.orderedAscending else { newVersionCallback(nil); return }
+            guard let latestSeenBefore = defaults.string(forKey: defaultsKeys.keyLatestVersionSeen) else { return }
             print("latestSeenBefore \(latestSeenBefore)")
             if latestSeenBefore != latestVersion.version {
-              defaults.set(latestVersion.version, forKey: defaultsKeys.keyLatestVersionSeen)
-              newVersionCallback(latestVersion)
+                defaults.set(latestVersion.version, forKey: defaultsKeys.keyLatestVersionSeen)
+                newVersionCallback(latestVersion)
             }
         } catch {
             print("error")
@@ -90,6 +90,6 @@ public func compareVersions(_ versionA: String, _ versionB: String) throws -> Co
 }
 
 func getVersions(data: Data) throws -> Set<Version> {
-  let versions = try JSONDecoder().decode(Set<Version>.self, from: data)
-  return versions.filter{!$0.prerelease}
+    let versions = try JSONDecoder().decode(Set<Version>.self, from: data)
+    return versions.filter { !$0.prerelease }
 }

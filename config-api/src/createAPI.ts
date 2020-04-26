@@ -51,7 +51,7 @@ export function createAPI(
       search: search.replace("?", ""),
       password: url.password,
       port: url.port ? +url.port : undefined,
-      hash: url.hash.replace("#", "")
+      hash: url.hash.replace("#", ""),
     };
   };
 
@@ -66,7 +66,7 @@ export function createAPI(
       matchers = [matchers];
     }
 
-    matchers.forEach(matcher => {
+    matchers.forEach((matcher) => {
       if (matcher instanceof RegExp || typeof matcher === "string") {
         return;
       }
@@ -75,9 +75,9 @@ export function createAPI(
       );
     });
 
-    return function({ url }: Options) {
+    return function ({ url }: Options) {
       const domain = url.host;
-      return (matchers as Matcher[]).some(matcher => {
+      return (matchers as Matcher[]).some((matcher) => {
         if (matcher instanceof RegExp) {
           return matcher.test(domain);
         } else if (typeof matcher === "string") {

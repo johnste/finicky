@@ -21,7 +21,7 @@ func getModificationDate(fileManager: FileManager = FileManager.default, atPath:
         let attributes = try fileManager.attributesOfItem(atPath: atPath)
         return attributes[FileAttributeKey.modificationDate] as? Date
     } catch {
-      print("Error message: \(error.localizedDescription)")
+        print("Error message: \(error.localizedDescription)")
         return nil
     }
 }

@@ -14,15 +14,13 @@ enum Browser: String {
 
 public func getBrowserCommand(_ browserOpts: BrowserOpts, url: URL) -> [String] {
     var command = ["open", url.absoluteString]
-    
+
     // appPath takes priority over bundleId as it is always unique.
     if let appPath = browserOpts.appPath {
         command.append(contentsOf: ["-a", appPath])
     } else if let bundleId = browserOpts.bundleId {
         command.append(contentsOf: ["-b", bundleId])
-    } else {
-        
-    }
+    } else {}
 
     if browserOpts.openInBackground {
         command.append("-g")

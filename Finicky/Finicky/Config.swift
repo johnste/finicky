@@ -5,6 +5,7 @@ import JavaScriptCore
 var FNConfigPath: String = "~/.finicky.js"
 
 public typealias Callback<T> = (T) -> Void
+public typealias Callback2<T, U> = (T, U) -> Void
 
 open class FinickyConfig {
     var ctx: JSContext!
@@ -17,7 +18,7 @@ open class FinickyConfig {
     var fileDescriptor: Int32 = -1
     var lastModificationDate: Date?
     var toggleIconCallback: Callback<Bool>?
-    var logToConsole: Callback<String>?
+    var logToConsole: Callback2<String, Bool>?
     var setShortUrlProviders: Callback<[String]?>?
     var updateStatus: Callback<Bool>?
 
@@ -25,7 +26,7 @@ open class FinickyConfig {
         configAPIString = loadJS("finickyConfigAPI.js")
     }
 
-    public convenience init(toggleIconCallback: @escaping Callback<Bool>, logToConsoleCallback: @escaping Callback<String>, setShortUrlProviders: @escaping Callback<[String]?>, updateStatus: @escaping Callback<Bool>) {
+    public convenience init(toggleIconCallback: @escaping Callback<Bool>, logToConsoleCallback: @escaping Callback2<String, Bool>, setShortUrlProviders: @escaping Callback<[String]?>, updateStatus: @escaping Callback<Bool>) {
         self.init()
         self.toggleIconCallback = toggleIconCallback
         logToConsole = logToConsoleCallback
@@ -112,7 +113,7 @@ open class FinickyConfig {
             let shortMessage = "Configuration: \(String(describing: exception!))"
             print(message)
             showNotification(title: "Configuration", informativeText: String(describing: exception!), error: true)
-            self.logToConsole?(shortMessage)
+            self.logToConsole?(shortMessage, false)
         }
 
         ctx.evaluateScript("const module = {}")
@@ -144,7 +145,7 @@ open class FinickyConfig {
                     print(message)
                     showNotification(title: message, error: true)
 
-                    logToConsole?(message)
+                    logToConsole?(message, false)
 
                     return false
                 } else {
@@ -189,7 +190,7 @@ open class FinickyConfig {
                     ]
                 };
                 // For more examples, see the Finicky github page https://github.com/johnste/finicky
-            """)
+            """, false)
 
             return
         }
@@ -209,7 +210,7 @@ open class FinickyConfig {
                 if showSuccess {
                     showNotification(title: "Reloaded config successfully")
 
-                    logToConsole?("Reloaded config successfully")
+                    logToConsole?("Reloaded config successfully", false)
                 }
             }
         }
@@ -252,7 +253,7 @@ open class FinickyConfig {
                         return browser
                     } catch _ as BrowserError {
                         showNotification(title: "Couldn't find browser \"\(browserName)\"")
-                        logToConsole?("Couldn't find browser \"\(browserName)\"")
+                        logToConsole?("Couldn't find browser \"\(browserName)\"", false)
                         return nil
                     } catch let msg {
                         print("Unknown error resolving browser: \(msg)")
@@ -267,7 +268,7 @@ open class FinickyConfig {
                     if let rewrittenUrl = URL(string: newUrl) {
                         finalUrl = rewrittenUrl
                     } else {
-                        logToConsole?("Couldn't generate url from handler \(newUrl), falling back to original url")
+                        logToConsole?("Couldn't generate url from handler \(newUrl), falling back to original url", false)
                     }
                 }
 
