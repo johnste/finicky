@@ -24,6 +24,7 @@ class AppDelegate: NSObject, NSApplicationDelegate, NSUserNotificationCenterDele
         let bundleId = "net.kassett.Finicky"
         LSSetDefaultHandlerForURLScheme("http" as CFString, bundleId as CFString)
         LSSetDefaultHandlerForURLScheme("https" as CFString, bundleId as CFString)
+        LSSetDefaultHandlerForURLScheme("finicky" as CFString, bundleId as CFString)        
 
         NSUserNotificationCenter.default.delegate = self
         let img: NSImage! = NSImage(named: "statusitem")
@@ -67,8 +68,8 @@ class AppDelegate: NSObject, NSApplicationDelegate, NSUserNotificationCenterDele
         configLoader.listenToChanges(showInitialSuccess: true)
     }
 
-    @IBAction func checkUpdates(_: NSMenuItem) {
-        checkForUpdate { (version: Version?) -> Void in
+    @IBAction func checkUpdates(_: NSMenuItem? = nil) {
+        checkForUpdate(false) { (version: Version?) -> Void in
             if version == nil {
                 showNotification(title: "No new version available")
                 DispatchQueue.main.async {
@@ -78,10 +79,10 @@ class AppDelegate: NSObject, NSApplicationDelegate, NSUserNotificationCenterDele
             }
 
             if let version = version {
-                print("There is a newer version out there: \(version.title) \(version.version)")
-                showNotification(title: "New version available: \(version.title) \(version.version)")
+                print("Update available: \(version.title) \(version.version)")
+                showNotification(title: "Update available: \(version.title) \(version.version)")
                 DispatchQueue.main.async {
-                    self.logToConsole("There is a newer version out there: \(version.title) \(version.version). More information is available on https://github.com/johnste/finicky/releases")
+                    self.logToConsole("Update available: \(version.title) \(version.version). Download here: https://github.com/johnste/finicky/releases")
                 }
             }
         }
