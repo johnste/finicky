@@ -9,14 +9,11 @@ class AppDelegate: NSObject, NSApplicationDelegate, NSUserNotificationCenterDele
     @IBOutlet var yourTextField: NSTextField!
     @IBOutlet var textView: NSTextView!
 
-    @IBAction func ClearConsole(_: Any? = nil) {
-        textView.string = ""
-    }
+
 
     @objc var statusItem: NSStatusItem!
     var configLoader: FinickyConfig!
     var shortUrlResolver: FNShortUrlResolver = FNShortUrlResolver()
-    @objc var isActive: Bool = true
 
     func applicationWillFinishLaunching(_: Notification) {
         yourTextField.delegate = self
@@ -24,7 +21,8 @@ class AppDelegate: NSObject, NSApplicationDelegate, NSUserNotificationCenterDele
         let bundleId = "net.kassett.Finicky"
         LSSetDefaultHandlerForURLScheme("http" as CFString, bundleId as CFString)
         LSSetDefaultHandlerForURLScheme("https" as CFString, bundleId as CFString)
-        LSSetDefaultHandlerForURLScheme("finicky" as CFString, bundleId as CFString)        
+        LSSetDefaultHandlerForURLScheme("finicky" as CFString, bundleId as CFString)
+        LSSetDefaultHandlerForURLScheme("finickys" as CFString, bundleId as CFString)
 
         NSUserNotificationCenter.default.delegate = self
         let img: NSImage! = NSImage(named: "statusitem")
@@ -108,11 +106,21 @@ class AppDelegate: NSObject, NSApplicationDelegate, NSUserNotificationCenterDele
         textView.scrollToEndOfDocument(self)
     }
 
-    @IBAction func testUrl(_ sender: NSTextField) {
-        let value = sender.stringValue
+    @IBAction func ClearConsole(_: Any? = nil) {
+         textView.string = ""
+    }
 
-        if !value.starts(with: "https://"), !value.starts(with: "http://") {
-            logToConsole("Finicky only understand https:// and http:// urls")
+    @IBAction func testUrl(_ sender: NSTextField) {
+        var value = sender.stringValue
+
+        if value.starts(with: "finickys://") || value.starts(with: "finicky://") {
+            logToConsole("Finicky will convert finickys:// and finicky:// urls to https:// and http:// respectively")
+            value = value.replacingOccurrences(of: "finicky://", with: "http://", options: .literal, range: nil)
+            value = value.replacingOccurrences(of: "finickys://", with: "https://", options: .literal, range: nil)
+        }
+
+        if !value.starts(with: "https://") && !value.starts(with: "http://") {
+            logToConsole("Finicky only understands https:// and http:// urls")
             return
         }
         if let url = URL(string: value) {
@@ -175,11 +183,24 @@ class AppDelegate: NSObject, NSApplicationDelegate, NSUserNotificationCenterDele
 
     @objc func handleGetURLEvent(_ event: NSAppleEventDescriptor?, withReplyEvent _: NSAppleEventDescriptor?) {
         toggleDockIcon(showIcon: false)
-        let url: URL = URL(string: event!.paramDescriptor(forKeyword: AEKeyword(keyDirectObject))!.stringValue!)!
         let pid = event!.attributeDescriptor(forKeyword: AEKeyword(keySenderPIDAttr))!.int32Value
         let sourceBundleIdentifier = NSRunningApplication(processIdentifier: pid)?.bundleIdentifier
         let path = getPidPath(pid: pid)
+        var url: URL = URL(string: event!.paramDescriptor(forKeyword: AEKeyword(keyDirectObject))!.stringValue!)!
 
+        if url.scheme == "finicky" || url.scheme == "finickys" {
+            if var urlComponents = URLComponents(url: url, resolvingAgainstBaseURL: true) {
+                if url.scheme == "finicky" {
+                    urlComponents.scheme = "http"
+                }
+
+                if url.scheme == "finickys" {
+                    urlComponents.scheme = "https"
+                }
+
+                url = urlComponents.url!
+            }
+        }
         shortUrlResolver.resolveUrl(url, callback: { (URL) -> Void in
             self.callUrlHandlers(sourceBundleIdentifier, url: URL, sourceProcessPath: path)
         })
@@ -255,13 +276,5 @@ class AppDelegate: NSObject, NSApplicationDelegate, NSUserNotificationCenterDele
         for filename in filenames {
             callUrlHandlers(nil, url: URL(fileURLWithPath: filename), sourceProcessPath: nil)
         }
-    }
-
-    func applicationDidBecomeActive(_: Notification) {
-        isActive = true
-    }
-
-    func applicationDidResignActive(_: Notification) {
-        isActive = false
     }
 }

@@ -4,7 +4,7 @@ import urlParse from "url-parse";
 type LogFunction = (message: string) => void;
 type NotifyFunction = (title: string, subtitle: string) => void;
 type BatteryFunction = () =>
-  | { chargePercentage: number; isCharging: boolean }
+  | { chargePercentage: number; isCharging: boolean; isPluggedIn: boolean }
   | undefined;
 
 /**

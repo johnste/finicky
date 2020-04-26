@@ -67,13 +67,13 @@
 		</dict>
 	</array>
 	<key>CFBundleVersion</key>
-	<string>185</string>
+	<string>186</string>
 	<key>LSApplicationCategoryType</key>
 	<string>public.app-category.utilities</string>
 	<key>LSMinimumSystemVersion</key>
 	<string>$(MACOSX_DEPLOYMENT_TARGET)</string>
 	<key>NSHumanReadableCopyright</key>
-	<string>Copyright © 2019 John Sterling. All rights reserved. Hand icon by WPZOOM.com (CC BY-SA 3.0)</string>
+	<string>Copyright © 2020 John Sterling. All rights reserved. Hand icon by WPZOOM.com (CC BY-SA 3.0)</string>
 	<key>NSMainNibFile</key>
 	<string>MainMenu</string>
 	<key>NSPrincipalClass</key>

@@ -12,7 +12,6 @@ import {
   Browser,
   UrlFunction,
   ProcessOptions,
-  BrowserObject,
 } from "./types";
 
 declare const module:
