@@ -3,6 +3,9 @@ import urlParse from "url-parse";
 
 type LogFunction = (message: string) => void;
 type NotifyFunction = (title: string, subtitle: string) => void;
+type BatteryFunction = () =>
+  | { chargePercentage: number; isCharging: boolean }
+  | undefined;
 
 /**
  * Extends finicky js api with some utility functions.
@@ -11,6 +14,7 @@ export function createAPI(
   options: {
     log?: LogFunction;
     notify?: NotifyFunction;
+    getBattery?: BatteryFunction;
   } = {}
 ) {
   const log: LogFunction =
@@ -34,6 +38,19 @@ export function createAPI(
         finickyInternalAPI.notify(title, subtitle);
       } else {
         console.log(`[finicky notify] ${title} ${subtitle}`);
+      }
+    });
+
+  const getBattery: BatteryFunction =
+    options.getBattery ||
+    (() => {
+      // @ts-ignore
+      if (typeof finickyInternalAPI !== "undefined") {
+        // @ts-ignore
+        let status = finickyInternalAPI.getBattery();
+        return status;
+      } else {
+        return undefined;
       }
     });
 
@@ -117,6 +134,7 @@ export function createAPI(
     matchHostnames: matchDomains,
     getUrlParts,
     onUrl,
-    setDefaultBrowser
+    setDefaultBrowser,
+    getBattery,
   };
 }

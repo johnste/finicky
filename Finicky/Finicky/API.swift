@@ -4,6 +4,7 @@ import JavaScriptCore
 @objc protocol FinickyAPIExports: JSExport {
     static func log(_ message: String?) -> Void
     static func notify(_ title: JSValue, _ subtitle: JSValue) -> Void
+    static func getBattery() -> NSDictionary?
 }
 
 @objc open class FinickyAPI: NSObject, FinickyAPIExports {
@@ -15,6 +16,18 @@ import JavaScriptCore
             NSLog(message!)
             logToConsole?(message!, false)
         }
+    }
+
+    static func getBattery() -> NSDictionary? {
+        if let batteryStatus = getBatteryStatus() {
+            return [
+                "isCharging": batteryStatus.isCharging,
+                "isPluggedIn": batteryStatus.isPluggedIn,
+                "chargePercentage": batteryStatus.chargePercentage,
+            ]
+        }
+
+        return nil
     }
 
     static func notify(_ title: JSValue, _ informativeText: JSValue) {

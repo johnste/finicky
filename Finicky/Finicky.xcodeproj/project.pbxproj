@@ -28,6 +28,7 @@
 		54C6DECF22A793D300341DC6 /* FinickyUnitTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 54C6DECE22A793D300341DC6 /* FinickyUnitTests.swift */; };
 		54E33FD71B24E27000998E13 /* Config.swift in Sources */ = {isa = PBXBuildFile; fileRef = 54E33FD61B24E27000998E13 /* Config.swift */; };
 		54E4B1EB22971F7B002FA6F4 /* UpdateCheck.swift in Sources */ = {isa = PBXBuildFile; fileRef = 54E4B1EA22971F7B002FA6F4 /* UpdateCheck.swift */; };
+		54FD9F562455A9A600217E30 /* Battery.swift in Sources */ = {isa = PBXBuildFile; fileRef = 54FD9F552455A9A600217E30 /* Battery.swift */; };
 		7804C1542433F40800E595D9 /* Fixtures in Resources */ = {isa = PBXBuildFile; fileRef = 7804C1532433F40700E595D9 /* Fixtures */; };
 /* End PBXBuildFile section */
 
@@ -68,6 +69,7 @@
 		54C6DECE22A793D300341DC6 /* FinickyUnitTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FinickyUnitTests.swift; sourceTree = "<group>"; };
 		54E33FD61B24E27000998E13 /* Config.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = Config.swift; sourceTree = "<group>"; };
 		54E4B1EA22971F7B002FA6F4 /* UpdateCheck.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = UpdateCheck.swift; sourceTree = "<group>"; };
+		54FD9F552455A9A600217E30 /* Battery.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Battery.swift; sourceTree = "<group>"; };
 		7804C1532433F40700E595D9 /* Fixtures */ = {isa = PBXFileReference; lastKnownFileType = folder; path = Fixtures; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
@@ -127,6 +129,7 @@
 				54B12878229C59EC00990D0D /* AppDescriptor.swift */,
 				54E4B1EA22971F7B002FA6F4 /* UpdateCheck.swift */,
 				54C2F15A22BEC9BC00B3E2C3 /* Browsers.swift */,
+				54FD9F552455A9A600217E30 /* Battery.swift */,
 			);
 			path = Finicky;
 			sourceTree = "<group>";
@@ -317,6 +320,7 @@
 				54B12879229C59EC00990D0D /* AppDescriptor.swift in Sources */,
 				54C2F15B22BEC9BC00B3E2C3 /* Browsers.swift in Sources */,
 				54E33FD71B24E27000998E13 /* Config.swift in Sources */,
+				54FD9F562455A9A600217E30 /* Battery.swift in Sources */,
 				54899CD61B20D5BC00647101 /* AppDelegate.swift in Sources */,
 				54B0E7031B4678CE003F8AEE /* ShortUrlResolver.swift in Sources */,
 				54E4B1EB22971F7B002FA6F4 /* UpdateCheck.swift in Sources */,

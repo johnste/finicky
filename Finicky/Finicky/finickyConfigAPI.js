@@ -1068,6 +1068,18 @@ var finickyConfigApi = (function (exports) {
                     console.log("[finicky notify] " + title + " " + subtitle);
                 }
             });
+        var getBattery = options.getBattery ||
+            (function () {
+                // @ts-ignore
+                if (typeof finickyInternalAPI !== "undefined") {
+                    // @ts-ignore
+                    var status_1 = finickyInternalAPI.getBattery();
+                    return status_1;
+                }
+                else {
+                    return undefined;
+                }
+            });
         var getUrlParts = function (urlString) {
             var url = urlParse(urlString);
             // Mistake in the urlParse typings. query should be a string unless parsing of query is enabled
@@ -1130,7 +1142,8 @@ var finickyConfigApi = (function (exports) {
             matchHostnames: matchDomains,
             getUrlParts: getUrlParts,
             onUrl: onUrl,
-            setDefaultBrowser: setDefaultBrowser
+            setDefaultBrowser: setDefaultBrowser,
+            getBattery: getBattery,
         };
     }
 
