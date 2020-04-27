@@ -33,11 +33,8 @@ Finicky is a macOS application that allows you to set up rules that decide which
 - [Installation](#installation)
 - [Example configuration](#example-configuration)
   - [Basic configuration](#basic-configuration)
-  - [Wildcard matching](#wildcard-matching)
-  - [Opening preferred browser](#opening-preferred-browser)
   - [Rewrite urls](#rewrite-urls)
   - [Advanced usage, settings](#advanced-usage-settings)
-  - [Keyboard modifiers](#keyboard-modifiers)
   - [Configuration ideas](#configuration-ideas)
 - [Issues](#issues)
   - [Bugs](#bugs)
@@ -78,17 +75,7 @@ module.exports = {
       // Open any url including the string "workplace" in Firefox
       match: /workplace/,
       browser: "Firefox"
-    }
-  ]
-};
-```
-
-### Wildcard matching
-
-```js
-module.exports = {
-  defaultBrowser: "Safari",
-  handlers: [
+    },
     {
       // Open google.com and *.google.com urls in Google Chrome
       match: finicky.matchHostnames([
@@ -101,20 +88,7 @@ module.exports = {
 };
 ```
 
-### Opening preferred browser
 
-```js
-module.exports = {
-  defaultBrowser: "Safari",
-  handlers: [
-    {
-      match: finicky.matchHostnames(["example.com"]),
-      // Opens the first running browsers in the list. If none are running, the first one will be started.
-      browser: ["Google Chrome", "Safari", "Firefox"]
-    }
-  ]
-};
-```
 
 ### Rewrite urls
 
@@ -173,20 +147,15 @@ module.exports = {
       }
     },
     {
+      match: finicky.matchHostnames(["example.com"]),
+      // Opens the first running browsers in the list. If none are running, the first one will be started.
+      browser: ["Google Chrome", "Safari", "Firefox"]
+    },
+    {
       match: ["http://example.com"],
       // Don't open any browser for this url, effectively blocking it
       browser: null
-    }
-  ]
-};
-```
-
-### Keyboard modifiers
-
-```js
-module.exports = {
-  defaultBrowser: "Google Chrome",
-  handlers: [
+    },
     {
       // Open links in Safari when the option key is pressed
       // Valid keys are: shift, option, command, control, capsLock, and function.
@@ -197,6 +166,7 @@ module.exports = {
   ]
 };
 ```
+
 
 ### Configuration ideas
 
