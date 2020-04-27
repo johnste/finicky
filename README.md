@@ -18,7 +18,7 @@ Finicky is a macOS application that allows you to set up rules that decide which
 - Complete control over configuration using JavaScript
 
 [![GitHub start](https://badgen.net/github/stars/johnste/finicky?color=pink&icon=github)](https://GitHub.com/johnste/finicky/)
-[![GitHub release](https://badgen.net/github/release/johnste/finicky?color=pink)](https://GitHub.com/johnste/finicky/releases/)
+[![GitHub release](https://badgen.net/github/release/johnste/finicky/stable?color=purple)](https://GitHub.com/johnste/finicky/releases/)
 
 
 
