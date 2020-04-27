@@ -16,14 +16,18 @@ struct defaultsKeys {
     static let keyLatestVersionSeen = "firstStringKey"
 }
 
-func checkForUpdate(_ notifyOnSeenNewVersion: Bool = false, _ newVersionCallback: @escaping Callback<Version?>) {
+/*
+ Check for available updates and call a callback if there is a new one available.
+ Finicky saves the last seen version to avoid warning about version already seen.
+ */
+
+func checkForUpdate(_ notifyOnSeenNewVersion: Bool, _ newVersionCallback: @escaping (Version?) -> Void) {
     guard let currentVersion = Bundle.main.infoDictionary?["CFBundleShortVersionString"] as? String,
         let url = URL(string: "https://api.github.com/repos/johnste/finicky/releases") else { return }
     var request = URLRequest(url: url)
     request.setValue("finicky/\(currentVersion)", forHTTPHeaderField: "User-Agent")
 
     let session = URLSession(configuration: URLSessionConfiguration.default, delegate: nil, delegateQueue: nil)
-
     let defaults = UserDefaults.standard
 
     let task = session.dataTask(with: request, completionHandler: { (data, _, _) -> Void in

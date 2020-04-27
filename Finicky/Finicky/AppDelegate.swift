@@ -6,17 +6,14 @@ import Foundation
 class AppDelegate: NSObject, NSApplicationDelegate, NSUserNotificationCenterDelegate, NSTextFieldDelegate, NSTextViewDelegate {
     @IBOutlet var statusItemMenu: NSMenu!
     @IBOutlet var testConfigWindow: NSWindow!
-    @IBOutlet var yourTextField: NSTextField!
+    @IBOutlet var testUrlTextField: NSTextField!
     @IBOutlet var textView: NSTextView!
-
-
-
     @objc var statusItem: NSStatusItem!
     var configLoader: FinickyConfig!
     var shortUrlResolver: FNShortUrlResolver = FNShortUrlResolver()
 
     func applicationWillFinishLaunching(_: Notification) {
-        yourTextField.delegate = self
+        testUrlTextField.delegate = self
         ClearConsole()
         let bundleId = "net.kassett.Finicky"
         LSSetDefaultHandlerForURLScheme("http" as CFString, bundleId as CFString)
@@ -39,13 +36,20 @@ class AppDelegate: NSObject, NSApplicationDelegate, NSUserNotificationCenterDele
         statusItem.image = invalidImg
         toggleDockIcon(showIcon: false)
 
-        func toggleIconCallback(show: Bool) {
-            guard statusItem != nil else { return }
-            statusItem.isVisible = !show
-        }
-
-        func setShortUrlProviders(shortUrlProviders: [String]?) {
+        func configureAppOptions(
+            hideIcon: Bool,
+            shortUrlProviders: [String]?,
+            checkForUpdate: Bool
+        ) {
             shortUrlResolver = FNShortUrlResolver(shortUrlProviders: shortUrlProviders)
+
+            if statusItem != nil {
+                statusItem.isVisible = !hideIcon
+            }
+
+            if checkForUpdate {
+                checkForAvailableUpdate(notifyOnSeenNewVersion: false)
+            }
         }
 
         func updateStatus(valid: Bool) {
@@ -56,7 +60,7 @@ class AppDelegate: NSObject, NSApplicationDelegate, NSUserNotificationCenterDele
             }
         }
 
-        configLoader = FinickyConfig(toggleIconCallback: toggleIconCallback, logToConsoleCallback: logToConsole, setShortUrlProviders: setShortUrlProviders, updateStatus: updateStatus)
+        configLoader = FinickyConfig(configureAppCb: configureAppOptions, logCb: logToConsole, updateStatusCb: updateStatus)
 
         let appleEventManager: NSAppleEventManager = NSAppleEventManager.shared()
         appleEventManager.setEventHandler(self, andSelector: #selector(AppDelegate.handleGetURLEvent(_:withReplyEvent:)), forEventClass: AEEventClass(kInternetEventClass), andEventID: AEEventID(kAEGetURL))
@@ -67,11 +71,15 @@ class AppDelegate: NSObject, NSApplicationDelegate, NSUserNotificationCenterDele
     }
 
     @IBAction func checkUpdates(_: NSMenuItem? = nil) {
-        checkForUpdate(false) { (version: Version?) -> Void in
+        checkForAvailableUpdate(notifyOnSeenNewVersion: true)
+    }
+
+    func checkForAvailableUpdate(notifyOnSeenNewVersion: Bool = false) {
+        checkForUpdate(notifyOnSeenNewVersion) { (version: Version?) -> Void in
             if version == nil {
-                showNotification(title: "No new version available")
+                showNotification(title: "You are running the latest version of Finicky")
                 DispatchQueue.main.async {
-                    self.logToConsole("No new version available")
+                    self.logToConsole("You are running the latest version of Finicky")
                 }
                 return
             }
@@ -107,7 +115,7 @@ class AppDelegate: NSObject, NSApplicationDelegate, NSUserNotificationCenterDele
     }
 
     @IBAction func ClearConsole(_: Any? = nil) {
-         textView.string = ""
+        textView.string = ""
     }
 
     @IBAction func testUrl(_ sender: NSTextField) {
@@ -119,7 +127,7 @@ class AppDelegate: NSObject, NSApplicationDelegate, NSUserNotificationCenterDele
             value = value.replacingOccurrences(of: "finickys://", with: "https://", options: .literal, range: nil)
         }
 
-        if !value.starts(with: "https://") && !value.starts(with: "http://") {
+        if !value.starts(with: "https://"), !value.starts(with: "http://") {
             logToConsole("Finicky only understands https:// and http:// urls")
             return
         }

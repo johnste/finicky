@@ -17,8 +17,8 @@
             <connections>
                 <outlet property="statusItemMenu" destination="Kzo-ni-M3E" id="VAC-Jd-SUN"/>
                 <outlet property="testConfigWindow" destination="VZJ-Lg-gDn" id="yu6-P3-Fon"/>
+                <outlet property="testUrlTextField" destination="MSV-N8-vFV" id="R7y-rh-o03"/>
                 <outlet property="textView" destination="qaM-sW-3L0" id="bG4-lg-3CX"/>
-                <outlet property="yourTextField" destination="MSV-N8-vFV" id="R7y-rh-o03"/>
             </connections>
         </customObject>
         <customObject id="YLy-65-1bz" customClass="NSFontManager"/>
@@ -720,10 +720,10 @@
                 <rect key="frame" x="0.0" y="0.0" width="591" height="500"/>
                 <autoresizingMask key="autoresizingMask"/>
                 <subviews>
-                    <textField verticalHuggingPriority="750" fixedFrame="YES" translatesAutoresizingMaskIntoConstraints="NO" id="MSV-N8-vFV">
+                    <textField identifier="fasdf" verticalHuggingPriority="750" fixedFrame="YES" translatesAutoresizingMaskIntoConstraints="NO" id="MSV-N8-vFV">
                         <rect key="frame" x="65" y="459" width="516" height="24"/>
                         <autoresizingMask key="autoresizingMask" widthSizable="YES" flexibleMinY="YES"/>
-                        <textFieldCell key="cell" scrollable="YES" lineBreakMode="clipping" selectable="YES" editable="YES" borderStyle="bezel" title="https://example.com" placeholderString="https://example.com" drawsBackground="YES" id="0iJ-Ww-Lf2">
+                        <textFieldCell key="cell" scrollable="YES" lineBreakMode="clipping" selectable="YES" editable="YES" borderStyle="bezel" identifier="Test URL input" title="https://example.com" placeholderString="https://example.com" drawsBackground="YES" id="0iJ-Ww-Lf2">
                             <font key="font" size="13" name="Menlo-Regular"/>
                             <color key="textColor" name="controlTextColor" catalog="System" colorSpace="catalog"/>
                             <color key="backgroundColor" name="textBackgroundColor" catalog="System" colorSpace="catalog"/>

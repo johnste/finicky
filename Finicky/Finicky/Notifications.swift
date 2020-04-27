@@ -1,6 +1,9 @@
 import AppKit
 import Foundation
 
+/*
+ Show macOs notifications
+ */
 func showNotification(at center: NSUserNotificationCenter = .default, title: String, subtitle: String? = nil, informativeText: String? = nil, error: Bool = false) {
     let notification = NSUserNotification()
     notification.title = title

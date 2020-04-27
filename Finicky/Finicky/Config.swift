@@ -6,7 +6,19 @@ var FNConfigPath: String = "~/.finicky.js"
 
 public typealias Callback<T> = (T) -> Void
 public typealias Callback2<T, U> = (T, U) -> Void
+public typealias OptionsCb = (_ hideIcon: Bool,
+                              _ shortUrlProviders: [String]?,
+                              _ checkForUpdate: Bool) -> Void
 
+/*
+ FinickyConfig deals with everything related to the config file.
+
+ It does several things:
+    - Run validation of the config file
+    - Reads global app settings and uses a callback to let the app get them
+    - Deals with everything related to the javascript config file
+    - Runs the process that determines the browser we should start
+ */
 open class FinickyConfig {
     var ctx: JSContext!
     var configAPIString: String
@@ -17,21 +29,16 @@ open class FinickyConfig {
     var dispatchSource: DispatchSourceFileSystemObject?
     var fileDescriptor: Int32 = -1
     var lastModificationDate: Date?
-    var toggleIconCallback: Callback<Bool>?
-    var logToConsole: Callback2<String, Bool>?
-    var setShortUrlProviders: Callback<[String]?>?
+    var logToConsole: Callback2<String, Bool>
+    var configureAppOptions: OptionsCb
     var updateStatus: Callback<Bool>?
 
-    public init() {
+    public init(configureAppCb: @escaping OptionsCb, logCb: @escaping Callback2<String, Bool>, updateStatusCb: @escaping Callback<Bool>) {
         configAPIString = loadJS("finickyConfigAPI.js")
-    }
 
-    public convenience init(toggleIconCallback: @escaping Callback<Bool>, logToConsoleCallback: @escaping Callback2<String, Bool>, setShortUrlProviders: @escaping Callback<[String]?>, updateStatus: @escaping Callback<Bool>) {
-        self.init()
-        self.toggleIconCallback = toggleIconCallback
-        logToConsole = logToConsoleCallback
-        self.setShortUrlProviders = setShortUrlProviders
-        self.updateStatus = updateStatus
+        configureAppOptions = configureAppCb
+        logToConsole = logCb
+        updateStatus = updateStatusCb
         listenToChanges(showInitialSuccess: false)
     }
 
@@ -113,7 +120,7 @@ open class FinickyConfig {
             let shortMessage = "Configuration: \(String(describing: exception!))"
             print(message)
             showNotification(title: "Configuration", informativeText: String(describing: exception!), error: true)
-            self.logToConsole?(shortMessage, false)
+            self.logToConsole(shortMessage, false)
         }
 
         ctx.evaluateScript("const module = {}")
@@ -144,8 +151,7 @@ open class FinickyConfig {
                     let message = "Invalid config"
                     print(message)
                     showNotification(title: message, error: true)
-
-                    logToConsole?(message, false)
+                    logToConsole(message, false)
 
                     return false
                 } else {
@@ -176,7 +182,7 @@ open class FinickyConfig {
             hasError = true
             let message = "Config file could not be read or found"
             showNotification(title: message, subtitle: "Click here for help", error: true)
-            logToConsole?("Config file could not be read or found. * Example configuration: \n" + """
+            logToConsole("Config file could not be read or found. * Example configuration: \n" + """
                 /**
                 * Save as ~/.finicky.js
                 */
@@ -203,22 +209,40 @@ open class FinickyConfig {
         if config != nil {
             let success = parseConfig(configObject!)
             if success {
-                toggleIconCallback?(getHideIcon())
+                //toggleIconCallback?(getHideIcon())
+                // setShortUrlProviders?(getShortUrlProviders())
 
-                setShortUrlProviders?(getShortUrlProviders())
+                configureAppOptions(
+                    getSimpleOption(name: "hideIcon", defaultValue: false),
+                    getShortUrlProviders(),
+                    getSimpleOption(name: "checkForUpdate", defaultValue: true)
+                )
 
                 if showSuccess {
                     showNotification(title: "Reloaded config successfully")
-
-                    logToConsole?("Reloaded config successfully", false)
+                    logToConsole("Reloaded config successfully", false)
                 }
             }
         }
     }
 
-    func getHideIcon() -> Bool {
-        let hideIcon = ctx.evaluateScript("module.exports.options && module.exports.options.hideIcon")?.toBool()
-        return hideIcon ?? false
+    func getSimpleOption<T>(name: String, defaultValue: T) -> T {
+        if name.count == 0 {
+            print("Tried to get an option with no name")
+            return defaultValue
+        }
+
+        let path = "module.exports.options && module.exports.options." + name
+
+        if let result = ctx.evaluateScript(path) {
+            if T.self == Bool.self {
+                return (result.toBool() as! T)
+            } else {
+                print("This type is not yet supported")
+            }
+        }
+
+        return defaultValue
     }
 
     func getShortUrlProviders() -> [String]? {
@@ -253,7 +277,7 @@ open class FinickyConfig {
                         return browser
                     } catch _ as BrowserError {
                         showNotification(title: "Couldn't find browser \"\(browserName)\"")
-                        logToConsole?("Couldn't find browser \"\(browserName)\"", false)
+                        logToConsole("Couldn't find browser \"\(browserName)\"", false)
                         return nil
                     } catch let msg {
                         print("Unknown error resolving browser: \(msg)")
@@ -268,7 +292,7 @@ open class FinickyConfig {
                     if let rewrittenUrl = URL(string: newUrl) {
                         finalUrl = rewrittenUrl
                     } else {
-                        logToConsole?("Couldn't generate url from handler \(newUrl), falling back to original url", false)
+                        logToConsole("Couldn't generate url from handler \(newUrl), falling back to original url", false)
                     }
                 }
 
@@ -302,10 +326,7 @@ open class FinickyConfig {
 
     open func setupAPI() {
         ctx = createJSContext()
-
-        if logToConsole != nil {
-            FinickyAPI.setLog(logToConsole!)
-        }
+        FinickyAPI.setLog(logToConsole)
         FinickyAPI.setContext(ctx)
         ctx.setObject(FinickyAPI.self, forKeyedSubscript: "finickyInternalAPI" as NSCopying & NSObjectProtocol)
         ctx.evaluateScript("var finicky = finickyConfigApi.createAPI();")

@@ -1,5 +1,11 @@
 import Foundation
 
+/*
+
+ Whenever finicky recieves a url, it tries to figure out if it redirects to a url shortener service.
+ If that's the case, it will try to resolve the destination url. If it didn't, we would not be able
+ to match the intended url with the configured patterns.
+ */
 final class ResolveShortUrls: NSObject, URLSessionDelegate, URLSessionTaskDelegate {
     fileprivate var shortUrlResolver: FNShortUrlResolver
 

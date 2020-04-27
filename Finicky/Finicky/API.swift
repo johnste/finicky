@@ -7,6 +7,10 @@ import JavaScriptCore
     static func getBattery() -> NSDictionary?
 }
 
+/*
+ FinickyAPI represents the internal API methods available javascript context.
+ The _actual_ API available in .finicks.js is created in the config-api and uses these methods.
+ */
 @objc open class FinickyAPI: NSObject, FinickyAPIExports {
     fileprivate static var context: JSContext!
     fileprivate static var logToConsole: ((_ message: String, _ clearConsole: Bool) -> Void)?

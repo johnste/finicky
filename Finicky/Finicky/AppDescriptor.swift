@@ -1,6 +1,10 @@
 import AppKit
 import Foundation
 
+/*
+ Things related to representing the final browser options that should be executed
+ */
+
 public enum AppDescriptorType: String {
     case bundleId
     case appName
