@@ -202,7 +202,8 @@ export const finickyConfigSchema = {
   defaultBrowser: multipleBrowsersSchema.isRequired,
   options: validate.shape({
     hideIcon: validate.boolean,
-    urlShorteners: validate.arrayOf(validate.string)
+    urlShorteners: validate.arrayOf(validate.string),
+    checkForUpdate: validate.boolean
   }),
   rewrite: validate.arrayOf(
     validate.shape({

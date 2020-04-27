@@ -235,8 +235,13 @@ open class FinickyConfig {
         let path = "module.exports.options && module.exports.options." + name
 
         if let result = ctx.evaluateScript(path) {
+            if JSValueIsUndefined(ctx.jsGlobalContextRef, result.jsValueRef) {
+                return defaultValue
+            }
+
             if T.self == Bool.self {
-                return (result.toBool() as! T)
+                let bool = (result.toBool() as? T)
+                return bool ?? defaultValue
             } else {
                 print("This type is not yet supported")
             }

@@ -22,7 +22,7 @@ struct defaultsKeys {
  */
 
 func checkForUpdate(_ notifyOnSeenNewVersion: Bool, _ newVersionCallback: @escaping (Version?) -> Void) {
-    guard let currentVersion = Bundle.main.infoDictionary?["CFBundleShortVersionString"] as? String,
+    guard var currentVersion = Bundle.main.infoDictionary?["CFBundleShortVersionString"] as? String,
         let url = URL(string: "https://api.github.com/repos/johnste/finicky/releases") else { return }
     var request = URLRequest(url: url)
     request.setValue("finicky/\(currentVersion)", forHTTPHeaderField: "User-Agent")
