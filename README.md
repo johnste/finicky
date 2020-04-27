@@ -33,10 +33,10 @@ Finicky is a macOS application that allows you to set up rules that decide which
 - [Installation](#installation)
 - [Example configuration](#example-configuration)
   - [Basic configuration](#basic-configuration)
-  - [Options](#options)
   - [Rewrite urls](#rewrite-urls)
   - [Advanced usage](#advanced-usage)
   - [Configuration ideas](#configuration-ideas)
+- [Options](#options)
 - [Issues](#issues)
   - [Bugs](#bugs)
   - [Feature Requests](#feature-requests)
@@ -114,23 +114,6 @@ module.exports = {
   ]
 };
 ```
-
-### Options
-
-```js
-module.exports = {
-  defaultBrowser: "Google Chrome",
-  options: {
-    // Hide the finicky icon from the top bar. Default: false
-    hideIcon: false, 
-    // Check for update on startup. Default: true
-    checkForUpdate: true
-  },
-};
-```
-
-
-
 ### Advanced usage
 
 ```js
@@ -182,6 +165,19 @@ module.exports = {
 };
 ```
 
+## Options
+
+```js
+module.exports = {
+  defaultBrowser: "Google Chrome",
+  options: {
+    // Hide the finicky icon from the top bar. Default: false
+    hideIcon: false, 
+    // Check for update on startup. Default: true
+    checkForUpdate: true
+  },
+};
+```
 
 ### Configuration ideas
 
