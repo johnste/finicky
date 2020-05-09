@@ -259,7 +259,7 @@ open class FinickyConfig {
         return list
     }
 
-    open func determineOpeningApp(url: URL, sourceBundleIdentifier: String? = nil, sourceProcessPath: String? = nil) -> AppDescriptor? {
+    open func determineOpeningApp(url: URL, sourceBundleIdentifier: String? = nil, sourceProcessPath: String? = nil, isActivated: Bool) -> AppDescriptor? {
         if let appValue = getConfiguredAppValue(url: url, sourceBundleIdentifier: sourceBundleIdentifier, sourceProcessPath: sourceProcessPath) {
             if !appValue.isObject {
                 return nil
@@ -278,7 +278,7 @@ open class FinickyConfig {
                     }
 
                     do {
-                        let browser = try BrowserOpts(name: browserName, appType: appType!, openInBackground: openInBackground)
+                        let browser = try BrowserOpts(name: browserName, appType: appType!, openInBackground: openInBackground ?? !isActivated)
                         return browser
                     } catch _ as BrowserError {
                         showNotification(title: "Couldn't find browser \"\(browserName)\"")

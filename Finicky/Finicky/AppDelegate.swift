@@ -9,6 +9,8 @@ class AppDelegate: NSObject, NSApplicationDelegate, NSUserNotificationCenterDele
     @IBOutlet var testUrlTextField: NSTextField!
     @IBOutlet var textView: NSTextView!
     @objc var statusItem: NSStatusItem!
+    
+    var isInBackground: Bool = false
     var configLoader: FinickyConfig!
     var shortUrlResolver: FNShortUrlResolver = FNShortUrlResolver()
 
@@ -143,7 +145,7 @@ class AppDelegate: NSObject, NSApplicationDelegate, NSUserNotificationCenterDele
     }
 
     func performTest(url: URL) {
-        if let appDescriptor = configLoader.determineOpeningApp(url: url, sourceBundleIdentifier: "net.kassett.finicky") {
+        if let appDescriptor = configLoader.determineOpeningApp(url: url, sourceBundleIdentifier: "net.kassett.finicky", isActivated: !isInBackground) {
             var description = ""
 
             if appDescriptor.browsers.count == 1 {
@@ -241,7 +243,7 @@ class AppDelegate: NSObject, NSApplicationDelegate, NSUserNotificationCenterDele
     }
 
     @objc func callUrlHandlers(_ sourceBundleIdentifier: String?, url: URL, sourceProcessPath: String?) {
-        if let appDescriptor = configLoader.determineOpeningApp(url: url, sourceBundleIdentifier: sourceBundleIdentifier, sourceProcessPath: sourceProcessPath) {
+        if let appDescriptor = configLoader.determineOpeningApp(url: url, sourceBundleIdentifier: sourceBundleIdentifier, sourceProcessPath: sourceProcessPath, isActivated: !isInBackground) {
             if let appToStart = getActiveApp(browsers: appDescriptor.browsers) {
                 var success = false
                 if let bundleId = appToStart.bundleId {
@@ -284,5 +286,13 @@ class AppDelegate: NSObject, NSApplicationDelegate, NSUserNotificationCenterDele
         for filename in filenames {
             callUrlHandlers(nil, url: URL(fileURLWithPath: filename), sourceProcessPath: nil)
         }
+    }
+    
+    func applicationDidBecomeActive(_: Notification) {
+        isInBackground = false
+    }
+
+    func applicationDidResignActive(_: Notification) {
+        isInBackground = true
     }
 }
