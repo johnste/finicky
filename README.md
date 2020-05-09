@@ -58,7 +58,8 @@ Finicky is a macOS application that allows you to set up rules that decide which
 - Install with [homebrew-cask](https://github.com/caskroom/homebrew-cask): `brew cask install finicky`.
 
 2. Create a file called `.finicky.js` with configuration
-   ([examples](#example-configuration)) in your home directory.
+   ([examples](#example-configuration)) in your home directory OR generate a basic configuration with [Finicky Kickstart](https://finicky-kickstart.now.sh/)
+   
 3. Start Finicky. Please allow it to be set as the default browser.
 4. And you're done. All links clicked that would have opened your browser are now first handled by Finicky.
 
