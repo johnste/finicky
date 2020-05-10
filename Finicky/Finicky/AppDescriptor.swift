@@ -34,7 +34,7 @@ public struct BrowserOpts: CustomStringConvertible {
 
     public init(name: String, appType: AppDescriptorType, openInBackground: Bool?) throws {
         self.name = name
-        self.openInBackground = openInBackground ?? false
+        self.openInBackground = openInBackground ?? !NSApplication.shared.isActive
 
         if appType == AppDescriptorType.bundleId {
             bundleId = name
