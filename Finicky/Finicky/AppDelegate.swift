@@ -9,13 +9,15 @@ class AppDelegate: NSObject, NSApplicationDelegate, NSUserNotificationCenterDele
     @IBOutlet var testUrlTextField: NSTextField!
     @IBOutlet var textView: NSTextView!
     @objc var statusItem: NSStatusItem!
-        
+
     var configLoader: FinickyConfig!
     var shortUrlResolver: FNShortUrlResolver = FNShortUrlResolver()
 
     func applicationWillFinishLaunching(_: Notification) {
         testUrlTextField.delegate = self
         ClearConsole()
+        CheckDefaultBrowser()
+
         let bundleId = "net.kassett.Finicky"
         LSSetDefaultHandlerForURLScheme("http" as CFString, bundleId as CFString)
         LSSetDefaultHandlerForURLScheme("https" as CFString, bundleId as CFString)
@@ -65,6 +67,19 @@ class AppDelegate: NSObject, NSApplicationDelegate, NSUserNotificationCenterDele
 
         let appleEventManager: NSAppleEventManager = NSAppleEventManager.shared()
         appleEventManager.setEventHandler(self, andSelector: #selector(AppDelegate.handleGetURLEvent(_:withReplyEvent:)), forEventClass: AEEventClass(kInternetEventClass), andEventID: AEEventID(kAEGetURL))
+    }
+
+    func CheckDefaultBrowser() {
+        do {
+            let url = CFURLCreateWithString(kCFAllocatorDefault, "http://" as CFString, nil)
+            let app = CFURLGetString(LSCopyDefaultApplicationURLForURL(url!, .all, nil)?.takeUnretainedValue()) as String
+
+            if !app.contains("Finicky.app") {
+                logToConsole("Finicky works best when it is set as the default browser")
+            }
+        } catch {
+            // Silently fail if we can't detect the default browser
+        }
     }
 
     @IBAction func reloadConfig(_: NSMenuItem) {

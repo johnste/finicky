@@ -209,7 +209,7 @@ open class FinickyConfig {
         if config != nil {
             let success = parseConfig(configObject!)
             if success {
-                //toggleIconCallback?(getHideIcon())
+                // toggleIconCallback?(getHideIcon())
                 // setShortUrlProviders?(getShortUrlProviders())
 
                 configureAppOptions(
