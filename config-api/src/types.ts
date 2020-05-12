@@ -61,6 +61,7 @@ export type BrowserResult =
  */
 export interface Handler {
   match: Matcher | Matcher[];
+  url?: Url | UrlFunction;
   browser: BrowserResult;
 }
 
@@ -215,6 +216,7 @@ export const finickyConfigSchema = {
   handlers: validate.arrayOf(
     validate.shape({
       match: matchSchema.isRequired,
+      url: validate.oneOf([validate.string, validate.function("options")]),      
       browser: multipleBrowsersSchema.isRequired
     })
   )

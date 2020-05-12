@@ -1,6 +1,6 @@
 export function createRegularExpression(pattern: string) {
     if (!pattern) {
-      return undefined;
+      return /^$/;
     }
   
     let result = pattern;

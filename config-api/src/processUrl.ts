@@ -12,12 +12,15 @@ import {
   Browser,
   UrlFunction,
   ProcessOptions,
+  Rewriter,
 } from "./types";
+import { createRegularExpression } from './utils';
+
 
 declare const module:
   | {
-      exports?: FinickyConfig;
-    }
+    exports?: FinickyConfig;
+  }
   | undefined;
 
 declare const finicky: {
@@ -67,11 +70,14 @@ export function processUrl(
     return processBrowserResult("Safari", options);
   }
 
-  options = rewriteUrl(config, options);
+  options = processUrlRewrites(config, options);
 
   if (Array.isArray(config.handlers)) {
     for (let handler of config.handlers) {
       if (isMatch(handler.match, options)) {
+        if (handler.url) {
+          options = rewriteUrl(handler.url, options)
+        }
         return processBrowserResult(handler.browser, options);
       }
     }
@@ -104,31 +110,35 @@ function createUrl(url: UrlObject) {
   return `${protocol}://${auth}${host}${port}${pathname}${search}${hash}`;
 }
 
-function rewriteUrl(config: FinickyConfig, options: Options) {
+function processUrlRewrites(config: FinickyConfig, options: Options) {
   if (Array.isArray(config.rewrite)) {
     for (let rewrite of config.rewrite) {
       if (isMatch(rewrite.match, options)) {
-        let urlResult = resolveUrl(rewrite.url, options);
-
-        validateSchema({ url: urlResult }, urlSchema);
-
-        if (typeof urlResult === "string") {
-          options = {
-            ...options,
-            url: finicky.getUrlParts(urlResult),
-            urlString: urlResult,
-          };
-        } else {
-          options = {
-            ...options,
-            url: urlResult,
-            urlString: createUrl(urlResult),
-          };
-        }
+        options = rewriteUrl(rewrite.url, options);
       }
     }
   }
 
+  return options;
+}
+
+function rewriteUrl(url: Url | UrlFunction, options: Options) {
+  let urlResult = resolveUrl(url, options);
+  validateSchema({ url: urlResult }, urlSchema);
+  if (typeof urlResult === "string") {
+    options = {
+      ...options,
+      url: finicky.getUrlParts(urlResult),
+      urlString: urlResult,
+    };
+  }
+  else {
+    options = {
+      ...options,
+      url: urlResult,
+      urlString: createUrl(urlResult),
+    };
+  }
   return options;
 }
 
@@ -143,7 +153,11 @@ function isMatch(matcher: Matcher | Matcher[], options: Options) {
     if (matcher instanceof RegExp) {
       return matcher.test(options.urlString);
     } else if (typeof matcher === "string") {
-      return matcher === options.urlString;
+      const regex = createRegularExpression(matcher);
+      if (!regex) {
+        return false;
+      }
+      return regex.test(options.urlString);
     } else if (typeof matcher === "function") {
       return !!matcher(options);
     }

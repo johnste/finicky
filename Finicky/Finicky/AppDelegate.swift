@@ -70,15 +70,11 @@ class AppDelegate: NSObject, NSApplicationDelegate, NSUserNotificationCenterDele
     }
 
     func CheckDefaultBrowser() {
-        do {
-            let url = CFURLCreateWithString(kCFAllocatorDefault, "http://" as CFString, nil)
-            if let app = CFURLGetString(LSCopyDefaultApplicationURLForURL(url!, .all, nil)?.takeUnretainedValue()) as String? {
-                if app.contains("Finicky.app") {
-                    logToConsole("Finicky works best when it is set as the default browser")
-                }
+        let url = CFURLCreateWithString(kCFAllocatorDefault, "http://" as CFString, nil)
+        if let app = CFURLGetString(LSCopyDefaultApplicationURLForURL(url!, .all, nil)?.takeUnretainedValue()) as String? {
+            if app.contains("Finicky.app") {
+                logToConsole("Finicky works best when it is set as the default browser")
             }
-        } catch {
-            // Silently fail if we can't detect the default browser
         }
     }
 

@@ -4,6 +4,8 @@ import { createAPI } from "../src/createAPI";
 import { Url, UrlFunction } from "../src/types";
 
 const EXAMPLE_URL = "https://test.example";
+const EXAMPLE_WILDCARD_PATTERN = "https://test.example/*";
+
 const CHANGED_URL = "https://test.changed";
 
 const createRewriteConfig = ({
@@ -44,6 +46,12 @@ describe("Rewrites", () => {
     test("match string", () => {
       const config = createRewriteConfig({ match: EXAMPLE_URL });
       const result = processUrl(config, EXAMPLE_URL);
+      expect(result.url).toBe(CHANGED_URL);
+    });
+
+    test("match wildcard pattern", () => {
+      const config = createRewriteConfig({ match: EXAMPLE_WILDCARD_PATTERN });
+      const result = processUrl(config, EXAMPLE_URL + "/path?query=123#anchor");
       expect(result.url).toBe(CHANGED_URL);
     });
   });
@@ -151,6 +159,14 @@ describe("Handlers", () => {
       const result = processUrl(config, EXAMPLE_URL);
       expect(result.browsers[0].name).toBe(CHANGED_BROWSER);
     });
+
+    test("match wildcard pattern", () => {
+      const config = createConfig({
+        handlers: [{ browser: CHANGED_BROWSER, match: EXAMPLE_WILDCARD_PATTERN }],
+      });
+      const result = processUrl(config, EXAMPLE_URL + "/path?query=123#anchor");
+      expect(result.browsers[0].name).toBe(CHANGED_BROWSER);
+    });
   });
 
   describe("Browser", () => {
@@ -250,6 +266,17 @@ describe("Handlers", () => {
           appType: "bundleId",
         });
       });
+    });
+  });
+
+  describe("Handlers with browser and url rewrite", () => {
+    test("that matches and rewrites the url", () => {
+      const config = createConfig({
+        handlers: [{ browser: CHANGED_BROWSER, url: CHANGED_URL, match: () => true }],
+      });
+      const result = processUrl(config, EXAMPLE_URL);
+      expect(result.browsers[0].name).toBe(CHANGED_BROWSER);
+      expect(result.url).toBe(CHANGED_URL);
     });
   });
 });

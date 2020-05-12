@@ -286,13 +286,14 @@ var finickyConfigApi = (function (exports) {
         }).isRequired),
         handlers: validate.arrayOf(validate.shape({
             match: matchSchema.isRequired,
+            url: validate.oneOf([validate.string, validate.function("options")]),
             browser: multipleBrowsersSchema.isRequired
         }))
     };
 
     function createRegularExpression(pattern) {
         if (!pattern) {
-            return undefined;
+            return /^$/;
         }
         var result = pattern;
         result = result.replace(/[-[\]\/{}()*+?.,\\^$|#\s]/g, "\\$&");
@@ -331,11 +332,14 @@ var finickyConfigApi = (function (exports) {
         if (!config) {
             return processBrowserResult("Safari", options);
         }
-        options = rewriteUrl(config, options);
+        options = processUrlRewrites(config, options);
         if (Array.isArray(config.handlers)) {
             for (var _i = 0, _a = config.handlers; _i < _a.length; _i++) {
                 var handler = _a[_i];
                 if (isMatch(handler.match, options)) {
+                    if (handler.url) {
+                        options = rewriteUrl(handler.url, options);
+                    }
                     return processBrowserResult(handler.browser, options);
                 }
             }
@@ -358,21 +362,25 @@ var finickyConfigApi = (function (exports) {
         auth += url.password ? ":" + url.password : "";
         return protocol + "://" + auth + host + port + pathname + search + hash;
     }
-    function rewriteUrl(config, options) {
+    function processUrlRewrites(config, options) {
         if (Array.isArray(config.rewrite)) {
             for (var _i = 0, _a = config.rewrite; _i < _a.length; _i++) {
                 var rewrite = _a[_i];
                 if (isMatch(rewrite.match, options)) {
-                    var urlResult = resolveUrl(rewrite.url, options);
-                    validateSchema({ url: urlResult }, urlSchema);
-                    if (typeof urlResult === "string") {
-                        options = __assign(__assign({}, options), { url: finicky.getUrlParts(urlResult), urlString: urlResult });
-                    }
-                    else {
-                        options = __assign(__assign({}, options), { url: urlResult, urlString: createUrl(urlResult) });
-                    }
+                    options = rewriteUrl(rewrite.url, options);
                 }
             }
+        }
+        return options;
+    }
+    function rewriteUrl(url, options) {
+        var urlResult = resolveUrl(url, options);
+        validateSchema({ url: urlResult }, urlSchema);
+        if (typeof urlResult === "string") {
+            options = __assign(__assign({}, options), { url: finicky.getUrlParts(urlResult), urlString: urlResult });
+        }
+        else {
+            options = __assign(__assign({}, options), { url: urlResult, urlString: createUrl(urlResult) });
         }
         return options;
     }
@@ -390,7 +398,7 @@ var finickyConfigApi = (function (exports) {
                 if (!regex) {
                     return false;
                 }
-                return regex === null || regex === void 0 ? void 0 : regex.test(options.urlString);
+                return regex.test(options.urlString);
             }
             else if (typeof matcher === "function") {
                 return !!matcher(options);

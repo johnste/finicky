@@ -19,6 +19,7 @@
     "@types/url-parse": "^1.4.3",
     "chalk": "^4.0.0",
     "jest": "^25.4.0",
+    "prettier": "^2.0.5",
     "rollup": "^2.7.2",
     "rollup-plugin-commonjs": "^10.0.1",
     "rollup-plugin-node-resolve": "^5.2.0",
