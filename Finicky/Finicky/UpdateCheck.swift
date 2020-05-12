@@ -21,7 +21,7 @@ struct defaultsKeys {
  Finicky saves the last seen version to avoid warning about version already seen.
  */
 
-func checkForUpdate(_ notifyOnSeenNewVersion: Bool, _ newVersionCallback: @escaping (Version?) -> Void) {
+func checkForUpdate(_ alwaysNotify: Bool, _ newVersionCallback: @escaping (Version?, String) -> Void) {
     guard let currentVersion = Bundle.main.infoDictionary?["CFBundleShortVersionString"] as? String,
         let url = URL(string: "https://api.github.com/repos/johnste/finicky/releases") else { return }
     var request = URLRequest(url: url)
@@ -39,14 +39,31 @@ func checkForUpdate(_ notifyOnSeenNewVersion: Bool, _ newVersionCallback: @escap
                 try compareVersions(versionA.version, versionB.version) == .orderedDescending
             })
 
-            guard let latestVersion = sortedVersions.first else { newVersionCallback(nil); return }
+            // Make sure we can get the latest version available
+            guard let latestVersion = sortedVersions.first else { return }
+
+            let latestSeenBefore = defaults.string(forKey: defaultsKeys.keyLatestVersionSeen)
+
+            print("""
+            Checking for updates:
+                Current version: \(currentVersion)
+                Available version: \(latestVersion.version)
+                Latest version seen: \(latestSeenBefore ?? "<none>")
+            """)
+
             let laterThanCurrent = try compareVersions(currentVersion, latestVersion.version)
-            guard laterThanCurrent == ComparisonResult.orderedAscending else { newVersionCallback(nil); return }
-            guard let latestSeenBefore = defaults.string(forKey: defaultsKeys.keyLatestVersionSeen) else { return }
-            print("latestSeenBefore \(latestSeenBefore)")
-            if notifyOnSeenNewVersion || latestSeenBefore != latestVersion.version {
-                defaults.set(latestVersion.version, forKey: defaultsKeys.keyLatestVersionSeen)
-                newVersionCallback(latestVersion)
+
+            defaults.set(latestVersion.version, forKey: defaultsKeys.keyLatestVersionSeen)
+
+            // We want to notify on versions we haven't seen before unless the user manually checks for updates
+            if alwaysNotify || latestSeenBefore != latestVersion.version {
+                if laterThanCurrent != ComparisonResult.orderedAscending {
+                    // We running a newer or equal version to the available release
+                    newVersionCallback(nil, currentVersion)
+                    return
+                } else {
+                    newVersionCallback(latestVersion, currentVersion)
+                }
             }
         } catch {
             print("error")

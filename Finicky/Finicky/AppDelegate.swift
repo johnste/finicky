@@ -51,7 +51,7 @@ class AppDelegate: NSObject, NSApplicationDelegate, NSUserNotificationCenterDele
             }
 
             if checkForUpdate {
-                checkForAvailableUpdate(notifyOnSeenNewVersion: false)
+                checkForAvailableUpdate(alwaysNotify: false)
             }
         }
 
@@ -72,7 +72,7 @@ class AppDelegate: NSObject, NSApplicationDelegate, NSUserNotificationCenterDele
     func CheckDefaultBrowser() {
         let url = CFURLCreateWithString(kCFAllocatorDefault, "http://" as CFString, nil)
         if let app = CFURLGetString(LSCopyDefaultApplicationURLForURL(url!, .all, nil)?.takeUnretainedValue()) as String? {
-            if app.contains("Finicky.app") {
+            if !app.contains("Finicky.app") {
                 logToConsole("Finicky works best when it is set as the default browser")
             }
         }
@@ -83,11 +83,11 @@ class AppDelegate: NSObject, NSApplicationDelegate, NSUserNotificationCenterDele
     }
 
     @IBAction func checkUpdates(_: NSMenuItem? = nil) {
-        checkForAvailableUpdate(notifyOnSeenNewVersion: true)
+        checkForAvailableUpdate(alwaysNotify: true)
     }
 
-    func checkForAvailableUpdate(notifyOnSeenNewVersion: Bool = false) {
-        checkForUpdate(notifyOnSeenNewVersion) { (version: Version?) -> Void in
+    func checkForAvailableUpdate(alwaysNotify: Bool = false) {
+        checkForUpdate(alwaysNotify) { (version: Version?, _) -> Void in
             if version == nil {
                 showNotification(title: "You are running the latest version of Finicky")
                 DispatchQueue.main.async {
