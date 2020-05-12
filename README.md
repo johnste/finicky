@@ -40,6 +40,7 @@ Finicky is a macOS application that allows you to set up rules that decide which
   - [Advanced usage](#advanced-usage)
   - [Configuration ideas](#configuration-ideas)
 - [Options](#options)
+- [Function parameters](#function-parameters)
 - [Issues](#issues)
   - [Bugs](#bugs)
   - [Feature Requests](#feature-requests)
@@ -181,6 +182,38 @@ module.exports = {
     checkForUpdate: true
   },
 };
+```
+
+## Function parameters
+
+```js
+
+// Options object:
+// Available as the first parameter when using match, browser or url functions.
+
+{
+  "urlString": "http://username:password@example.com:3000/pathname/?search=test#hash", // The full URL string
+  "url": { // The URL parsed into parts
+    "username": "username",
+    "host": "example.com",
+    "protocol": "http",
+    "pathname": "/pathname/",
+    "search": "search=test",
+    "password": "password",
+    "port": 3000,
+    "hash": "hash"
+  },  
+  "keys": { // Status of modifier keys on keyboard. 
+    "control": false,
+    "function": false,
+    "shift": false,
+    "option": false,
+    "command": false,
+    "capsLock": false
+  },
+  "sourceBundleIdentifier": "net.kassett.finicky", // The bundle identifier of the application that triggered the URL to be opened. Does not work for all apps, in which case it will be null.
+  "sourceProcessPath": "/Applications/Finicky.app" // The path of the application that triggered. Does not work for all apps, in which case it will be null.
+}
 ```
 
 ### Configuration ideas
