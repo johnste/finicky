@@ -290,6 +290,20 @@ var finickyConfigApi = (function (exports) {
         }))
     };
 
+    function createRegularExpression(pattern) {
+        if (!pattern) {
+            return undefined;
+        }
+        var result = pattern;
+        result = result.replace(/[-[\]\/{}()*+?.,\\^$|#\s]/g, "\\$&");
+        result = result.replace(/\\\*/g, ".*");
+        if (!pattern.startsWith("http://") &&
+            !pattern.startsWith("https://")) {
+            result = "https?:\\/\\/" + result;
+        }
+        return new RegExp("^" + result + "$", 'i');
+    }
+
     var appDescriptorSchema = {
         name: validate.string,
         appType: validate.oneOf([
@@ -372,7 +386,11 @@ var finickyConfigApi = (function (exports) {
                 return matcher.test(options.urlString);
             }
             else if (typeof matcher === "string") {
-                return matcher === options.urlString;
+                var regex = createRegularExpression(matcher);
+                if (!regex) {
+                    return false;
+                }
+                return regex === null || regex === void 0 ? void 0 : regex.test(options.urlString);
             }
             else if (typeof matcher === "function") {
                 return !!matcher(options);
