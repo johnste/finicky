@@ -415,10 +415,17 @@ var finickyConfigApi = (function (exports) {
     }
     // Recursively resolve handler to value
     function resolveUrl(result, options) {
-        if (typeof result !== "function") {
+        if (typeof result === "string") {
             return result;
         }
-        return result(options);
+        else if (typeof result === "object") {
+            return __assign(__assign({}, options.url), result);
+        }
+        var resolved = result(options);
+        if (typeof resolved === "string") {
+            return resolved;
+        }
+        return __assign(__assign({}, options.url), resolved);
     }
     function getAppType(value) {
         if (value === null) {

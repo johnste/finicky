@@ -1,6 +1,6 @@
 import { createRegularExpression } from "../src/utils";
 
-test("Generates regular expression strings", (t) => {
+test("Generates regular expression strings", () => {
   let re = createRegularExpression("http://example.com");
   expect(re).toMatchInlineSnapshot(`/\\^http:\\\\/\\\\/example\\\\\\.com\\$/i`);
 
@@ -15,7 +15,7 @@ test("Generates regular expression strings", (t) => {
   );
 });
 
-test("Regular expressions", (t) => {
+test("Regular expressions", () => {
   let re = createRegularExpression("http://example.com");
 
   expect(re).toBeInstanceOf(RegExp);
@@ -32,11 +32,11 @@ test("Regular expressions", (t) => {
   expect(re.test("https://example.com")).toBe(true);
 });
 
-test("Wildcards", (t) => {
+test("Wildcards", () => {
   let re = createRegularExpression("http://example.com/*");
 
   expect(re.test("http://example.com/abcdefghijklmnopq")).toBe(true);
-  expect(re.test("https://example.comabcdefg")).toBe(true);
+  expect(re.test("https://example.comabcdefg")).toBe(false);
 
   re = createRegularExpression("something.*.com*");
   expect(re.test("http://something.example.comst")).toBe(true);
@@ -45,6 +45,6 @@ test("Wildcards", (t) => {
     true
   );
   expect(re.test("https://somethingexample.net/.com/test?abc=123#124")).toBe(
-    true
+    false
   );
 });

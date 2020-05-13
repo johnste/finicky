@@ -61,7 +61,7 @@ export type BrowserResult =
  */
 export interface Handler {
   match: Matcher | Matcher[];
-  url?: Url | UrlFunction;
+  url?: PartialUrl | UrlFunction;
   browser: BrowserResult;
 }
 
@@ -70,7 +70,7 @@ export interface Handler {
  */
 export interface Rewriter {
   match: Matcher | Matcher[];
-  url: Url | UrlFunction;
+  url: PartialUrl | UrlFunction;
 }
 
 /**
@@ -109,6 +109,11 @@ type BrowserFunction = (options: Options) => Browser;
 export type Url = string | UrlObject;
 
 /**
+ * Represents a url that will be handled by finicky
+ */
+export type PartialUrl = string | Partial<UrlObject>;
+
+/**
  * An object that represents a url
  */
 export interface UrlObject {
@@ -125,7 +130,7 @@ export interface UrlObject {
 /**
  * A function that returns a url
  */
-export type UrlFunction = (options: Options) => Url;
+export type UrlFunction = (options: Options) => PartialUrl;
 
 /**
  * Options sent as the argument to [[ProcessUrl]]
@@ -216,7 +221,7 @@ export const finickyConfigSchema = {
   handlers: validate.arrayOf(
     validate.shape({
       match: matchSchema.isRequired,
-      url: validate.oneOf([validate.string, validate.function("options")]),      
+      url: validate.oneOf([validate.string, validate.function("options")]),
       browser: multipleBrowsersSchema.isRequired
     })
   )

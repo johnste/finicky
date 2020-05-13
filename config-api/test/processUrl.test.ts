@@ -1,17 +1,12 @@
-import { Matcher, BrowserResult, Handler, Rewriter } from "./../src/types";
+import { Matcher, BrowserResult, Handler, Rewriter, UrlObject } from "./../src/types";
 import { processUrl } from "../src/processUrl";
 import { createAPI } from "../src/createAPI";
 import { Url, UrlFunction } from "../src/types";
 
-const EXAMPLE_URL = "https://test.example";
-const EXAMPLE_WILDCARD_PATTERN = "https://test.example/*";
-
-const CHANGED_URL = "https://test.changed";
-
 const createRewriteConfig = ({
-  urlResult = CHANGED_URL,
+  urlResult = "https://test.changed",
   match = () => true,
-}: { urlResult?: Url | UrlFunction; match?: Matcher } = {}) => {
+}: { urlResult?: Partial<UrlObject> | Url | UrlFunction; match?: Matcher } = {}) => {
   return {
     defaultBrowser: "test",
     rewrite: [{ match, url: urlResult }],
@@ -27,32 +22,32 @@ describe("Rewrites", () => {
 
     test("function that returns true", () => {
       const config = createRewriteConfig({ match: () => true });
-      const result = processUrl(config, EXAMPLE_URL);
-      expect(result.url).toBe(CHANGED_URL);
+      const result = processUrl(config, "https://test.example");
+      expect(result.url).toBe("https://test.changed");
     });
 
     test("function that returns false", () => {
       const config = createRewriteConfig({ match: () => false });
-      const result = processUrl(config, EXAMPLE_URL);
-      expect(result.url).not.toBe(CHANGED_URL);
+      const result = processUrl(config, "https://test.example");
+      expect(result.url).not.toBe("https://test.changed");
     });
 
     test("match regular expression", () => {
       const config = createRewriteConfig({ match: /test\.example/ });
-      const result = processUrl(config, EXAMPLE_URL);
-      expect(result.url).toBe(CHANGED_URL);
+      const result = processUrl(config, "https://test.example");
+      expect(result.url).toBe("https://test.changed");
     });
 
     test("match string", () => {
-      const config = createRewriteConfig({ match: EXAMPLE_URL });
-      const result = processUrl(config, EXAMPLE_URL);
-      expect(result.url).toBe(CHANGED_URL);
+      const config = createRewriteConfig({ match: "https://test.example" });
+      const result = processUrl(config, "https://test.example");
+      expect(result.url).toBe("https://test.changed");
     });
 
     test("match wildcard pattern", () => {
-      const config = createRewriteConfig({ match: EXAMPLE_WILDCARD_PATTERN });
-      const result = processUrl(config, EXAMPLE_URL + "/path?query=123#anchor");
-      expect(result.url).toBe(CHANGED_URL);
+      const config = createRewriteConfig({ match: "https://test.example/*" });
+      const result = processUrl(config, "https://test.example" + "/path?query=123#anchor");
+      expect(result.url).toBe("https://test.changed");
     });
   });
 
@@ -63,22 +58,22 @@ describe("Rewrites", () => {
     });
 
     test("String", () => {
-      const config = createRewriteConfig({ urlResult: CHANGED_URL });
-      const result = processUrl(config, EXAMPLE_URL);
-      expect(result.url).toBe(CHANGED_URL);
+      const config = createRewriteConfig({ urlResult: "https://test.changed" });
+      const result = processUrl(config, "https://test.example");
+      expect(result.url).toBe("https://test.changed");
     });
 
     test("Function", () => {
-      const config = createRewriteConfig({ urlResult: () => CHANGED_URL });
-      const result = processUrl(config, EXAMPLE_URL);
-      expect(result.url).toBe(CHANGED_URL);
+      const config = createRewriteConfig({ urlResult: () => "https://test.changed" });
+      const result = processUrl(config, "https://test.example");
+      expect(result.url).toBe("https://test.changed");
     });
 
     test("Function arguments", () => {
       const config = createRewriteConfig({
         urlResult: ({ urlString }) => urlString + "?ok",
       });
-      const result = processUrl(config, EXAMPLE_URL);
+      const result = processUrl(config, "https://test.example");
       expect(result.url).toBe("https://test.example?ok");
     });
 
@@ -86,7 +81,7 @@ describe("Rewrites", () => {
       const config = createRewriteConfig({
         urlResult: ({ urlString, url }) => urlString + "?" + url.protocol,
       });
-      const result = processUrl(config, EXAMPLE_URL);
+      const result = processUrl(config, "https://test.example");
       expect(result.url).toBe("https://test.example?https");
     });
 
@@ -97,10 +92,37 @@ describe("Rewrites", () => {
           host: "test2.example",
         }),
       });
-      const result = processUrl(config, EXAMPLE_URL);
+      const result = processUrl(config, "https://test.example");
       expect(result.url).toBe("https://test2.example");
     });
   });
+
+
+  describe("Rewrite partial url", () => {
+    beforeAll(() => {
+      // @ts-ignore
+      global.finicky = createAPI();
+    });
+
+    test("Protocol change", () => {
+      const config = createRewriteConfig({ urlResult: { protocol: "ftp" } });
+      const result = processUrl(config, "http://example.com");
+      expect(result.url).toBe("ftp://example.com");
+    });
+
+    test("Hostname change", () => {
+      const config = createRewriteConfig({ urlResult: { host: "example.org" } });
+      const result = processUrl(config, "http://example.com");
+      expect(result.url).toBe("http://example.org");
+    });
+
+    test("Multiple change", () => {
+      const config = createRewriteConfig({ urlResult: { hash: "anchor", port: 1234, pathname: "/a/path" } });
+      const result = processUrl(config, "http://example.com");
+      expect(result.url).toBe("http://example.com:1234/a/path#anchor");
+    });
+  });
+
 });
 
 const EXAMPLE_BROWSER = "Default Browser";
@@ -132,7 +154,7 @@ describe("Handlers", () => {
       const config = createConfig({
         handlers: [{ browser: CHANGED_BROWSER, match: () => true }],
       });
-      const result = processUrl(config, EXAMPLE_URL);
+      const result = processUrl(config, "https://test.example");
       expect(result.browsers[0].name).toBe(CHANGED_BROWSER);
     });
 
@@ -140,7 +162,7 @@ describe("Handlers", () => {
       const config = createConfig({
         handlers: [{ browser: CHANGED_BROWSER, match: () => false }],
       });
-      const result = processUrl(config, EXAMPLE_URL);
+      const result = processUrl(config, "https://test.example");
       expect(result.browsers[0].name).not.toBe(CHANGED_BROWSER);
     });
 
@@ -148,23 +170,23 @@ describe("Handlers", () => {
       const config = createConfig({
         handlers: [{ browser: CHANGED_BROWSER, match: /test\.example/ }],
       });
-      const result = processUrl(config, EXAMPLE_URL);
+      const result = processUrl(config, "https://test.example");
       expect(result.browsers[0].name).toBe(CHANGED_BROWSER);
     });
 
     test("match string", () => {
       const config = createConfig({
-        handlers: [{ browser: CHANGED_BROWSER, match: EXAMPLE_URL }],
+        handlers: [{ browser: CHANGED_BROWSER, match: "https://test.example" }],
       });
-      const result = processUrl(config, EXAMPLE_URL);
+      const result = processUrl(config, "https://test.example");
       expect(result.browsers[0].name).toBe(CHANGED_BROWSER);
     });
 
     test("match wildcard pattern", () => {
       const config = createConfig({
-        handlers: [{ browser: CHANGED_BROWSER, match: EXAMPLE_WILDCARD_PATTERN }],
+        handlers: [{ browser: CHANGED_BROWSER, match: "https://test.example/*" }],
       });
-      const result = processUrl(config, EXAMPLE_URL + "/path?query=123#anchor");
+      const result = processUrl(config, "https://test.example" + "/path?query=123#anchor");
       expect(result.browsers[0].name).toBe(CHANGED_BROWSER);
     });
   });
@@ -175,7 +197,7 @@ describe("Handlers", () => {
         const config = createConfig({
           handlers: [{ browser: CHANGED_BROWSER, match: () => true }],
         });
-        const result = processUrl(config, EXAMPLE_URL);
+        const result = processUrl(config, "https://test.example");
         expect(result.browsers[0]).toEqual({
           name: CHANGED_BROWSER,
           appType: "appName",
@@ -186,7 +208,7 @@ describe("Handlers", () => {
         const config = createConfig({
           handlers: [{ browser: () => CHANGED_BROWSER, match: () => true }],
         });
-        const result = processUrl(config, EXAMPLE_URL);
+        const result = processUrl(config, "https://test.example");
         expect(result.browsers[0]).toEqual({
           name: CHANGED_BROWSER,
           appType: "appName",
@@ -197,7 +219,7 @@ describe("Handlers", () => {
         const config = createConfig({
           handlers: [{ browser: { name: CHANGED_BROWSER }, match: () => true }],
         });
-        const result = processUrl(config, EXAMPLE_URL);
+        const result = processUrl(config, "https://test.example");
         expect(result.browsers[0]).toEqual({
           name: CHANGED_BROWSER,
           appType: "appName",
@@ -210,7 +232,7 @@ describe("Handlers", () => {
             { browser: () => ({ name: CHANGED_BROWSER }), match: () => true },
           ],
         });
-        const result = processUrl(config, EXAMPLE_URL);
+        const result = processUrl(config, "https://test.example");
         expect(result.browsers[0]).toEqual({
           name: CHANGED_BROWSER,
           appType: "appName",
@@ -223,7 +245,7 @@ describe("Handlers", () => {
         const config = createConfig({
           handlers: [{ browser: EXAMPLE_BUNDLEID, match: () => true }],
         });
-        const result = processUrl(config, EXAMPLE_URL);
+        const result = processUrl(config, "https://test.example");
         expect(result.browsers[0]).toEqual({
           name: EXAMPLE_BUNDLEID,
           appType: "bundleId",
@@ -234,7 +256,7 @@ describe("Handlers", () => {
         const config = createConfig({
           handlers: [{ browser: () => EXAMPLE_BUNDLEID, match: () => true }],
         });
-        const result = processUrl(config, EXAMPLE_URL);
+        const result = processUrl(config, "https://test.example");
         expect(result.browsers[0]).toEqual({
           name: EXAMPLE_BUNDLEID,
           appType: "bundleId",
@@ -247,7 +269,7 @@ describe("Handlers", () => {
             { browser: { name: EXAMPLE_BUNDLEID }, match: () => true },
           ],
         });
-        const result = processUrl(config, EXAMPLE_URL);
+        const result = processUrl(config, "https://test.example");
         expect(result.browsers[0]).toEqual({
           name: EXAMPLE_BUNDLEID,
           appType: "bundleId",
@@ -260,7 +282,7 @@ describe("Handlers", () => {
             { browser: () => ({ name: EXAMPLE_BUNDLEID }), match: () => true },
           ],
         });
-        const result = processUrl(config, EXAMPLE_URL);
+        const result = processUrl(config, "https://test.example");
         expect(result.browsers[0]).toEqual({
           name: EXAMPLE_BUNDLEID,
           appType: "bundleId",
@@ -272,11 +294,11 @@ describe("Handlers", () => {
   describe("Handlers with browser and url rewrite", () => {
     test("that matches and rewrites the url", () => {
       const config = createConfig({
-        handlers: [{ browser: CHANGED_BROWSER, url: CHANGED_URL, match: () => true }],
+        handlers: [{ browser: CHANGED_BROWSER, url: "https://test.changed", match: () => true }],
       });
-      const result = processUrl(config, EXAMPLE_URL);
+      const result = processUrl(config, "https://test.example");
       expect(result.browsers[0].name).toBe(CHANGED_BROWSER);
-      expect(result.url).toBe(CHANGED_URL);
+      expect(result.url).toBe("https://test.changed");
     });
   });
 });

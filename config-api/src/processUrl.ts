@@ -13,6 +13,7 @@ import {
   UrlFunction,
   ProcessOptions,
   Rewriter,
+  PartialUrl,
 } from "./types";
 import { createRegularExpression } from './utils';
 
@@ -122,7 +123,8 @@ function processUrlRewrites(config: FinickyConfig, options: Options) {
   return options;
 }
 
-function rewriteUrl(url: Url | UrlFunction, options: Options) {
+function rewriteUrl(url: PartialUrl | UrlFunction, options: Options) {
+
   let urlResult = resolveUrl(url, options);
   validateSchema({ url: urlResult }, urlSchema);
   if (typeof urlResult === "string") {
@@ -176,12 +178,20 @@ function resolveBrowser(result: BrowserResult, options: Options) {
 }
 
 // Recursively resolve handler to value
-function resolveUrl(result: Url | UrlFunction, options: Options) {
-  if (typeof result !== "function") {
+function resolveUrl(result: PartialUrl | UrlFunction, options: Options) {
+  if (typeof result === "string") {
     return result;
   }
+  else if (typeof result === "object") {
+    return { ...options.url, ...result } as UrlObject;
+  }
 
-  return result(options);
+  const resolved = result(options);
+  if (typeof resolved === "string") {
+    return resolved;
+  }
+
+  return { ...options.url, ...resolved } as UrlObject;
 }
 
 function getAppType(value: string) {
