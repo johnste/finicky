@@ -124,6 +124,9 @@ class AppDelegate: NSObject, NSApplicationDelegate, NSUserNotificationCenterDele
         let dateString = formatter.string(from: date)
         textView.string = textView.string + dateString + " - " + message + "\n"
         textView.scrollToEndOfDocument(self)
+        textView.isEditable = true
+        textView.checkTextInDocument(nil)
+        textView.isEditable = false
     }
 
     @IBAction func ClearConsole(_: Any? = nil) {

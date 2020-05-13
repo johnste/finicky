@@ -217,17 +217,22 @@ let finickyConfigApi = (() => {
       // src/fastidious/index.ts
 
       // src/types.ts
+      const urlObjectSchema = {
+        protocol: validate.string.isRequired,
+        username: validate.string,
+        password: validate.string,
+        host: validate.string.isRequired,
+        port: validate.oneOf([validate.number, validate.value(null)]),
+        pathname: validate.string,
+        search: validate.string,
+        hash: validate.string
+      };
+      const partialUrlSchema = __assign(__assign({}, urlObjectSchema), {
+        protocol: validate.string,
+        host: validate.string
+      });
       const urlSchema = {
-        url: validate.oneOf([validate.string, validate.shape({
-          protocol: validate.string,
-          username: validate.string,
-          password: validate.string,
-          host: validate.string,
-          port: validate.oneOf([validate.number, validate.value(null)]),
-          pathname: validate.string,
-          search: validate.string,
-          hash: validate.string
-        })]).isRequired
+        url: validate.oneOf([validate.string, validate.shape(urlObjectSchema)]).isRequired
       };
       const browserSchema = validate.oneOf([validate.string, validate.shape({
         name: validate.string.isRequired,
@@ -245,11 +250,11 @@ let finickyConfigApi = (() => {
         }),
         rewrite: validate.arrayOf(validate.shape({
           match: matchSchema.isRequired,
-          url: validate.oneOf([validate.string, validate.function("options")]).isRequired
+          url: validate.oneOf([validate.string, validate.shape(partialUrlSchema), validate.function("options")]).isRequired
         }).isRequired),
         handlers: validate.arrayOf(validate.shape({
           match: matchSchema.isRequired,
-          url: validate.oneOf([validate.string, validate.function("options")]),
+          url: validate.oneOf([validate.string, validate.shape(partialUrlSchema), validate.function("options")]),
           browser: multipleBrowsersSchema.isRequired
         }))
       };

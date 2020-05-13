@@ -159,21 +159,32 @@ export interface Options extends ProcessOptions {
   url: UrlObject;
 }
 
+const urlObjectSchema = {
+  protocol: validate.string.isRequired,
+  username: validate.string,
+  password: validate.string,
+  host: validate.string.isRequired,
+  port: validate.oneOf([validate.number, validate.value(null)]),
+  pathname: validate.string,
+  search: validate.string,
+  hash: validate.string
+}
+
+const partialUrlSchema = {
+  ...urlObjectSchema,
+  protocol: validate.string,
+  host: validate.string,
+};
+
+
 export const urlSchema = {
   url: validate.oneOf([
     validate.string,
-    validate.shape({
-      protocol: validate.string.isRequired,
-      username: validate.string,
-      password: validate.string,
-      host: validate.string.isRequired,
-      port: validate.oneOf([validate.number, validate.value(null)]),
-      pathname: validate.string,
-      search: validate.string,
-      hash: validate.string
-    })
+    validate.shape(urlObjectSchema)
   ]).isRequired
 };
+
+
 
 const browserSchema = validate.oneOf([
   validate.string,
@@ -214,14 +225,14 @@ export const finickyConfigSchema = {
   rewrite: validate.arrayOf(
     validate.shape({
       match: matchSchema.isRequired,
-      url: validate.oneOf([validate.string, validate.function("options")])
+      url: validate.oneOf([validate.string, validate.shape(partialUrlSchema), validate.function("options")])
         .isRequired
     }).isRequired
   ),
   handlers: validate.arrayOf(
     validate.shape({
       match: matchSchema.isRequired,
-      url: validate.oneOf([validate.string, validate.function("options")]),
+      url: validate.oneOf([validate.string, validate.shape(partialUrlSchema), validate.function("options")]),
       browser: multipleBrowsersSchema.isRequired
     })
   )
