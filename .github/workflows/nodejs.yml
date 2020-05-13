@@ -3,6 +3,9 @@
 
 name: Node.js CI
 
+defaults:
+  run:
+    working-directory: ./config-api
 on:
   push:
     branches: [ master ]
@@ -25,7 +28,6 @@ jobs:
       uses: actions/setup-node@v1
       with:
         node-version: ${{ matrix.node-version }}
-        working-directory: config-api
     - run: yarn --frozen-lockfile
     - run: yarn build
     - run: yarn test
