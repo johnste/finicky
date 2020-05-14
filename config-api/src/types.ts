@@ -96,6 +96,7 @@ export interface BrowserObject {
   name: string;
   appType?: "appName" | "bundleId" | "appPath" | "none";
   openInBackground?: boolean;
+  profile?: string;
 }
 
 /**
@@ -191,7 +192,8 @@ const browserSchema = validate.oneOf([
   validate.shape({
     name: validate.string.isRequired,
     appType: validate.oneOf(["appName", "appPath", "bundleId"]),
-    openInBackground: validate.boolean
+    openInBackground: validate.boolean,
+    profile: validate.string,
   }),
   validate.function("options"),
   validate.value(null)

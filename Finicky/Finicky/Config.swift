@@ -272,6 +272,7 @@ open class FinickyConfig {
                     let appType = AppDescriptorType(rawValue: dict["appType"] as! String)
                     let openInBackground: Bool? = dict["openInBackground"] as? Bool
                     let browserName = dict["name"] as! String
+                    let browserProfile: String? = dict["profile"] as? String
 
                     if browserName == "" {
                         return nil
@@ -279,7 +280,7 @@ open class FinickyConfig {
 
                     do {
                         // Default to opening the application in the bg if Finicky is not activated.
-                        let browser = try BrowserOpts(name: browserName, appType: appType!, openInBackground: openInBackground)
+                        let browser = try BrowserOpts(name: browserName, appType: appType!, openInBackground: openInBackground, profile:browserProfile)
                         return browser
                     } catch _ as BrowserError {
                         showNotification(title: "Couldn't find browser \"\(browserName)\"")
