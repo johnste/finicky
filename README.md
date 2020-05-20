@@ -251,7 +251,7 @@ If you want to help support further development of finicky, feel free to buy me 
 
 ## Building from source
 
-Install XCode and XCode command line tools and then run commands:
+Install Xcode and Xcode command line tools and then run commands:
 
 ```shell
     git clone https://github.com/johnste/finicky.git
