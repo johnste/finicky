@@ -1,9 +1,9 @@
 <div align="center">
-  <h1>Finicky<img
-    height="36"
-    width="36"
-    alt="finicky logo - hand pointing downwards"
-    src="https://raw.githubusercontent.com/johnste/finicky/master/Finicky/Finicky/statusitem%402x.png"
+  <h1><img
+    height="100"
+    width="336"
+    alt="finicky logo"
+    src="https://raw.githubusercontent.com/johnste/finicky/gh-pages/finicky-logo.svg"
   />
   </h1>
 
