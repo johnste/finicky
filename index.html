@@ -1,60 +1,55 @@
 <!DOCTYPE html>
 <html>
-
   <head>
-    <meta charset="utf-8">
-    <meta name="theme-color" content="#ffffff">
+    <meta charset="utf-8" />
+    <meta name="theme-color" content="#ffffff" />
 
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <meta name="description" content="Finicky">
-    <link rel="stylesheet" type="text/css" href="stylesheets/stylesheet.css">
-    <link rel="stylesheet" type="text/css" href="https://fonts.googleapis.com/css?family=Open+Sans">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="description" content="Finicky" />
+    <link rel="stylesheet" type="text/css" href="stylesheet.css" />
+    <link rel="stylesheet" type="text/css" href="font/hack-subset.css" />
+    <meta http-equiv="refresh" content="1111" />
+    <title>Finicky by johnste</title>
+  </head>
 
-  <title>Finicky by johnste</title>
-</head>
+  <body>
+    <div id="container">
+      <div class="inner">
+        <header>
+          <a id="finicky-" class="anchor" href="#finicky-" aria-hidden="true"
+            ><span class="octicon octicon-link"></span
+          ></a>
 
-<body>
-  <div id="container">
-    <div class="inner">
+          <img src="finicky-logo.svg" alt="Finicky logo" height="100" />
+        </header>
 
-      <header>
-        <h1>Finicky<a id="finicky-" class="anchor" href="#finicky-" aria-hidden="true"><span class="octicon octicon-link"></span></a> <img src="https://raw.githubusercontent.com/johnste/finicky/gh-pages/finicky-logo.png" alt="Finicky logo"></h1>
-     
-      </header>
-      <section>
-        <a href="https://github.com/johnste/finicky">GitHub</a>  
-        
-        <img src="https://raw.githubusercontent.com/johnste/finicky/gh-pages/screenshot-v3.png" alt="Finicky screenshot">
-      </section>
-     
-      <footer>
-        Finicky is maintained by <a href="https://github.com/johnste">johnste</a>
-        <br/>Stargazers: <strong class="star-count"></strong>
-        <br/>Downloads: <pre class="download-count"></pre> 
-      </footer>    
-      <script src="https://ajax.googleapis.com/ajax/libs/jquery/2.1.4/jquery.min.js"></script>
-      <script>
-        $(function() {
-          $.ajax("https://api.github.com/repos/johnste/finicky/releases").done(function(result) {
-            let total = 0;
-            const downloads = result.reduce(function(prev, current) {
-              if (current && current.assets && current.assets[0]) {
-                total += current.assets[0].download_count;
-                return { ...prev, [current.tag_name]:  current.assets[0].download_count }
-              }
-            }, {});
-            $(".download-count").html(JSON.stringify({total, ...downloads}, null, 2));
-          });
-        })
-        
-        $(function() {
-          $.ajax("https://api.github.com/repos/johnste/finicky").done(function(result) {            
-            $(".star-count").html(result.stargazers_count);
-          });
-        })
-      </script>
+        <section>
+          Always open the right browser (or app) for any url.
+        </section>
+        <section>
+          <img src="config.png" alt="Finicky configuration example" />
+        </section>
+
+        <footer>
+          <a href="https://github.com/johnste/finicky/releases">Download</a>
+
+          <a href="https://github.com/johnste/finicky">GitHub</a>
+
+          <a href="https://twitter.com/johnste_">@johnste_</a>
+        </footer>
+
+        <section class="code">
+          <label>Stargazers</label><br />
+          <strong class="star-count">-</strong>
+          <hr noshade />
+          <label>Downloads</label><br />
+          <pre class="download-count">
+{
+}</pre
+          >
+        </section>
+      </div>
     </div>
-  </div>
-</body>
-
+    <script src="script.js" defer async></script>
+  </body>
 </html>

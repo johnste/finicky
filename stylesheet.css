@@ -1,0 +1,67 @@
+html {
+  background: #f0ebcd;
+}
+body {
+  font-family: Open Sans, Arial;
+  color: #454545;
+  font-size: 16px;
+  margin: 2em auto;
+  display: flex;
+  flex-direction: row;
+  padding: 1em;
+  line-height: 1.4;
+  justify-content: center;
+}
+
+header,
+footer,
+section {
+  text-align: center;
+}
+
+a {
+  color: #333;
+  text-decoration: none;
+  margin: 0 10px;
+}
+
+a:hover {
+  text-decoration: underline;
+}
+
+a:visited {
+  color: #333;
+}
+
+.icon {
+  display: inline-block;
+  margin: 0 0.125em;
+  padding: 0;
+  width: 20px;
+  height: 20px;
+  vertical-align: middle;
+}
+
+.code {
+  font-family: Hack, monospace;
+  padding: 1em;
+  border-radius: 5px;
+  background: #040119;
+  color: #eefd2d;
+}
+
+label {
+  color: #ff0378;
+}
+
+hr {
+  border-top: 1px solid #f0ebcd;
+}
+
+pre {
+  margin: 0;
+}
+
+footer {
+  margin: 0 0 20px;
+}
