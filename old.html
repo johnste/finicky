@@ -1,0 +1,85 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8" />
+    <meta name="theme-color" content="#ffffff" />
+
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="description" content="Finicky" />
+    <link rel="stylesheet" type="text/css" href="stylesheets/stylesheet.css" />
+    <link
+      rel="stylesheet"
+      type="text/css"
+      href="https://fonts.googleapis.com/css?family=Open+Sans"
+    />
+
+    <title>Finicky by johnste</title>
+  </head>
+
+  <body>
+    <div id="container">
+      <div class="inner">
+        <header>
+          <h1>
+            Finicky<a
+              id="finicky-"
+              class="anchor"
+              href="#finicky-"
+              aria-hidden="true"
+              ><span class="octicon octicon-link"></span
+            ></a>
+            <img
+              src="https://raw.githubusercontent.com/johnste/finicky/master/Finicky/Finicky/statusitem%402x.png"
+              alt="Finicky logo"
+            />
+          </h1>
+        </header>
+        <section>
+          <a href="https://github.com/johnste/finicky">GitHub</a>
+
+          <img
+            src="https://raw.githubusercontent.com/johnste/finicky/gh-pages/screenshot-v3.png"
+            alt="Finicky screenshot"
+          />
+        </section>
+
+        <footer>
+          Finicky is maintained by
+          <a href="https://github.com/johnste">johnste</a> <br />Stargazers:
+          <strong class="star-count"></strong> <br />Downloads:
+          <pre class="download-count"></pre>
+        </footer>
+        <script src="https://ajax.googleapis.com/ajax/libs/jquery/2.1.4/jquery.min.js"></script>
+        <script>
+          $(function () {
+            $.ajax(
+              "https://api.github.com/repos/johnste/finicky/releases"
+            ).done(function (result) {
+              let total = 0;
+              const downloads = result.reduce(function (prev, current) {
+                if (current && current.assets && current.assets[0]) {
+                  total += current.assets[0].download_count;
+                  return {
+                    ...prev,
+                    [current.tag_name]: current.assets[0].download_count,
+                  };
+                }
+              }, {});
+              $(".download-count").html(
+                JSON.stringify({ total, ...downloads }, null, 2)
+              );
+            });
+          });
+
+          $(function () {
+            $.ajax("https://api.github.com/repos/johnste/finicky").done(
+              function (result) {
+                $(".star-count").html(result.stargazers_count);
+              }
+            );
+          });
+        </script>
+      </div>
+    </div>
+  </body>
+</html>
