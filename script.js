@@ -1,26 +1,29 @@
-async function parseData() {
+async function showDownloads() {
   let response = fetch("https://api.github.com/repos/johnste/finicky/releases");
-  let data = await response.json();
+  let result = await response.json();
 
-  data.done(function (result) {
-    let total = 0;
-    const downloads = result.reduce(function (prev, current) {
-      if (current && current.assets && current.assets[0]) {
-        total += current.assets[0].download_count;
-        return {
-          ...prev,
-          [current.tag_name]: current.assets[0].download_count,
-        };
-      }
-    }, {});
-    $(".download-count").html(JSON.stringify({ total, ...downloads }, null, 2));
-  });
+  let total = 0;
+
+  const downloads = Object.fromEntries(
+    result
+      .filter((v) => current?.assets?.[0])
+      .map((v) => [current.tag_name, current.assets[0].download_count])
+  );
+
+  document.getElementsByClassName("download-count").innerHTML = JSON.stringify(
+    { total, ...downloads },
+    null,
+    2
+  );
 }
 
-// $(function () {
-//   $.ajax("https://api.github.com/repos/johnste/finicky").done(function (
-//     result
-//   ) {
-//     $(".star-count").html(result.stargazers_count);
-//   });
-// });
+async function showStarGazers() {
+  let response = fetch("https://api.github.com/repos/johnste/finicky");
+  let result = await response.json();
+
+  document.getElementsByClassName(".star-count").innerHTML =
+    result.stargazers_count;
+}
+
+showDownloads();
+showStarGazers();
