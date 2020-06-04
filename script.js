@@ -1,6 +1,9 @@
 async function showDownloads() {
   let response = await fetch(
-    "https://api.github.com/repos/johnste/finicky/releases"
+    "https://api.github.com/repos/johnste/finicky/releases",
+    {
+      mode: "cors",
+    }
   );
   let result = await response.json();
 
@@ -26,7 +29,9 @@ async function showDownloads() {
 }
 
 async function showStarGazers() {
-  let response = await fetch("https://api.github.com/repos/johnste/finicky");
+  let response = await fetch("https://api.github.com/repos/johnste/finicky", {
+    mode: "cors",
+  });
   let result = await response.json();
 
   document.getElementsByClassName("star-count")[0].innerHTML =
