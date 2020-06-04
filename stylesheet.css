@@ -19,10 +19,16 @@ section {
   text-align: center;
 }
 
+table {
+  text-align: left;
+  width: 100%;
+}
+
 a {
   color: #333;
   text-decoration: none;
   margin: 0 10px;
+  font-weight: bold;
 }
 
 a:hover {
@@ -33,15 +39,6 @@ a:visited {
   color: #333;
 }
 
-.icon {
-  display: inline-block;
-  margin: 0 0.125em;
-  padding: 0;
-  width: 20px;
-  height: 20px;
-  vertical-align: middle;
-}
-
 .code {
   font-family: Hack, monospace;
   padding: 1em;
@@ -50,17 +47,18 @@ a:visited {
   color: #eefd2d;
 }
 
-label {
+label,
+th {
+  font-weight: bold;
   color: #ff0378;
+}
+
+.total {
+  font-weight: bold;
 }
 
 hr {
   border-top: 1px solid #f0ebcd;
-}
-
-pre {
-  margin: 0;
-  text-align: left;
 }
 
 footer {

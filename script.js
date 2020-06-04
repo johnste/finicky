@@ -4,25 +4,30 @@ async function showDownloads() {
   );
   let result = await response.json();
 
-  let total = 0;
+  let validEntries = result.filter((v) => v?.assets?.[0]);
 
-  const downloads = Object.fromEntries(
-    result
-      .filter((v) => v?.assets?.[0])
-      .map((v) => [v.tag_name, v.assets[0].download_count])
+  let total = validEntries.reduce(
+    (total, v) => total + v?.assets?.[0]?.download_count,
+    0
   );
 
-  console.log(downloads);
-  document.getElementsByClassName(
-    "download-count"
-  )[0].innerHTML = JSON.stringify({ total, ...downloads }, null, 2);
+  let downloads = validEntries
+    .filter((v) => v?.assets?.[0])
+    .map((v) => [v.tag_name, v.assets[0].download_count]);
+
+  let rows = downloads
+    .map(([version, downloads]) => {
+      return `<tr><td>${version}</td><td>${downloads}</td></tr>`;
+    })
+    .join("");
+
+  document.querySelector(".download-count tbody").innerHTML =
+    `<tr class="total"><td>total</td><td>${total}</td></tr>` + rows;
 }
 
 async function showStarGazers() {
   let response = await fetch("https://api.github.com/repos/johnste/finicky");
   let result = await response.json();
-
-  console.log(result.stargazers_count);
 
   document.getElementsByClassName("star-count")[0].innerHTML =
     result.stargazers_count;
