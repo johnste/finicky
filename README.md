@@ -7,7 +7,7 @@
   />
   </h1>
 
-  <p>Always open the right browser</p>
+  <strong>Always open the right browser</strong>
 
 </div>
 
