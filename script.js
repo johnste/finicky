@@ -3,7 +3,6 @@ async function showDownloads() {
     "https://api.github.com/repos/johnste/finicky/releases",
     {
       mode: "cors",
-      credentials: "include",
     }
   );
   let result = await response.json();
@@ -32,7 +31,6 @@ async function showDownloads() {
 async function showStarGazers() {
   let response = await fetch("https://api.github.com/repos/johnste/finicky", {
     mode: "cors",
-    credentials: "include",
   });
   let result = await response.json();
 
