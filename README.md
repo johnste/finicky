@@ -255,7 +255,9 @@ Install Xcode and Xcode command line tools and then run commands:
 
 ```shell
     git clone https://github.com/johnste/finicky.git
-    cd finicky/Finicky
+    cd config-api
+    yarn && yarn build
+    cd ../finicky/Finicky
     xcodebuild
 ```
 
