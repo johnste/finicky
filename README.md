@@ -45,6 +45,7 @@ Finicky is a macOS application that allows you to set up rules that decide which
   - [Bugs](#bugs)
   - [Feature Requests](#feature-requests)
 - [Questions](#questions)
+- [Alternatives](#alternatives)
 - [License](#license)
 - [Support development](#support-development)
 - [Building from source](#building-from-source)
@@ -238,6 +239,10 @@ a 👍.
 ## Questions
 
 Have any other questions or need help? Please feel free to reach out to me on [Twitter](https://twitter.com/johnste_).
+
+## Alternatives
+
+If you are looking for something that lets you pick the browser to activate in a graphical interface, check out [Browserosaurus](https://browserosaurus.com/), an open source browser prompter for macOS. 
 
 ## License
 
