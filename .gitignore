@@ -31,7 +31,6 @@ DerivedData
 # Carthage/Checkouts
 
 Carthage/Build
-
-domains.txt
+.DS_Store
 .vscode
 finickyConfigAPI.js
