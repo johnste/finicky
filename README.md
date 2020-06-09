@@ -37,7 +37,7 @@ Finicky is a macOS application that allows you to set up rules that decide which
 - [Example configuration](#example-configuration)
   - [Basic configuration](#basic-configuration)
   - [Rewrite urls](#rewrite-urls)
-- [Configuration documentation](#configuration-documentation)
+- [Documentation](#documentation)
 - [Configuration ideas](#configuration-ideas)
 - [Alternatives](#alternatives)
 - [Support development](#support-development)
@@ -111,7 +111,7 @@ module.exports = {
 };
 ```
 
-## Configuration documentation
+## Documentation
 
 Finicky has extensive support for matching, rewriting and starting browser. See the wiki for the [full configuration documentation](https://github.com/johnste/finicky/wiki/Configuration-documentation) explaining all available, APIs and options as well as detail information on how to match on urls.
 
