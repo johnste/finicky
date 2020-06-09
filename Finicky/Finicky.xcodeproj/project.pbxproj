@@ -230,12 +230,14 @@
 			attributes = {
 				LastSwiftMigration = 0730;
 				LastSwiftUpdateCheck = 0730;
-				LastUpgradeCheck = 1020;
+				LastUpgradeCheck = 1150;
 				ORGANIZATIONNAME = "John sterling";
 				TargetAttributes = {
 					54899CCF1B20D5BC00647101 = {
 						CreatedOnToolsVersion = 6.3;
+						DevelopmentTeam = C3XWNKDP3M;
 						LastSwiftMigration = 1020;
+						ProvisioningStyle = Automatic;
 					};
 					54899CDF1B20D5BC00647101 = {
 						CreatedOnToolsVersion = 6.3;
@@ -389,6 +391,7 @@
 				CODE_SIGN_IDENTITY = "-";
 				COPY_PHASE_STRIP = NO;
 				DEBUG_INFORMATION_FORMAT = dwarf;
+				ENABLE_HARDENED_RUNTIME = YES;
 				ENABLE_STRICT_OBJC_MSGSEND = YES;
 				ENABLE_TESTABILITY = YES;
 				GCC_C_LANGUAGE_STANDARD = gnu99;
@@ -446,6 +449,7 @@
 				CODE_SIGN_IDENTITY = "-";
 				COPY_PHASE_STRIP = NO;
 				DEBUG_INFORMATION_FORMAT = "dwarf-with-dsym";
+				ENABLE_HARDENED_RUNTIME = YES;
 				ENABLE_NS_ASSERTIONS = NO;
 				ENABLE_STRICT_OBJC_MSGSEND = YES;
 				GCC_C_LANGUAGE_STANDARD = gnu99;
@@ -468,14 +472,18 @@
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				CODE_SIGN_IDENTITY = "Apple Development";
+				CODE_SIGN_STYLE = Automatic;
 				COMBINE_HIDPI_IMAGES = YES;
-				ENABLE_HARDENED_RUNTIME = NO;
+				DEVELOPMENT_TEAM = C3XWNKDP3M;
+				ENABLE_HARDENED_RUNTIME = YES;
 				INFOPLIST_FILE = Finicky/Info.plist;
 				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/../Frameworks";
 				MACOSX_DEPLOYMENT_TARGET = 10.12;
 				MARKETING_VERSION = v3.0.0;
 				PRODUCT_BUNDLE_IDENTIFIER = net.kassett.finicky;
 				PRODUCT_NAME = "$(TARGET_NAME)";
+				PROVISIONING_PROFILE_SPECIFIER = "";
 				SWIFT_OBJC_BRIDGING_HEADER = "Finicky/Finicky-Bridging-Header.h";
 				SWIFT_VERSION = 5.0;
 			};
@@ -485,14 +493,18 @@
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				CODE_SIGN_IDENTITY = "Apple Development";
+				CODE_SIGN_STYLE = Automatic;
 				COMBINE_HIDPI_IMAGES = YES;
-				ENABLE_HARDENED_RUNTIME = NO;
+				DEVELOPMENT_TEAM = C3XWNKDP3M;
+				ENABLE_HARDENED_RUNTIME = YES;
 				INFOPLIST_FILE = Finicky/Info.plist;
 				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/../Frameworks";
 				MACOSX_DEPLOYMENT_TARGET = 10.12;
 				MARKETING_VERSION = v3.0.0;
 				PRODUCT_BUNDLE_IDENTIFIER = net.kassett.finicky;
 				PRODUCT_NAME = "$(TARGET_NAME)";
+				PROVISIONING_PROFILE_SPECIFIER = "";
 				SWIFT_OBJC_BRIDGING_HEADER = "Finicky/Finicky-Bridging-Header.h";
 				SWIFT_VERSION = 5.0;
 			};
