@@ -37,10 +37,8 @@ Finicky is a macOS application that allows you to set up rules that decide which
 - [Example configuration](#example-configuration)
   - [Basic configuration](#basic-configuration)
   - [Rewrite urls](#rewrite-urls)
-  - [Advanced usage](#advanced-usage)
-  - [Configuration ideas](#configuration-ideas)
-- [Options](#options)
-- [Function parameters](#function-parameters)
+- [Configuration documentation](#configuration-documentation)
+- [Configuration ideas](#configuration-ideas)
 - [Issues](#issues)
   - [Bugs](#bugs)
   - [Feature Requests](#feature-requests)
@@ -48,7 +46,6 @@ Finicky is a macOS application that allows you to set up rules that decide which
 - [Alternatives](#alternatives)
 - [License](#license)
 - [Support development](#support-development)
-- [Building from source](#building-from-source)
 
 <!-- END doctoc generated TOC please keep comment here to allow auto update -->
 
