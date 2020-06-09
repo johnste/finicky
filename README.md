@@ -108,118 +108,18 @@ module.exports = {
         ...url,
         protocol: "https"
       })
-    },
-    {
-      // Avoid being rickrolled
-      match: [
-        "https://www.youtube.com/watch?v=dQw4w9WgXcQ",
-        "https://www.youtube.com/watch?v=oHg5SJYRHA0"
-      ],
-      url: "about:blank"
-    }
-  ]
-};
-```
-### Advanced usage
-
-```js
-module.exports = {
-  defaultBrowser: "Google Chrome",
-  options: {
-    // Hide the finicky icon from the top bar
-    hideIcon: true
-  },
-  handlers: [
-    {
-      // Open any link clicked in Slack in Safari
-      match: ({ sourceBundleIdentifier }) =>
-        sourceBundleIdentifier === "com.tinyspeck.slackmacgap",
-      browser: "Safari"
-    },
-    {
-      // You can get the path of the process that triggered Finicky (EXPERIMENTAL)
-      match: ({ sourceProcessPath }) =>
-        sourceProcessPath && sourceProcessPath.startsWith("/Applications/Slack.app"),
-      browser: "Firefox"
-    },
-    {
-      match: ["http://zombo.com"],
-      browser: {
-        name: "Google Chrome Canary",
-        // Force opening the link in the background
-        openInBackground: true
-      }
-    },
-    {
-      match: finicky.matchHostnames(["example.com"]),
-      // Opens the first running browsers in the list. If none are running, the first one will be started.
-      browser: ["Google Chrome", "Safari", "Firefox"]
-    },
-    {
-      match: ["http://example.com"],
-      // Don't open any browser for this url, effectively blocking it
-      browser: null
-    },
-    {
-      // Open links in Safari when the option key is pressed
-      // Valid keys are: shift, option, command, control, capsLock, and function.
-      // Please note that control usually opens a tooltip menu instead of visiting a link
-      match: ({ keys }) => keys.option,
-      browser: "Safari"
     }
   ]
 };
 ```
 
-## Options
+### Configuration documentation
 
-```js
-module.exports = {
-  defaultBrowser: "Google Chrome",
-  options: {
-    // Hide the finicky icon from the top bar. Default: false
-    hideIcon: false, 
-    // Check for update on startup. Default: true
-    checkForUpdate: true
-  },
-};
-```
-
-## Function parameters
-
-```js
-
-// Options object:
-// Available as the first parameter when using match, browser or url functions.
-
-{
-  "urlString": "http://username:password@example.com:3000/pathname/?search=test#hash", // The full URL string
-  "url": { // The URL parsed into parts
-    "username": "username",
-    "host": "example.com",
-    "protocol": "http",
-    "pathname": "/pathname/",
-    "search": "search=test",
-    "password": "password",
-    "port": 3000,
-    "hash": "hash"
-  },  
-  "keys": { // Status of modifier keys on keyboard. 
-    "control": false,
-    "function": false,
-    "shift": false,
-    "option": false,
-    "command": false,
-    "capsLock": false
-  },
-  "sourceBundleIdentifier": "net.kassett.finicky", // The bundle identifier of the application that triggered the URL to be opened. Does not work for all apps, in which case it will be null.
-  "sourceProcessPath": "/Applications/Finicky.app" // The path of the application that triggered. Does not work for all apps, in which case it will be null.
-}
-```
+Finicky has extensive support for matching, rewriting and starting browser. See the wiki for the [full configuration documentation](https://github.com/johnste/finicky/wiki/Configuration-documentation) explaining all available, APIs and options as well as detail information on how to match on urls.
 
 ### Configuration ideas
 
-See the wiki page for other [configuration ideas](https://github.com/johnste/finicky/wiki/Configuration-ideas)
+See the wiki page for other [configuration ideas](https://github.com/johnste/finicky/wiki/Configuration-ideas) by users of Finicky.
 
 ## Issues
 
