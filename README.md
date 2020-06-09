@@ -119,6 +119,16 @@ Finicky has extensive support for matching, rewriting and starting browser. See 
 
 See the wiki page for other [configuration ideas](https://github.com/johnste/finicky/wiki/Configuration-ideas) by users of Finicky.
 
+## Alternatives
+
+If you are looking for something that lets you pick the browser to activate in a graphical interface, check out [Browserosaurus](https://browserosaurus.com/), an open source browser prompter for macOS. 
+
+## Support development
+
+If you want to help support further development of finicky, feel free to buy me a coffee on ko-fi.
+
+<a href='https://ko-fi.com/E1E5W973' target='_blank'><img height='36' style='border:0px;height:36px;' src='https://az743702.vo.msecnd.net/cdn/kofi1.png?v=2' border='0' alt='Buy Me a Coffee at ko-fi.com' /></a>
+
 ## Issues
 
 ### Bugs
@@ -134,20 +144,10 @@ a 👍.
 
 [**See Feature Requests**](https://github.com/johnste/finicky/labels/feature%20request)
 
-## Questions
+### Questions
 
 Have any other questions or need help? Please feel free to reach out to me on [Twitter](https://twitter.com/johnste_).
-
-## Alternatives
-
-If you are looking for something that lets you pick the browser to activate in a graphical interface, check out [Browserosaurus](https://browserosaurus.com/), an open source browser prompter for macOS. 
 
 ## License
 
 [MIT](https://raw.githubusercontent.com/johnste/finicky/master/LICENSE)
-
-## Support development
-
-If you want to help support further development of finicky, feel free to buy me a coffee on ko-fi.
-
-<a href='https://ko-fi.com/E1E5W973' target='_blank'><img height='36' style='border:0px;height:36px;' src='https://az743702.vo.msecnd.net/cdn/kofi1.png?v=2' border='0' alt='Buy Me a Coffee at ko-fi.com' /></a>
