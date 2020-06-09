@@ -65,11 +65,19 @@ Finicky is a macOS application that allows you to set up rules that decide which
 
 ## Example configuration
 
-### Basic configuration
-
 ```js
 module.exports = {
   defaultBrowser: "Google Chrome",
+  rewrite: [
+    {
+      // Redirect all urls to use https
+      match: ({ url }) => url.protocol === "http",
+      url: ({ url }) => ({
+        ...url,
+        protocol: "https"
+      })
+    }
+  ],
   handlers: [
     {
       // Open apple.com and example.org urls in Safari
@@ -88,24 +96,6 @@ module.exports = {
         /.*\.google.com$/ // match all google.com subdomains
       ]),
       browser: "Google Chrome"
-    }
-  ]
-};
-```
-
-### Rewrite urls
-
-```js
-module.exports = {
-  defaultBrowser: "Google Chrome",
-  rewrite: [
-    {
-      // Redirect all urls to use https
-      match: ({ url }) => url.protocol === "http",
-      url: ({ url }) => ({
-        ...url,
-        protocol: "https"
-      })
     }
   ]
 };
