@@ -153,18 +153,3 @@ If you are looking for something that lets you pick the browser to activate in a
 If you want to help support further development of finicky, feel free to buy me a coffee on ko-fi.
 
 <a href='https://ko-fi.com/E1E5W973' target='_blank'><img height='36' style='border:0px;height:36px;' src='https://az743702.vo.msecnd.net/cdn/kofi1.png?v=2' border='0' alt='Buy Me a Coffee at ko-fi.com' /></a>
-
-## Building from source
-
-Install Xcode and Xcode command line tools and then run commands:
-
-```shell
-    git clone https://github.com/johnste/finicky.git
-    cd config-api
-    yarn && yarn build
-    cd ../finicky/Finicky
-    xcodebuild
-```
-
-When complete you'll find a freshly built **Finicky** app in
-`build/release`.
