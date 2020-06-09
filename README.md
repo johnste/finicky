@@ -39,13 +39,14 @@ Finicky is a macOS application that allows you to set up rules that decide which
   - [Rewrite urls](#rewrite-urls)
 - [Configuration documentation](#configuration-documentation)
 - [Configuration ideas](#configuration-ideas)
+- [Alternatives](#alternatives)
+- [Support development](#support-development)
 - [Issues](#issues)
   - [Bugs](#bugs)
   - [Feature Requests](#feature-requests)
-- [Questions](#questions)
-- [Alternatives](#alternatives)
+  - [Questions](#questions)
 - [License](#license)
-- [Support development](#support-development)
+
 
 <!-- END doctoc generated TOC please keep comment here to allow auto update -->
 
