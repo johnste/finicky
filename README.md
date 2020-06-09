@@ -111,17 +111,17 @@ module.exports = {
 };
 ```
 
-### Configuration documentation
+## Configuration documentation
 
 Finicky has extensive support for matching, rewriting and starting browser. See the wiki for the [full configuration documentation](https://github.com/johnste/finicky/wiki/Configuration-documentation) explaining all available, APIs and options as well as detail information on how to match on urls.
 
-### Configuration ideas
+## Configuration ideas
 
 See the wiki page for other [configuration ideas](https://github.com/johnste/finicky/wiki/Configuration-ideas) by users of Finicky.
 
 ## Alternatives
 
-If you are looking for something that lets you pick the browser to activate in a graphical interface, check out [Browserosaurus](https://browserosaurus.com/), an open source browser prompter for macOS. 
+If you are looking for something that lets you pick the browser to activate in a graphical interface, check out [Browserosaurus](https://browserosaurus.com/) by Will Stone, an open source browser prompter for macOS. It works really well together with Finicky!
 
 ## Support development
 
