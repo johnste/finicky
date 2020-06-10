@@ -66,6 +66,8 @@ Finicky is a macOS application that allows you to set up rules that decide which
 ## Example configuration
 
 ```js
+// ~/.finicky.js
+
 module.exports = {
   defaultBrowser: "Google Chrome",
   rewrite: [
