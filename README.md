@@ -106,7 +106,7 @@ See the [documentation](#documentation) for all the features Finicky supports.
 
 ## Documentation
 
-Finicky has extensive support for matching, rewriting and starting browser. See the wiki for the [full configuration documentation](https://github.com/johnste/finicky/wiki/Configuration) explaining all available, APIs and options as well as detail information on how to match on urls.
+Finicky has extensive support for matching, rewriting and starting browsers or other application that handle urls. See the wiki for the [full configuration documentation](https://github.com/johnste/finicky/wiki/Configuration) explaining all available, APIs and options as well as detail information on how to match on urls.
 
 ## Configuration ideas
 
