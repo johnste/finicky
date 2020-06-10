@@ -100,7 +100,7 @@ module.exports = {
 };
 ```
 
-See the full configuration [Documentation](#documentation) for all the features Finicky supports.
+See the [documentation](#documentation) for all the features Finicky supports.
 
 ## Documentation
 
