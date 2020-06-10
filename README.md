@@ -73,7 +73,6 @@ module.exports = {
       // Redirect all urls to use https
       match: ({ url }) => url.protocol === "http",
       url: ({ url }) => ({
-        ...url,
         protocol: "https"
       })
     }
@@ -81,7 +80,7 @@ module.exports = {
   handlers: [
     {
       // Open apple.com and example.org urls in Safari
-      match: finicky.matchHostnames(["apple.com", "example.org"]),
+      match: ["apple.com*", "example.org*"],
       browser: "Safari"
     },
     {
@@ -91,15 +90,17 @@ module.exports = {
     },
     {
       // Open google.com and *.google.com urls in Google Chrome
-      match: finicky.matchHostnames([
-        "google.com", // match google.com domain as string (to make regular expression less complicated)
-        /.*\.google.com$/ // match all google.com subdomains
-      ]),
+      match: [
+        "google.com*", // match google.com domain as string (to make regular expression less complicated)
+        "*.google.com*" // match all google.com subdomains
+      ],
       browser: "Google Chrome"
     }
   ]
 };
 ```
+
+See the full configuration [Documentation](#documentation) for all the features Finicky supports.
 
 ## Documentation
 
