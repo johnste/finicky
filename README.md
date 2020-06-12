@@ -74,9 +74,7 @@ module.exports = {
     {
       // Redirect all urls to use https
       match: ({ url }) => url.protocol === "http",
-      url: ({ url }) => ({
-        protocol: "https"
-      })
+      url: { protocol: "https" }
     }
   ],
   handlers: [
@@ -86,7 +84,7 @@ module.exports = {
       browser: "Safari"
     },
     {
-      // Open any url including the string "workplace" in Firefox
+      // Open any url that includes the string "workplace" in Firefox
       match: /workplace/,
       browser: "Firefox"
     },
