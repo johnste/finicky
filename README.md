@@ -91,8 +91,8 @@ module.exports = {
     {
       // Open google.com and *.google.com urls in Google Chrome
       match: [
-        "google.com*", // match google.com domain as string (to make regular expression less complicated)
-        "*.google.com*" // match all google.com subdomains
+        "google.com*", // match google.com urls
+        finicky.matchDomains(/.*\.google.com/) // use helper function to match on domain only
       ],
       browser: "Google Chrome"
     }
