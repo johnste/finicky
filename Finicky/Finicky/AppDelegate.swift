@@ -122,6 +122,12 @@ class AppDelegate: NSObject, NSApplicationDelegate, NSUserNotificationCenterDele
         let formatter = DateFormatter()
         formatter.dateFormat = "yyyy-MM-dd HH:mm:ss"
         let dateString = formatter.string(from: date)
+        
+        textView.isAutomaticQuoteSubstitutionEnabled = false;
+        textView.isAutomaticTextReplacementEnabled = false;
+        textView.isAutomaticDashSubstitutionEnabled = false;
+        textView.isAutomaticSpellingCorrectionEnabled = false;
+
         textView.string = textView.string + dateString + " - " + message + "\n"
         textView.scrollToEndOfDocument(self)
         textView.isEditable = true
