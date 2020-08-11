@@ -27,10 +27,11 @@ public func getBrowserCommand(_ browserOpts: BrowserOpts, url: URL) -> [String] 
     }
 
     if let profile = browserOpts.profile, let bundleId: String = browserOpts.bundleId {
-        command.append("-n")
-        let profileOption: [String] = getProfileOption(bundleId: bundleId, profile: profile)
-        command.append("--args")
-        command.append(contentsOf: profileOption)
+        if let profileOption: [String] = getProfileOption(bundleId: bundleId, profile: profile) {
+            command.append("-n")
+            command.append("--args")
+            command.append(contentsOf: profileOption)
+        }
     }
 
     command.append(url.absoluteString)
@@ -38,8 +39,8 @@ public func getBrowserCommand(_ browserOpts: BrowserOpts, url: URL) -> [String] 
     return command
 }
 
-private func getProfileOption(bundleId: String, profile: String) -> [String] {
-    var profileOption: [String] {
+private func getProfileOption(bundleId: String, profile: String) -> [String]? {
+    var profileOption: [String]? {
         switch bundleId.lowercased() {
         case Browser.Brave.rawValue: return ["--profile-directory=\(profile)"]
         case Browser.BraveDev.rawValue: return ["--profile-directory=\(profile)"]
@@ -51,7 +52,7 @@ private func getProfileOption(bundleId: String, profile: String) -> [String] {
 //        case Browser.Firefox.rawValue: return ["-P", profile]
 //        case Browser.FirefoxDeveloperEdition.rawValue: return ["-P", profile]
 
-        default: return [""]
+        default: return nil
         }
     }
     return profileOption
