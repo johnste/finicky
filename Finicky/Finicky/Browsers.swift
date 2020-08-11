@@ -44,8 +44,13 @@ private func getProfileOption(bundleId: String, profile: String) -> [String] {
         case Browser.Brave.rawValue: return ["--profile-directory=\(profile)"]
         case Browser.BraveDev.rawValue: return ["--profile-directory=\(profile)"]
         case Browser.Chrome.rawValue: return ["--profile-directory=\(profile)"]
-        case Browser.Firefox.rawValue: return ["-P", profile]
-        case Browser.FirefoxDeveloperEdition.rawValue: return ["-P", profile]
+
+//        Disabling Firefox support due to unreliable performance
+//        Link: https://github.com/johnste/finicky/pull/113#issuecomment-672180597
+//
+//        case Browser.Firefox.rawValue: return ["-P", profile]
+//        case Browser.FirefoxDeveloperEdition.rawValue: return ["-P", profile]
+
         default: return [""]
         }
     }
