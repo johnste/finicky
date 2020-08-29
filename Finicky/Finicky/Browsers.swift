@@ -1,5 +1,38 @@
 
+import AppKit
 import Foundation
+
+public func getActiveApp(browsers: [BrowserOpts]) -> BrowserOpts? {
+    if browsers.count == 0 {
+        return nil
+    }
+
+    if browsers.count == 1 {
+        return browsers.first
+    }
+
+    for browser in browsers {
+        if let bundleId = browser.bundleId {
+            let apps = NSRunningApplication.runningApplications(withBundleIdentifier: bundleId)
+            if !apps.isEmpty {
+                let app: NSRunningApplication = apps[0]
+                let bundleIdentifier = app.bundleIdentifier
+                if bundleIdentifier != nil {
+                    return browser
+                }
+            }
+        }
+    }
+
+    // If we are here, no apps are running, so we return the first bundleIds in the array instead.
+    return browsers.first
+}
+
+public func openUrlWithBrowser(_ url: URL, browserOpts: BrowserOpts) {
+    print("Opening \(browserOpts) at: " + url.absoluteString)
+    let command = getBrowserCommand(browserOpts, url: url)
+    shell(command)
+}
 
 enum Browser: String {
     case Chrome = "com.google.chrome"

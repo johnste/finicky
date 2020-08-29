@@ -30,13 +30,13 @@ class AppDelegate: NSObject, NSApplicationDelegate, NSUserNotificationCenterDele
 
         let invalidImg: NSImage! = NSImage(named: "statusitemerror")
         invalidImg.isTemplate = true
-
-        let bar = NSStatusBar.system
+        
         // Workaround for some bug: -1 instead of NSVariableStatusItemLength
-        statusItem = bar.statusItem(withLength: CGFloat(-1))
+        statusItem = NSStatusBar.system.statusItem(withLength: CGFloat(-1))
         statusItem.menu = statusItemMenu
-        statusItem.highlightMode = true
-        statusItem.image = invalidImg
+        (statusItem.button?.cell! as! NSButtonCell).highlightsBy = NSCell.StyleMask.changeBackgroundCellMask
+        statusItem.button?.image = invalidImg
+                
         toggleDockIcon(showIcon: false)
 
         func configureAppOptions(
@@ -57,9 +57,9 @@ class AppDelegate: NSObject, NSApplicationDelegate, NSUserNotificationCenterDele
 
         func updateStatus(valid: Bool) {
             if valid {
-                statusItem.image = img
+                statusItem.button?.image = img
             } else {
-                statusItem.image = invalidImg
+                statusItem.button?.image = invalidImg
             }
         }
 
@@ -235,31 +235,6 @@ class AppDelegate: NSObject, NSApplicationDelegate, NSUserNotificationCenterDele
         })
     }
 
-    func getActiveApp(browsers: [BrowserOpts]) -> BrowserOpts? {
-        if browsers.count == 0 {
-            return nil
-        }
-
-        if browsers.count == 1 {
-            return browsers.first
-        }
-
-        for browser in browsers {
-            if let bundleId = browser.bundleId {
-                let apps = NSRunningApplication.runningApplications(withBundleIdentifier: bundleId)
-                if !apps.isEmpty {
-                    let app: NSRunningApplication = apps[0]
-                    let bundleIdentifier = app.bundleIdentifier
-                    if bundleIdentifier != nil {
-                        return browser
-                    }
-                }
-            }
-        }
-
-        // If we are here, no apps are running, so we return the first bundleIds in the array instead.
-        return browsers.first
-    }
 
     @objc func callUrlHandlers(_ sourceBundleIdentifier: String?, url: URL, sourceProcessPath: String?) {
         if let appDescriptor = configLoader.determineOpeningApp(url: url, sourceBundleIdentifier: sourceBundleIdentifier, sourceProcessPath: sourceProcessPath) {
@@ -292,12 +267,6 @@ class AppDelegate: NSObject, NSApplicationDelegate, NSUserNotificationCenterDele
 
     func userNotificationCenter(_: NSUserNotificationCenter, didActivate _: NSUserNotification) {
         showTestConfigWindow(nil)
-    }
-
-    func openUrlWithBrowser(_ url: URL, browserOpts: BrowserOpts) {
-        print("Opening \(browserOpts) at: " + url.absoluteString)
-        let command = getBrowserCommand(browserOpts, url: url)
-        shell(command)
     }
 
     func application(_: NSApplication, openFiles filenames: [String]) {
