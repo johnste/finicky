@@ -56,9 +56,9 @@ class AppDelegate: NSObject, NSApplicationDelegate, NSUserNotificationCenterDele
             }
         }
 
-        func updateStatus(valid: Bool) {
-            openConfigMenuItem.isEnabled = valid
-            if valid {
+        func updateStatus(status: FinickyConfig.Status) {
+            openConfigMenuItem.isEnabled = status != .unavailable
+            if status == .valid {
                 statusItem.button?.image = img
             } else {
                 statusItem.button?.image = invalidImg
