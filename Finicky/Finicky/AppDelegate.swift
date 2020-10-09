@@ -8,6 +8,7 @@ class AppDelegate: NSObject, NSApplicationDelegate, NSUserNotificationCenterDele
     @IBOutlet var testConfigWindow: NSWindow!
     @IBOutlet var testUrlTextField: NSTextField!
     @IBOutlet var textView: NSTextView!
+    @IBOutlet var openConfigMenuItem: NSMenuItem!
     @objc var statusItem: NSStatusItem!
 
     var configLoader: FinickyConfig!
@@ -58,8 +59,10 @@ class AppDelegate: NSObject, NSApplicationDelegate, NSUserNotificationCenterDele
         func updateStatus(valid: Bool) {
             if valid {
                 statusItem.button?.image = img
+                openConfigMenuItem.isEnabled = true
             } else {
                 statusItem.button?.image = invalidImg
+                openConfigMenuItem.isEnabled = false
             }
         }
 
@@ -80,6 +83,10 @@ class AppDelegate: NSObject, NSApplicationDelegate, NSUserNotificationCenterDele
 
     @IBAction func reloadConfig(_: NSMenuItem) {
         configLoader.listenToChanges(showInitialSuccess: true)
+    }
+
+    @IBAction func openConfig(_: NSMenuItem) {
+        NSWorkspace.shared.openFile((FNConfigPath as NSString).resolvingSymlinksInPath)
     }
 
     @IBAction func checkUpdates(_: NSMenuItem? = nil) {
