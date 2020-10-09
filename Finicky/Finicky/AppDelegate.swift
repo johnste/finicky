@@ -57,12 +57,11 @@ class AppDelegate: NSObject, NSApplicationDelegate, NSUserNotificationCenterDele
         }
 
         func updateStatus(valid: Bool) {
+            openConfigMenuItem.isEnabled = valid
             if valid {
                 statusItem.button?.image = img
-                openConfigMenuItem.isEnabled = true
             } else {
                 statusItem.button?.image = invalidImg
-                openConfigMenuItem.isEnabled = false
             }
         }
 
