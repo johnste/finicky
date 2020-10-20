@@ -9,9 +9,12 @@ class AppDelegate: NSObject, NSApplicationDelegate, NSUserNotificationCenterDele
     @IBOutlet var testUrlTextField: NSTextField!
     @IBOutlet var textView: NSTextView!
     @IBOutlet var openConfigMenuItem: NSMenuItem!
+    @IBOutlet var createDefaultConfigMenuItem: NSMenuItem!
+    @IBOutlet var replaceConfigMenuItem: NSMenuItem!
     @objc var statusItem: NSStatusItem!
 
     var configLoader: FinickyConfig!
+    var settings: Settings!
     var shortUrlResolver: FNShortUrlResolver = FNShortUrlResolver()
 
     func applicationWillFinishLaunching(_: Notification) {
@@ -57,15 +60,37 @@ class AppDelegate: NSObject, NSApplicationDelegate, NSUserNotificationCenterDele
         }
 
         func updateStatus(status: FinickyConfig.Status) {
-            openConfigMenuItem.isEnabled = status != .unavailable
-            if status == .valid {
+            switch status {
+            case .valid:
                 statusItem.button?.image = img
-            } else {
+                openConfigMenuItem.isHidden = false
+                createDefaultConfigMenuItem.isHidden = false
+                replaceConfigMenuItem.isHidden = false
+            case .invalid:
                 statusItem.button?.image = invalidImg
+                openConfigMenuItem.isHidden = false
+                createDefaultConfigMenuItem.isHidden = false
+                replaceConfigMenuItem.isHidden = false
+            case .unavailable:
+                statusItem.button?.image = invalidImg
+                openConfigMenuItem.isHidden = true
+                createDefaultConfigMenuItem.isHidden = false
+                replaceConfigMenuItem.isHidden = true
             }
         }
 
-        configLoader = FinickyConfig(configureAppCb: configureAppOptions, logCb: logToConsole, updateStatusCb: updateStatus)
+        settings = Settings(userDefaults: .standard)
+
+        func getConfigPath() -> String {
+            return settings.configLocation.absoluteURL.path
+        }
+
+        configLoader = FinickyConfig(
+            configureAppCb: configureAppOptions,
+            logCb: logToConsole,
+            updateStatusCb: updateStatus,
+            configPath: getConfigPath
+        )
 
         let appleEventManager: NSAppleEventManager = NSAppleEventManager.shared()
         appleEventManager.setEventHandler(self, andSelector: #selector(AppDelegate.handleGetURLEvent(_:withReplyEvent:)), forEventClass: AEEventClass(kInternetEventClass), andEventID: AEEventID(kAEGetURL))
@@ -80,16 +105,56 @@ class AppDelegate: NSObject, NSApplicationDelegate, NSUserNotificationCenterDele
         }
     }
 
-    @IBAction func reloadConfig(_: NSMenuItem) {
+    @IBAction func reloadConfig(_: NSMenuItem? = nil) {
         configLoader.listenToChanges(showInitialSuccess: true)
     }
 
-    @IBAction func openConfig(_: NSMenuItem) {
-        NSWorkspace.shared.openFile((FNConfigPath as NSString).resolvingSymlinksInPath)
+    @IBAction func openConfig(_: NSMenuItem? = nil) {
+        NSWorkspace.shared.open(settings.configLocation)
     }
 
     @IBAction func checkUpdates(_: NSMenuItem? = nil) {
         checkForAvailableUpdate(alwaysNotify: true)
+    }
+
+    @IBAction func createDefaultConfig(_: NSMenuItem? = nil) {
+        guard let defaultConfigURL = Bundle.main.url(forResource: "defaultConfig", withExtension: "js") else {
+            return
+        }
+        let savePanel = NSSavePanel()
+        savePanel.allowedFileTypes = ["js"]
+        savePanel.allowsOtherFileTypes = false
+        savePanel.isExtensionHidden = false
+        savePanel.canSelectHiddenExtension = false
+        savePanel.canCreateDirectories = true
+        savePanel.nameFieldStringValue = settings.configLocation.lastPathComponent
+        savePanel.directoryURL = settings.configLocation.deletingLastPathComponent()
+
+        let modalResponse = savePanel.runModal()
+
+        if modalResponse == .OK, let url = savePanel.url {
+            try? FileManager.default.copyItem(at: defaultConfigURL, to: url)
+            settings.configLocation = url
+            self.reloadConfig()
+            self.openConfig()
+        }
+    }
+
+    @IBAction func replaceConfig(_: NSMenuItem? = nil) {
+        let openPanel = NSOpenPanel()
+        openPanel.allowedFileTypes = ["js"]
+        openPanel.canChooseFiles = true
+        openPanel.canChooseDirectories = false
+        openPanel.allowsOtherFileTypes = false
+        openPanel.allowsMultipleSelection = false
+        openPanel.directoryURL = settings.configLocation.deletingLastPathComponent()
+
+        let modalResponse = openPanel.runModal()
+
+        if modalResponse == .OK, let url = openPanel.url {
+            settings.configLocation = url
+            self.reloadConfig()
+        }
     }
 
     func checkForAvailableUpdate(alwaysNotify: Bool = false) {

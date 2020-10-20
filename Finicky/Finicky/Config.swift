@@ -2,13 +2,12 @@ import AppKit
 import Foundation
 import JavaScriptCore
 
-var FNConfigPath: String = "~/.finicky.js"
-
 public typealias Callback<T> = (T) -> Void
 public typealias Callback2<T, U> = (T, U) -> Void
 public typealias OptionsCb = (_ hideIcon: Bool,
                               _ shortUrlProviders: [String]?,
                               _ checkForUpdate: Bool) -> Void
+public typealias ConfigPathProvider = () -> String
 
 /*
  FinickyConfig deals with everything related to the config file.
@@ -32,6 +31,7 @@ open class FinickyConfig {
     var logToConsole: Callback2<String, Bool>
     var configureAppOptions: OptionsCb
     var updateStatus: Callback<Status>?
+    var configPathProvider: ConfigPathProvider
 
     public enum Status {
         case unavailable
@@ -39,19 +39,23 @@ open class FinickyConfig {
         case valid
     }
 
-    public init(configureAppCb: @escaping OptionsCb, logCb: @escaping Callback2<String, Bool>, updateStatusCb: @escaping Callback<Status>) {
+    public init(configureAppCb: @escaping OptionsCb,
+                logCb: @escaping Callback2<String, Bool>,
+                updateStatusCb: @escaping Callback<Status>,
+                configPath: @escaping ConfigPathProvider) {
         configAPIString = loadJS("finickyConfigAPI.js")
 
         configureAppOptions = configureAppCb
         logToConsole = logCb
         updateStatus = updateStatusCb
+        configPathProvider = configPath
         listenToChanges(showInitialSuccess: false)
     }
 
     func waitForFile() {
-        let filename: String = (FNConfigPath as NSString).resolvingSymlinksInPath
         Timer.scheduledTimer(withTimeInterval: 2.0, repeats: true, block: { timer in
-            let fileDescriptor = open(filename, O_EVTONLY)
+            let configPath = self.configPathProvider()
+            let fileDescriptor = open(configPath, O_EVTONLY)
             if fileDescriptor != -1 {
                 timer.invalidate()
                 self.listenToChanges(showInitialSuccess: true)
@@ -72,10 +76,10 @@ open class FinickyConfig {
 
         resetFileDescriptor()
 
-        let filename: String = (FNConfigPath as NSString).resolvingSymlinksInPath
-        fileDescriptor = open(filename, O_EVTONLY)
+        let configPath = self.configPathProvider()
+        fileDescriptor = open(configPath, O_EVTONLY)
 
-        reload(showSuccess: showInitialSuccess)
+        reload(from: configPath, showSuccess: showInitialSuccess)
 
         guard fileDescriptor != -1 else {
             print("Couldn't find or read the file. Error: \(String(describing: strerror(errno)))")
@@ -84,34 +88,35 @@ open class FinickyConfig {
             return
         }
 
-        lastModificationDate = getModificationDate(atPath: filename)
+        lastModificationDate = getModificationDate(atPath: configPath)
 
         dispatchSource =
             DispatchSource.makeFileSystemObjectSource(fileDescriptor: fileDescriptor, eventMask: [.attrib, .delete], queue: DispatchQueue.main)
 
         dispatchSource?.setEventHandler { [weak self] in
+            guard let self = self else { return }
             print("Detected file change")
-            if let modificationDate = getModificationDate(atPath: filename) {
-                if !(self!.lastModificationDate != nil) || modificationDate > self!.lastModificationDate! {
+            if let modificationDate = getModificationDate(atPath: configPath) {
+                if !(self.lastModificationDate != nil) || modificationDate > self.lastModificationDate! {
                     print("Reloading config")
-                    self!.lastModificationDate = modificationDate
-                    self!.reload(showSuccess: true)
+                    self.lastModificationDate = modificationDate
+                    self.reload(from: configPath, showSuccess: true)
                 }
             } else {
-                self!.updateStatus?(.unavailable)
-                self!.waitForFile()
+                self.updateStatus?(.unavailable)
+                self.waitForFile()
             }
         }
 
-        dispatchSource?.setCancelHandler {
-            self.resetFileDescriptor()
+        dispatchSource?.setCancelHandler { [weak self] in
+            self?.resetFileDescriptor()
         }
 
         dispatchSource?.resume()
     }
 
     @discardableResult
-    open func createJSContext() -> JSContext {
+    private func createJSContext() -> JSContext {
         let ctx: JSContext = JSContext()
 
         ctx.exceptionHandler = {
@@ -136,7 +141,7 @@ open class FinickyConfig {
     }
 
     @discardableResult
-    open func parseConfig(_: JSValue) -> Bool {
+    private func parseConfig(_: JSValue) -> Bool {
         if hasError {
             return false
         }
@@ -171,14 +176,13 @@ open class FinickyConfig {
         return false
     }
 
-    func reload(showSuccess: Bool) {
+    private func reload(from configPath: String, showSuccess: Bool) {
         print("Reloading config")
         hasError = false
         var config: String?
 
         do {
-            let filename: String = (FNConfigPath as NSString).resolvingSymlinksInPath
-            config = try String(contentsOfFile: filename, encoding: String.Encoding.utf8)
+            config = try String(contentsOfFile: configPath, encoding: .utf8)
         } catch let error as NSError {
             config = nil
             print("\(error.localizedDescription)", terminator: "")
@@ -232,7 +236,7 @@ open class FinickyConfig {
         }
     }
 
-    func getSimpleOption<T>(name: String, defaultValue: T) -> T {
+    private func getSimpleOption<T>(name: String, defaultValue: T) -> T {
         if name.count == 0 {
             print("Tried to get an option with no name")
             return defaultValue
@@ -256,7 +260,7 @@ open class FinickyConfig {
         return defaultValue
     }
 
-    func getShortUrlProviders() -> [String]? {
+    private func getShortUrlProviders() -> [String]? {
         let urlShorteners = ctx.evaluateScript("module.exports.options && module.exports.options.urlShorteners || []")?.toArray()
         let list = urlShorteners as! [String]?
         if list?.count == 0 {
@@ -265,7 +269,7 @@ open class FinickyConfig {
         return list
     }
 
-    open func determineOpeningApp(url: URL, sourceBundleIdentifier: String? = nil, sourceProcessPath: String? = nil) -> AppDescriptor? {
+    func determineOpeningApp(url: URL, sourceBundleIdentifier: String? = nil, sourceProcessPath: String? = nil) -> AppDescriptor? {
         if let appValue = getConfiguredAppValue(url: url, sourceBundleIdentifier: sourceBundleIdentifier, sourceProcessPath: sourceProcessPath) {
             if !appValue.isObject {
                 return nil
@@ -316,7 +320,7 @@ open class FinickyConfig {
         return nil
     }
 
-    func getConfiguredAppValue(url: URL, sourceBundleIdentifier: String?, sourceProcessPath: String?) -> JSValue? {
+    private func getConfiguredAppValue(url: URL, sourceBundleIdentifier: String?, sourceProcessPath: String?) -> JSValue? {
         let optionsDict = [
             "sourceBundleIdentifier": sourceBundleIdentifier as Any,
             "sourceProcessPath": sourceProcessPath as Any,
@@ -326,7 +330,7 @@ open class FinickyConfig {
         return result
     }
 
-    func getModifierKeyFlags() -> [String: Bool] {
+    private func getModifierKeyFlags() -> [String: Bool] {
         return [
             "shift": NSEvent.modifierFlags.contains(.shift),
             "option": NSEvent.modifierFlags.contains(.option),
@@ -337,7 +341,7 @@ open class FinickyConfig {
         ]
     }
 
-    open func setupAPI() {
+    private func setupAPI() {
         ctx = createJSContext()
         FinickyAPI.setLog(logToConsole)
         FinickyAPI.setContext(ctx)

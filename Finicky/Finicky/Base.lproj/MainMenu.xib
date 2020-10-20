@@ -1,8 +1,8 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<document type="com.apple.InterfaceBuilder3.Cocoa.XIB" version="3.0" toolsVersion="16096" targetRuntime="MacOSX.Cocoa" propertyAccessControl="none" useAutolayout="YES" customObjectInstantitationMethod="direct">
+<document type="com.apple.InterfaceBuilder3.Cocoa.XIB" version="3.0" toolsVersion="17156" targetRuntime="MacOSX.Cocoa" propertyAccessControl="none" useAutolayout="YES" customObjectInstantitationMethod="direct">
     <dependencies>
         <deployment identifier="macosx"/>
-        <plugIn identifier="com.apple.InterfaceBuilder.CocoaPlugin" version="16096"/>
+        <plugIn identifier="com.apple.InterfaceBuilder.CocoaPlugin" version="17156"/>
         <capability name="documents saved in the Xcode 8 format" minToolsVersion="8.0"/>
     </dependencies>
     <objects>
@@ -15,7 +15,9 @@
         <customObject id="-3" userLabel="Application" customClass="NSObject"/>
         <customObject id="Voe-Tx-rLC" customClass="AppDelegate" customModule="Finicky" customModuleProvider="target">
             <connections>
-                <outlet property="openConfigMenuItem" destination="IzB-Zp-2vO" id="Qrx-iQ-ysr"/>
+                <outlet property="createDefaultConfigMenuItem" destination="Bmw-SB-b8A" id="EH5-GD-scP"/>
+                <outlet property="openConfigMenuItem" destination="LlC-LY-oCA" id="F4S-xi-0c8"/>
+                <outlet property="replaceConfigMenuItem" destination="760-bM-4qn" id="afN-mk-zKg"/>
                 <outlet property="statusItemMenu" destination="Kzo-ni-M3E" id="VAC-Jd-SUN"/>
                 <outlet property="testConfigWindow" destination="VZJ-Lg-gDn" id="yu6-P3-Fon"/>
                 <outlet property="testUrlTextField" destination="MSV-N8-vFV" id="R7y-rh-o03"/>
@@ -675,17 +677,36 @@
         </menu>
         <menu autoenablesItems="NO" id="Kzo-ni-M3E" userLabel="Status Item Menu">
             <items>
-                <menuItem title="Reload Config" id="X9g-Uv-L2W">
+                <menuItem title="Config..." id="lgT-SE-g8f" userLabel="Config...">
                     <modifierMask key="keyEquivalentModifierMask"/>
-                    <connections>
-                        <action selector="reloadConfig:" target="Voe-Tx-rLC" id="0FH-YI-ACs"/>
-                    </connections>
-                </menuItem>
-                <menuItem title="Open Config" enabled="NO" id="IzB-Zp-2vO">
-                    <modifierMask key="keyEquivalentModifierMask"/>
-                    <connections>
-                        <action selector="openConfig:" target="Voe-Tx-rLC" id="4UW-gs-G8h"/>
-                    </connections>
+                    <menu key="submenu" title="Config..." id="qkL-Hk-EbM">
+                        <items>
+                            <menuItem title="Reload" id="X9g-Uv-L2W" userLabel="Reload">
+                                <modifierMask key="keyEquivalentModifierMask"/>
+                                <connections>
+                                    <action selector="reloadConfig:" target="Voe-Tx-rLC" id="0FH-YI-ACs"/>
+                                </connections>
+                            </menuItem>
+                            <menuItem title="New" id="Bmw-SB-b8A" userLabel="Create">
+                                <modifierMask key="keyEquivalentModifierMask"/>
+                                <connections>
+                                    <action selector="createDefaultConfig:" target="Voe-Tx-rLC" id="vIG-q1-Bg3"/>
+                                </connections>
+                            </menuItem>
+                            <menuItem title="Edit" id="LlC-LY-oCA" userLabel="Edit">
+                                <modifierMask key="keyEquivalentModifierMask"/>
+                                <connections>
+                                    <action selector="openConfig:" target="Voe-Tx-rLC" id="oq9-Sf-p6c"/>
+                                </connections>
+                            </menuItem>
+                            <menuItem title="Replace" id="760-bM-4qn" userLabel="Replace">
+                                <modifierMask key="keyEquivalentModifierMask"/>
+                                <connections>
+                                    <action selector="replaceConfig:" target="Voe-Tx-rLC" id="k0j-dz-pKE"/>
+                                </connections>
+                            </menuItem>
+                        </items>
+                    </menu>
                 </menuItem>
                 <menuItem title="Console..." id="B8m-5i-1Ii">
                     <attributedString key="attributedTitle"/>
@@ -753,7 +774,7 @@
                         <autoresizingMask key="autoresizingMask"/>
                         <clipView key="contentView" drawsBackground="NO" copiesOnScroll="NO" id="k0G-uq-6Cu">
                             <rect key="frame" x="2" y="2" width="568" height="407"/>
-                            <autoresizingMask key="autoresizingMask" widthSizable="YES" heightSizable="YES"/>
+                            <autoresizingMask key="autoresizingMask"/>
                             <subviews>
                                 <textView editable="NO" importsGraphics="NO" richText="NO" verticallyResizable="YES" allowsCharacterPickerTouchBarItem="NO" linkDetection="YES" textCompletion="NO" id="qaM-sW-3L0">
                                     <rect key="frame" x="0.0" y="0.0" width="568" height="407"/>
@@ -780,7 +801,7 @@
                         <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMinY="YES"/>
                         <buttonCell key="cell" type="push" title="Clear console" bezelStyle="rounded" alignment="center" borderStyle="border" imageScaling="proportionallyDown" inset="2" id="XVX-Nz-543">
                             <behavior key="behavior" pushIn="YES" lightByBackground="YES" lightByGray="YES"/>
-                            <font key="font" metaFont="message"/>
+                            <font key="font" metaFont="system"/>
                         </buttonCell>
                         <connections>
                             <action selector="ClearConsole:" target="Voe-Tx-rLC" id="2bk-u0-Z8a"/>
