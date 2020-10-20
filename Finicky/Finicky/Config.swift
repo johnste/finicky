@@ -31,9 +31,15 @@ open class FinickyConfig {
     var lastModificationDate: Date?
     var logToConsole: Callback2<String, Bool>
     var configureAppOptions: OptionsCb
-    var updateStatus: Callback<Bool>?
+    var updateStatus: Callback<Status>?
 
-    public init(configureAppCb: @escaping OptionsCb, logCb: @escaping Callback2<String, Bool>, updateStatusCb: @escaping Callback<Bool>) {
+    public enum Status {
+        case unavailable
+        case invalid
+        case valid
+    }
+
+    public init(configureAppCb: @escaping OptionsCb, logCb: @escaping Callback2<String, Bool>, updateStatusCb: @escaping Callback<Status>) {
         configAPIString = loadJS("finickyConfigAPI.js")
 
         configureAppOptions = configureAppCb
@@ -74,7 +80,7 @@ open class FinickyConfig {
         guard fileDescriptor != -1 else {
             print("Couldn't find or read the file. Error: \(String(describing: strerror(errno)))")
             waitForFile()
-            updateStatus?(false)
+            updateStatus?(.unavailable)
             return
         }
 
@@ -92,7 +98,7 @@ open class FinickyConfig {
                     self!.reload(showSuccess: true)
                 }
             } else {
-                self!.updateStatus?(false)
+                self!.updateStatus?(.unavailable)
                 self!.waitForFile()
             }
         }
@@ -111,7 +117,7 @@ open class FinickyConfig {
         ctx.exceptionHandler = {
             (_: JSContext!, exception: JSValue!) in
             self.hasError = true
-            self.updateStatus?(false)
+            self.updateStatus?(.invalid)
 
             let stacktrace = exception.objectForKeyedSubscript("stack").toString()
             let lineNumber = exception.objectForKeyedSubscript("line").toString()
@@ -146,7 +152,7 @@ open class FinickyConfig {
 
             if isBoolean {
                 let invalid = !(validConfig?.toBool())!
-                updateStatus?(!invalid)
+                updateStatus?(invalid ? .invalid : .valid)
                 if invalid {
                     let message = "Invalid config"
                     print(message)
@@ -158,7 +164,7 @@ open class FinickyConfig {
                     return true
                 }
             } else {
-                updateStatus?(false)
+                updateStatus?(.invalid)
             }
         }
 
