@@ -680,7 +680,7 @@
             <items>
                 <menuItem title="Config..." id="lgT-SE-g8f" userLabel="Config...">
                     <modifierMask key="keyEquivalentModifierMask"/>
-                    <menu key="submenu" title="Config..." id="qkL-Hk-EbM">
+                    <menu key="submenu" title="Config..." autoenablesItems="NO" id="qkL-Hk-EbM">
                         <items>
                             <menuItem title="Reload" id="X9g-Uv-L2W" userLabel="Reload">
                                 <modifierMask key="keyEquivalentModifierMask"/>

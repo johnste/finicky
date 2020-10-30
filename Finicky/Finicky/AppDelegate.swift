@@ -64,22 +64,22 @@ class AppDelegate: NSObject, NSApplicationDelegate, NSUserNotificationCenterDele
             switch status {
             case .valid:
                 statusItem.button?.image = img
-                openConfigMenuItem.isHidden = false
-                createDefaultConfigMenuItem.isHidden = false
-                replaceConfigMenuItem.isHidden = false
-                revealInFinderMenuItem.isHidden = false
+                openConfigMenuItem.isEnabled = true
+                createDefaultConfigMenuItem.isEnabled = true
+                replaceConfigMenuItem.isEnabled = true
+                revealInFinderMenuItem.isEnabled = true
             case .invalid:
                 statusItem.button?.image = invalidImg
-                openConfigMenuItem.isHidden = false
-                createDefaultConfigMenuItem.isHidden = false
-                replaceConfigMenuItem.isHidden = false
-                revealInFinderMenuItem.isHidden = false
+                openConfigMenuItem.isEnabled = true
+                createDefaultConfigMenuItem.isEnabled = true
+                replaceConfigMenuItem.isEnabled = true
+                revealInFinderMenuItem.isEnabled = true
             case .unavailable:
                 statusItem.button?.image = invalidImg
-                openConfigMenuItem.isHidden = true
-                createDefaultConfigMenuItem.isHidden = false
-                replaceConfigMenuItem.isHidden = true
-                revealInFinderMenuItem.isHidden = true
+                openConfigMenuItem.isEnabled = false
+                createDefaultConfigMenuItem.isEnabled = true
+                replaceConfigMenuItem.isEnabled = true
+                revealInFinderMenuItem.isEnabled = false
             }
         }
 
@@ -143,8 +143,8 @@ class AppDelegate: NSObject, NSApplicationDelegate, NSUserNotificationCenterDele
         if modalResponse == .OK, let url = savePanel.url {
             try? FileManager.default.copyItem(at: defaultConfigURL, to: url)
             settings.configLocation = url
-            self.reloadConfig()
-            self.openConfig()
+            reloadConfig()
+            openConfig()
         }
     }
 
@@ -161,7 +161,7 @@ class AppDelegate: NSObject, NSApplicationDelegate, NSUserNotificationCenterDele
 
         if modalResponse == .OK, let url = openPanel.url {
             settings.configLocation = url
-            self.reloadConfig()
+            reloadConfig()
         }
     }
 
