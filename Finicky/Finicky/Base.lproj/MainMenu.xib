@@ -18,6 +18,7 @@
                 <outlet property="createDefaultConfigMenuItem" destination="Bmw-SB-b8A" id="EH5-GD-scP"/>
                 <outlet property="openConfigMenuItem" destination="LlC-LY-oCA" id="F4S-xi-0c8"/>
                 <outlet property="replaceConfigMenuItem" destination="760-bM-4qn" id="afN-mk-zKg"/>
+                <outlet property="revealInFinderMenuItem" destination="CrI-ZJ-cWg" id="mcC-So-iX7"/>
                 <outlet property="statusItemMenu" destination="Kzo-ni-M3E" id="VAC-Jd-SUN"/>
                 <outlet property="testConfigWindow" destination="VZJ-Lg-gDn" id="yu6-P3-Fon"/>
                 <outlet property="testUrlTextField" destination="MSV-N8-vFV" id="R7y-rh-o03"/>
@@ -687,10 +688,16 @@
                                     <action selector="reloadConfig:" target="Voe-Tx-rLC" id="0FH-YI-ACs"/>
                                 </connections>
                             </menuItem>
-                            <menuItem title="New" id="Bmw-SB-b8A" userLabel="Create">
+                            <menuItem title="Create new" id="Bmw-SB-b8A" userLabel="Create">
                                 <modifierMask key="keyEquivalentModifierMask"/>
                                 <connections>
                                     <action selector="createDefaultConfig:" target="Voe-Tx-rLC" id="vIG-q1-Bg3"/>
+                                </connections>
+                            </menuItem>
+                            <menuItem title="Reveal in Finder" id="CrI-ZJ-cWg" userLabel="Reveal in Finder">
+                                <modifierMask key="keyEquivalentModifierMask"/>
+                                <connections>
+                                    <action selector="revealConfigInFinder:" target="Voe-Tx-rLC" id="F4U-Ez-2RO"/>
                                 </connections>
                             </menuItem>
                             <menuItem title="Edit" id="LlC-LY-oCA" userLabel="Edit">
@@ -737,13 +744,13 @@
                     </connections>
                 </menuItem>
             </items>
-            <point key="canvasLocation" x="137.5" y="-105"/>
+            <point key="canvasLocation" x="24" y="101"/>
         </menu>
         <window title="Finicky Console" allowsToolTipsWhenApplicationIsInactive="NO" autorecalculatesKeyViewLoop="NO" restorable="NO" releasedWhenClosed="NO" visibleAtLaunch="NO" frameAutosaveName="" animationBehavior="default" id="VZJ-Lg-gDn">
             <windowStyleMask key="styleMask" titled="YES" closable="YES"/>
             <windowPositionMask key="initialPositionMask" leftStrut="YES" rightStrut="YES" topStrut="YES" bottomStrut="YES"/>
             <rect key="contentRect" x="163" y="199" width="591" height="500"/>
-            <rect key="screenRect" x="0.0" y="0.0" width="1920" height="1057"/>
+            <rect key="screenRect" x="0.0" y="0.0" width="1920" height="1080"/>
             <view key="contentView" id="7j0-3Z-aDh">
                 <rect key="frame" x="0.0" y="0.0" width="591" height="500"/>
                 <autoresizingMask key="autoresizingMask"/>

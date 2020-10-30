@@ -11,6 +11,7 @@ class AppDelegate: NSObject, NSApplicationDelegate, NSUserNotificationCenterDele
     @IBOutlet var openConfigMenuItem: NSMenuItem!
     @IBOutlet var createDefaultConfigMenuItem: NSMenuItem!
     @IBOutlet var replaceConfigMenuItem: NSMenuItem!
+    @IBOutlet var revealInFinderMenuItem: NSMenuItem!
     @objc var statusItem: NSStatusItem!
 
     var configLoader: FinickyConfig!
@@ -66,16 +67,19 @@ class AppDelegate: NSObject, NSApplicationDelegate, NSUserNotificationCenterDele
                 openConfigMenuItem.isHidden = false
                 createDefaultConfigMenuItem.isHidden = false
                 replaceConfigMenuItem.isHidden = false
+                revealInFinderMenuItem.isHidden = false
             case .invalid:
                 statusItem.button?.image = invalidImg
                 openConfigMenuItem.isHidden = false
                 createDefaultConfigMenuItem.isHidden = false
                 replaceConfigMenuItem.isHidden = false
+                revealInFinderMenuItem.isHidden = false
             case .unavailable:
                 statusItem.button?.image = invalidImg
                 openConfigMenuItem.isHidden = true
                 createDefaultConfigMenuItem.isHidden = false
                 replaceConfigMenuItem.isHidden = true
+                revealInFinderMenuItem.isHidden = true
             }
         }
 
@@ -111,6 +115,10 @@ class AppDelegate: NSObject, NSApplicationDelegate, NSUserNotificationCenterDele
 
     @IBAction func openConfig(_: NSMenuItem? = nil) {
         NSWorkspace.shared.open(settings.configLocation)
+    }
+
+    @IBAction func revealConfigInFinder(_: NSMenuItem? = nil) {
+        NSWorkspace.shared.selectFile(settings.configLocation.path, inFileViewerRootedAtPath: settings.configLocation.deletingLastPathComponent().path)
     }
 
     @IBAction func checkUpdates(_: NSMenuItem? = nil) {
