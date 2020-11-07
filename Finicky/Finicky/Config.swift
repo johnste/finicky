@@ -209,9 +209,7 @@ open class FinickyConfig {
             return
         }
 
-        setupAPI()
-        print("this is the config")
-        print(config)
+        setupAPI()        
         ctx.evaluateScript(config)
         configObject = ctx.evaluateScript("module.exports")
 
