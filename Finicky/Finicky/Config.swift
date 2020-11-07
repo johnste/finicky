@@ -175,7 +175,9 @@ open class FinickyConfig {
         print("Reloading config")
         hasError = false
         var config: String?
-
+        
+        usleep(100 * 1000) // Sleep for a few millisconds to make sure file is available (See https://github.com/johnste/finicky/issues/140)
+        
         do {
             let filename: String = (FNConfigPath as NSString).resolvingSymlinksInPath
             config = try String(contentsOfFile: filename, encoding: String.Encoding.utf8)
@@ -208,16 +210,14 @@ open class FinickyConfig {
         }
 
         setupAPI()
-
+        print("this is the config")
+        print(config)
         ctx.evaluateScript(config)
         configObject = ctx.evaluateScript("module.exports")
 
         if config != nil {
             let success = parseConfig(configObject!)
             if success {
-                // toggleIconCallback?(getHideIcon())
-                // setShortUrlProviders?(getShortUrlProviders())
-
                 configureAppOptions(
                     getSimpleOption(name: "hideIcon", defaultValue: false),
                     getShortUrlProviders(),
