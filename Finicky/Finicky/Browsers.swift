@@ -43,6 +43,7 @@ enum Browser: String {
     case Firefox = "org.mozilla.firefox"
     case FirefoxDeveloperEdition = "org.mozilla.firefoxdeveloperedition"
     case Opera = "com.operasoftware.opera"
+    case Edge = "com.microsoft.edgemac"
 }
 
 public func getBrowserCommand(_ browserOpts: BrowserOpts, url: URL) -> [String] {
@@ -77,7 +78,7 @@ private func getProfileOption(bundleId: String, profile: String) -> [String]? {
         switch bundleId.lowercased() {
         case Browser.Brave.rawValue: return ["--profile-directory=\(profile)"]
         case Browser.BraveDev.rawValue: return ["--profile-directory=\(profile)"]
-        case Browser.Chrome.rawValue: return ["--profile-directory=\(profile)"]
+        case Browser.Chrome.rawValue, Browser.Edge.rawValue: return ["--profile-directory=\(profile)"]
 
 //        Disabling Firefox support due to unreliable performance
 //        Link: https://github.com/johnste/finicky/pull/113#issuecomment-672180597
