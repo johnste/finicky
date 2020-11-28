@@ -354,4 +354,24 @@ class AppDelegate: NSObject, NSApplicationDelegate, NSUserNotificationCenterDele
             callUrlHandlers(nil, url: URL(fileURLWithPath: filename), sourceProcessPath: nil)
         }
     }
+
+    func application(_ application: NSApplication, willContinueUserActivityWithType userActivityType: String) -> Bool {
+        return userActivityType == NSUserActivityTypeBrowsingWeb
+    }
+
+    func application(_ application: NSApplication, continue userActivity: NSUserActivity, restorationHandler: @escaping ([NSUserActivityRestoring]) -> Void) -> Bool {
+        if (userActivity.activityType != NSUserActivityTypeBrowsingWeb) {
+            return false
+        }
+
+        guard let url = userActivity.webpageURL else {
+            return false
+        }
+
+        self.callUrlHandlers(nil, url: url, sourceProcessPath: nil)
+        return true
+    }
+
+    func application(_ application: NSApplication, didFailToContinueUserActivityWithType userActivityType: String, error: Error) {
+    }
 }

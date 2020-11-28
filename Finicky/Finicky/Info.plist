@@ -26,6 +26,29 @@
 			<key>NSDocumentClass</key>
 			<string>NSDocument</string>
 		</dict>
+		<dict>
+			<key>CFBundleTypeExtensions</key>
+			<array>
+				<string>xhtml</string>
+				<string>xht</string>
+				<string>xhtm</string>
+				<string>xht</string>
+			</array>
+			<key>CFBundleTypeIconFile</key>
+			<string>finicky</string>
+			<key>CFBundleTypeMIMETypes</key>
+			<array>
+				<string>application/xhtml+xml</string>
+			</array>
+			<key>CFBundleTypeName</key>
+			<string>XHTML document</string>
+			<key>CFBundleTypeRole</key>
+			<string>Viewer</string>
+			<key>LSTypeIsPackage</key>
+			<integer>0</integer>
+			<key>NSDocumentClass</key>
+			<string>NSDocument</string>
+		</dict>
 	</array>
 	<key>CFBundleExecutable</key>
 	<string>$(EXECUTABLE_NAME)</string>
@@ -49,7 +72,7 @@
 			<key>CFBundleTypeRole</key>
 			<string>Viewer</string>
 			<key>CFBundleURLName</key>
-			<string>FinickyTestHttp</string>
+			<string>FinickyHttp</string>
 			<key>CFBundleURLSchemes</key>
 			<array>
 				<string>http</string>
@@ -59,7 +82,7 @@
 			<key>CFBundleTypeRole</key>
 			<string>Viewer</string>
 			<key>CFBundleURLName</key>
-			<string>FinickyTestHttps</string>
+			<string>FinickyHttps</string>
 			<key>CFBundleURLSchemes</key>
 			<array>
 				<string>https</string>
@@ -67,7 +90,7 @@
 		</dict>
 	</array>
 	<key>CFBundleVersion</key>
-	<string>244</string>
+	<string>253</string>
 	<key>LSApplicationCategoryType</key>
 	<string>public.app-category.utilities</string>
 	<key>LSMinimumSystemVersion</key>
@@ -80,5 +103,9 @@
 	<string>MainMenu</string>
 	<key>NSPrincipalClass</key>
 	<string>NSApplication</string>
+	<key>NSUserActivityTypes</key>
+	<array>
+		<string>NSUserActivityTypeBrowsingWeb</string>
+	</array>
 </dict>
 </plist>
