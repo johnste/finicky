@@ -182,6 +182,8 @@ open class FinickyConfig {
         var config: String?
         
         usleep(100 * 1000) // Sleep for a few millisconds to make sure file is available (See https://github.com/johnste/finicky/issues/140)
+
+        logToConsole("Trying to read config file from: \(configPath)", false)
         
         do {
             config = try String(contentsOfFile: configPath, encoding: .utf8)
@@ -193,7 +195,7 @@ open class FinickyConfig {
         if config == nil {
             hasError = true
             let message = "Config file could not be read or found"
-            showNotification(title: message, subtitle: "Click here for help", error: true)
+            showNotification(title: message, subtitle: "Click here for help", informativeText: "Path: \(configPath)", error: true)
             logToConsole("Config file could not be read or found. * Example configuration: \n" + """
                 /**
                 * Save as ~/.finicky.js
