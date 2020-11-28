@@ -7,7 +7,7 @@ public typealias Callback2<T, U> = (T, U) -> Void
 public typealias OptionsCb = (_ hideIcon: Bool,
                               _ shortUrlProviders: [String]?,
                               _ checkForUpdate: Bool) -> Void
-public typealias ConfigPathProvider = () -> String
+public typealias ConfigPathProvider = () -> String?
 
 /*
  FinickyConfig deals with everything related to the config file.
@@ -19,6 +19,16 @@ public typealias ConfigPathProvider = () -> String
     - Runs the process that determines the browser we should start
  */
 open class FinickyConfig {
+
+    private struct Constants {
+        static let defaultConfigPath: NSString = "~/.finicky.js"
+    }
+
+    static var defaultConfigLocation: URL {
+        let path = Constants.defaultConfigPath.resolvingSymlinksInPath
+        return URL(fileURLWithPath: path)
+    }
+
     var ctx: JSContext!
     var configAPIString: String
     var configAPI: JSValue?
@@ -54,12 +64,12 @@ open class FinickyConfig {
 
     func waitForFile() {
         Timer.scheduledTimer(withTimeInterval: 2.0, repeats: true, block: { timer in
-            let configPath = self.configPathProvider()
-            let fileDescriptor = open(configPath, O_EVTONLY)
-            if fileDescriptor != -1 {
-                timer.invalidate()
-                self.listenToChanges(showInitialSuccess: true)
+            guard let configPath = self.configPathProvider(),
+                  open(configPath, O_EVTONLY) != -1 else {
+                return
             }
+            timer.invalidate()
+            self.listenToChanges(showInitialSuccess: true)
         })
     }
 
@@ -76,9 +86,13 @@ open class FinickyConfig {
 
         resetFileDescriptor()
 
-        let configPath = self.configPathProvider()
-        fileDescriptor = open(configPath, O_EVTONLY)
+        guard let configPath = self.configPathProvider() else {
+            logToConsole("No config file specified", false)
+            showNotification(at: .default, title: "No config file specified", subtitle: "You need to create a new one", informativeText: "Config > Create new...", error: true)
+            return
+        }
 
+        fileDescriptor = open(configPath, O_EVTONLY)
         reload(from: configPath, showSuccess: showInitialSuccess)
 
         guard fileDescriptor != -1 else {

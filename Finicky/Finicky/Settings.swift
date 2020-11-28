@@ -10,10 +10,10 @@ final class Settings {
 
     // MARK: - Public API
 
-    var configLocation: URL {
+    var configLocation: URL? {
         get {
             guard let bookmarkData = self.userDefaults.data(forKey: Constants.configLocationBookmarkKey) else {
-                return self.defaultConfigLocation
+                return nil
             }
             do {
                 var bookmarkIsStale: Bool = false
@@ -24,11 +24,11 @@ final class Settings {
                 }
                 return url
             } catch {
-                return self.defaultConfigLocation
+                return nil
             }
         }
         set {
-            if let bookmarkData = try? newValue.bookmarkData() {
+            if let bookmarkData = try? newValue?.bookmarkData() {
                 self.userDefaults.set(bookmarkData, forKey: Constants.configLocationBookmarkKey)
             } else {
                 self.userDefaults.removeObject(forKey: Constants.configLocationBookmarkKey)
@@ -40,11 +40,5 @@ final class Settings {
 
     private struct Constants {
         static let configLocationBookmarkKey = "config_location_bookmark"
-        static let defaultConfigPath: NSString = "~/.finicky.js"
-    }
-
-    private var defaultConfigLocation: URL {
-        let path = Constants.defaultConfigPath.resolvingSymlinksInPath
-        return URL(fileURLWithPath: path)
     }
 }

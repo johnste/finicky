@@ -85,8 +85,14 @@ class AppDelegate: NSObject, NSApplicationDelegate, NSUserNotificationCenterDele
 
         settings = Settings(userDefaults: .standard)
 
-        func getConfigPath() -> String {
-            return settings.configLocation.absoluteURL.path
+        if settings.configLocation == nil,
+           FileManager.default.fileExists(atPath: FinickyConfig.defaultConfigLocation.path) {
+            logToConsole("Found config file at \(FinickyConfig.defaultConfigLocation.path). Saving location to settings.")
+            settings.configLocation = FinickyConfig.defaultConfigLocation
+        }
+
+        func getConfigPath() -> String? {
+            return settings.configLocation?.absoluteURL.path
         }
 
         configLoader = FinickyConfig(
@@ -114,11 +120,13 @@ class AppDelegate: NSObject, NSApplicationDelegate, NSUserNotificationCenterDele
     }
 
     @IBAction func openConfig(_: NSMenuItem? = nil) {
-        NSWorkspace.shared.open(settings.configLocation)
+        guard let location = settings.configLocation else { return }
+        NSWorkspace.shared.open(location)
     }
 
     @IBAction func revealConfigInFinder(_: NSMenuItem? = nil) {
-        NSWorkspace.shared.selectFile(settings.configLocation.path, inFileViewerRootedAtPath: settings.configLocation.deletingLastPathComponent().path)
+        guard let location = settings.configLocation else { return }
+        NSWorkspace.shared.selectFile(location.path, inFileViewerRootedAtPath: location.deletingLastPathComponent().path)
     }
 
     @IBAction func checkUpdates(_: NSMenuItem? = nil) {
@@ -129,14 +137,17 @@ class AppDelegate: NSObject, NSApplicationDelegate, NSUserNotificationCenterDele
         guard let defaultConfigURL = Bundle.main.url(forResource: "defaultConfig", withExtension: "js") else {
             return
         }
+
+        let suggestedConfigLocation = (settings.configLocation ?? FinickyConfig.defaultConfigLocation)
+
         let savePanel = NSSavePanel()
         savePanel.allowedFileTypes = ["js"]
         savePanel.allowsOtherFileTypes = false
         savePanel.isExtensionHidden = false
         savePanel.canSelectHiddenExtension = false
         savePanel.canCreateDirectories = true
-        savePanel.nameFieldStringValue = settings.configLocation.lastPathComponent
-        savePanel.directoryURL = settings.configLocation.deletingLastPathComponent()
+        savePanel.nameFieldStringValue = suggestedConfigLocation.lastPathComponent
+        savePanel.directoryURL = suggestedConfigLocation.deletingLastPathComponent()
 
         let modalResponse = savePanel.runModal()
 
@@ -149,13 +160,14 @@ class AppDelegate: NSObject, NSApplicationDelegate, NSUserNotificationCenterDele
     }
 
     @IBAction func replaceConfig(_: NSMenuItem? = nil) {
+        let suggestedConfigLocation = (settings.configLocation ?? FinickyConfig.defaultConfigLocation)
         let openPanel = NSOpenPanel()
         openPanel.allowedFileTypes = ["js"]
         openPanel.canChooseFiles = true
         openPanel.canChooseDirectories = false
         openPanel.allowsOtherFileTypes = false
         openPanel.allowsMultipleSelection = false
-        openPanel.directoryURL = settings.configLocation.deletingLastPathComponent()
+        openPanel.directoryURL = suggestedConfigLocation.deletingLastPathComponent()
 
         let modalResponse = openPanel.runModal()
 
