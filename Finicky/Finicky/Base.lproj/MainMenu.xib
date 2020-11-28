@@ -678,9 +678,9 @@
         </menu>
         <menu autoenablesItems="NO" id="Kzo-ni-M3E" userLabel="Status Item Menu">
             <items>
-                <menuItem title="Config..." id="lgT-SE-g8f" userLabel="Config...">
+                <menuItem title="Config" id="lgT-SE-g8f" userLabel="Config...">
                     <modifierMask key="keyEquivalentModifierMask"/>
-                    <menu key="submenu" title="Config..." autoenablesItems="NO" id="qkL-Hk-EbM">
+                    <menu key="submenu" title="Config" autoenablesItems="NO" id="qkL-Hk-EbM">
                         <items>
                             <menuItem title="Reload" id="X9g-Uv-L2W" userLabel="Reload">
                                 <modifierMask key="keyEquivalentModifierMask"/>
@@ -688,25 +688,25 @@
                                     <action selector="reloadConfig:" target="Voe-Tx-rLC" id="0FH-YI-ACs"/>
                                 </connections>
                             </menuItem>
-                            <menuItem title="Create new" id="Bmw-SB-b8A" userLabel="Create">
+                            <menuItem title="Create new..." id="Bmw-SB-b8A" userLabel="Create">
                                 <modifierMask key="keyEquivalentModifierMask"/>
                                 <connections>
                                     <action selector="createDefaultConfig:" target="Voe-Tx-rLC" id="vIG-q1-Bg3"/>
                                 </connections>
                             </menuItem>
-                            <menuItem title="Reveal in Finder" id="CrI-ZJ-cWg" userLabel="Reveal in Finder">
+                            <menuItem title="Reveal in Finder..." id="CrI-ZJ-cWg" userLabel="Reveal in Finder">
                                 <modifierMask key="keyEquivalentModifierMask"/>
                                 <connections>
                                     <action selector="revealConfigInFinder:" target="Voe-Tx-rLC" id="F4U-Ez-2RO"/>
                                 </connections>
                             </menuItem>
-                            <menuItem title="Edit" id="LlC-LY-oCA" userLabel="Edit">
+                            <menuItem title="Edit..." id="LlC-LY-oCA" userLabel="Edit">
                                 <modifierMask key="keyEquivalentModifierMask"/>
                                 <connections>
                                     <action selector="openConfig:" target="Voe-Tx-rLC" id="oq9-Sf-p6c"/>
                                 </connections>
                             </menuItem>
-                            <menuItem title="Replace" id="760-bM-4qn" userLabel="Replace">
+                            <menuItem title="Use another file..." id="760-bM-4qn" userLabel="Replace">
                                 <modifierMask key="keyEquivalentModifierMask"/>
                                 <connections>
                                     <action selector="replaceConfig:" target="Voe-Tx-rLC" id="k0j-dz-pKE"/>
