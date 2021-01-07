@@ -98,7 +98,6 @@ export interface BrowserObject {
   openInBackground?: boolean;
   profile?: string;
   args?: string[];
-  passUrlAsArg?: boolean,
 }
 
 /**
@@ -197,7 +196,6 @@ const browserSchema = validate.oneOf([
     openInBackground: validate.boolean,
     profile: validate.string,
     args: validate.arrayOf(validate.string),
-    passUrlAsArg: validate.boolean,
   }),
   validate.function("options"),
   validate.value(null)

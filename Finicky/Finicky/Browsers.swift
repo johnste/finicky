@@ -55,6 +55,7 @@ enum Browser: String {
 public func getBrowserCommand(_ browserOpts: BrowserOpts, url: URL) -> [String] {
     var command = ["open"]
     var commandArgs: [String] = []
+    var appendUrl = true
 
     // appPath takes priority over bundleId as it is always unique.
     if let appPath = browserOpts.appPath {
@@ -75,6 +76,9 @@ public func getBrowserCommand(_ browserOpts: BrowserOpts, url: URL) -> [String] 
 
     if browserOpts.args.count > 0 {
         commandArgs.append(contentsOf: browserOpts.args)
+
+        // do not auto-append the URL when args has been explicitly defined
+        appendUrl = false
     }
 
     if commandArgs.count > 0 {
@@ -83,9 +87,7 @@ public func getBrowserCommand(_ browserOpts: BrowserOpts, url: URL) -> [String] 
         command.append(contentsOf: commandArgs)
     }
 
-    // command.append(contentsOf: ["--app-id=jhgifngagadhdmngcahhimadjfofillb", "--profile-directory=Profile 13", "--app-launch-url-for-shortcuts-menu-item=https://meet.google.com/fqu-ckzh-vap?hs=122&ijlm=1609867843360"])
-
-    if browserOpts.passUrlAsArg {
+    if appendUrl {
         command.append(url.absoluteString)
     }
 

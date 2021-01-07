@@ -278,7 +278,6 @@ open class FinickyConfig {
                     let browserName = dict["name"] as! String
                     let browserProfile: String? = dict["profile"] as? String
                     let args: [String] = dict["args"] as? [String] ?? []
-                    let passUrlAsArg: Bool? = dict["passUrlAsArg"] as? Bool
 
                     if browserName == "" {
                         return nil
@@ -291,8 +290,7 @@ open class FinickyConfig {
                             appType: appType!,
                             openInBackground: openInBackground,
                             profile: browserProfile,
-                            args: args,
-                            passUrlAsArg: passUrlAsArg
+                            args: args
                         )
                         return browser
                     } catch _ as BrowserError {

@@ -23,7 +23,6 @@ public struct BrowserOpts: CustomStringConvertible {
     public var appPath: String?
     public var profile: String?
     public var args: [String]
-    public var passUrlAsArg: Bool
 
     public var description: String {
         if let bundleId = self.bundleId {
@@ -40,14 +39,12 @@ public struct BrowserOpts: CustomStringConvertible {
         appType: AppDescriptorType,
         openInBackground: Bool?,
         profile: String?,
-        args: [String],
-        passUrlAsArg: Bool?
+        args: [String]
     ) throws {
         self.name = name
         self.openInBackground = openInBackground ?? !NSApplication.shared.isActive
         self.profile = profile
         self.args = args
-        self.passUrlAsArg = passUrlAsArg ?? true
 
         if appType == AppDescriptorType.bundleId {
             bundleId = name
