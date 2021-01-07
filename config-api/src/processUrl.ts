@@ -42,6 +42,8 @@ const appDescriptorSchema = {
   ]).isRequired,
   openInBackground: validate.boolean,
   profile: validate.string,
+  args: validate.arrayOf(validate.string),
+  passUrlAsArg: validate.boolean,
 };
 
 export function processUrl(
