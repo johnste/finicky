@@ -149,7 +149,6 @@ describe("test", () => {
           appType: v.oneOf(["appName", "bundleId", "appPath"]),
           openInBackground: v.boolean,
           args: v.arrayOf(v.string),
-          passUrlAsArg: v.boolean,
         }),
         v.function("options"),
         v.value(null)
@@ -209,7 +208,6 @@ describe("Complex", () => {
           appType: v.oneOf(["appName", "bundleId", "appPath"]),
           openInBackground: v.boolean,
           args: v.arrayOf(v.string),
-          passUrlAsArg: v.boolean,
         })
       ]).isRequired
     };
@@ -238,7 +236,6 @@ describe("Complex", () => {
           appType: v.oneOf(["appName", "bundleId", "appPath"]),
           openInBackground: v.boolean,
           args: v.arrayOf(v.string),
-          passUrlAsArg: v.boolean,
           anotherShape: v.shape({
             boool: v.boolean
           })
@@ -333,7 +330,6 @@ test.only("test x", () => {
       appType: v.oneOf(["appName", "bundleId", "appPath"]),
       openInBackground: v.boolean,
       args: v.arrayOf(v.string),
-      passUrlAsArg: v.boolean,
     }),
     v.function("options"),
     v.value(null)
