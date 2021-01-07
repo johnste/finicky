@@ -97,6 +97,8 @@ export interface BrowserObject {
   appType?: "appName" | "bundleId" | "appPath" | "none";
   openInBackground?: boolean;
   profile?: string;
+  args?: string[];
+  passUrlAsArg?: boolean,
 }
 
 /**
@@ -194,6 +196,8 @@ const browserSchema = validate.oneOf([
     appType: validate.oneOf(["appName", "appPath", "bundleId"]),
     openInBackground: validate.boolean,
     profile: validate.string,
+    args: validate.arrayOf(validate.string),
+    passUrlAsArg: validate.boolean,
   }),
   validate.function("options"),
   validate.value(null)
