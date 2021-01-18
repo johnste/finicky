@@ -40,6 +40,7 @@ Finicky is a macOS application that allows you to set up rules that decide which
 - [Documentation](#documentation)
 - [Configuration ideas](#configuration-ideas)
 - [Alternatives](#alternatives)
+- [Building Finicky from source](#building-finicky-from-source)
 - [Support development](#support-development)
 - [Issues](#issues)
   - [Bugs](#bugs)
@@ -55,12 +56,13 @@ Finicky is a macOS application that allows you to set up rules that decide which
 1. Installation alternatives:
 
 - Download [the latest release](https://github.com/johnste/finicky/releases), unzip and put `Finicky.app` in your application folder.
-- Install with [homebrew-cask](https://github.com/caskroom/homebrew-cask): `brew cask install finicky`.
+- Install with [homebrew-cask](https://github.com/caskroom/homebrew-cask): `brew install --cask finicky`.
 
 2. Create a file called `.finicky.js` with configuration
    ([examples](#example-configuration)) in your home directory OR generate a basic configuration with [Finicky Kickstart](https://finicky-kickstart.now.sh/)
-   
+
 3. Start Finicky. Please allow it to be set as the default browser.
+
 4. And you're done. All links clicked that would have opened your browser are now first handled by Finicky.
 
 ## Example configuration
@@ -113,6 +115,18 @@ See the wiki page for other [configuration ideas](https://github.com/johnste/fin
 ## Alternatives
 
 If you are looking for something that lets you pick the browser to activate in a graphical interface, check out [Browserosaurus](https://browserosaurus.com/) by Will Stone, an open source browser prompter for macOS. It works really well together with Finicky!
+
+## Building Finicky from source
+
+If you'd like to build Finicky from source, you can do so by installing Xcode, Xcode Command Line Tools, and yarn, and then running the following:
+
+```sh
+# build the source
+make
+
+# run the compiled app
+make run
+```
 
 ## Support development
 

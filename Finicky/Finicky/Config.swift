@@ -194,8 +194,9 @@ open class FinickyConfig {
         print("Reloading config")
         hasError = false
         var config: String?
-        
+
         usleep(100 * 1000) // Sleep for a few millisconds to make sure file is available (See https://github.com/johnste/finicky/issues/140)
+
 
         logToConsole("Trying to read config file from: \(configPath)", false)
         
@@ -229,7 +230,7 @@ open class FinickyConfig {
             return
         }
 
-        setupAPI()        
+        setupAPI()
         ctx.evaluateScript(config)
         configObject = ctx.evaluateScript("module.exports")
 
@@ -297,6 +298,7 @@ open class FinickyConfig {
                     let openInBackground: Bool? = dict["openInBackground"] as? Bool
                     let browserName = dict["name"] as! String
                     let browserProfile: String? = dict["profile"] as? String
+                    let args: [String] = dict["args"] as? [String] ?? []
 
                     if browserName == "" {
                         return nil
@@ -304,7 +306,13 @@ open class FinickyConfig {
 
                     do {
                         // Default to opening the application in the bg if Finicky is not activated.
-                        let browser = try BrowserOpts(name: browserName, appType: appType!, openInBackground: openInBackground, profile:browserProfile)
+                        let browser = try BrowserOpts(
+                            name: browserName,
+                            appType: appType!,
+                            openInBackground: openInBackground,
+                            profile: browserProfile,
+                            args: args
+                        )
                         return browser
                     } catch _ as BrowserError {
                         showNotification(title: "Couldn't find browser \"\(browserName)\"")
