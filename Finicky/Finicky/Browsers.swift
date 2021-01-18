@@ -35,15 +35,21 @@ public func openUrlWithBrowser(_ url: URL, browserOpts: BrowserOpts) {
 }
 
 enum Browser: String {
-    case Chrome = "com.google.chrome"
-    case ChromeCanary = "com.google.chrome.canary"
+    case Blisk = "org.blisk.blisk"
     case Brave = "com.brave.browser"
     case BraveDev = "com.brave.browser.dev"
-    case Safari = "com.apple.safari"
+    case Chrome = "com.google.chrome"
+    case ChromeCanary = "com.google.chrome.canary"
+    case Edge = "com.microsoft.edgemac"
     case Firefox = "org.mozilla.firefox"
     case FirefoxDeveloperEdition = "org.mozilla.firefoxdeveloperedition"
     case Opera = "com.operasoftware.opera"
+<<<<<<< HEAD
     case Edge = "com.microsoft.edgemac"
+=======
+    case Safari = "com.apple.safari"
+    case Vivaldi = "com.vivaldi.vivaldi"
+>>>>>>> Add Edge and Vivaldi profile support
 }
 
 public func getBrowserCommand(_ browserOpts: BrowserOpts, url: URL) -> [String] {
@@ -73,12 +79,19 @@ public func getBrowserCommand(_ browserOpts: BrowserOpts, url: URL) -> [String] 
     return command
 }
 
-private func getProfileOption(bundleId: String, profile: String) -> [String]? {
+private func getProfileOption(bundleId: String, profile: String) -> [String]? {    
     var profileOption: [String]? {
         switch bundleId.lowercased() {
         case Browser.Brave.rawValue: return ["--profile-directory=\(profile)"]
         case Browser.BraveDev.rawValue: return ["--profile-directory=\(profile)"]
-        case Browser.Chrome.rawValue, Browser.Edge.rawValue: return ["--profile-directory=\(profile)"]
+
+        case Browser.Chrome.rawValue: return ["--profile-directory=\(profile)"]
+        case Browser.Edge.rawValue: return ["--profile-directory=\(profile)"]
+        case Browser.Vivaldi.rawValue: return ["--profile-directory=\(profile)"]
+            
+        // Blisk and Opera doesn't support multiple profiles even though they are Chromium based
+        // case Browser.Blisk.rawValue: return ["--profile-directory=\(profile)"]
+        // case Browser.Opera.rawValue: return ["--profile-directory=\(profile)"]
 
 //        Disabling Firefox support due to unreliable performance
 //        Link: https://github.com/johnste/finicky/pull/113#issuecomment-672180597
