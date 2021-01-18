@@ -43,13 +43,9 @@ enum Browser: String {
     case Edge = "com.microsoft.edgemac"
     case Firefox = "org.mozilla.firefox"
     case FirefoxDeveloperEdition = "org.mozilla.firefoxdeveloperedition"
-    case Opera = "com.operasoftware.opera"
-<<<<<<< HEAD
-    case Edge = "com.microsoft.edgemac"
-=======
+    case Opera = "com.operasoftware.opera"    
     case Safari = "com.apple.safari"
     case Vivaldi = "com.vivaldi.vivaldi"
->>>>>>> Add Edge and Vivaldi profile support
 }
 
 public func getBrowserCommand(_ browserOpts: BrowserOpts, url: URL) -> [String] {
