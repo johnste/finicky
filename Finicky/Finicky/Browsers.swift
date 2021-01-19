@@ -34,18 +34,21 @@ public func openUrlWithBrowser(_ url: URL, browserOpts: BrowserOpts) {
     shell(command)
 }
 
+// keep all browser bundle IDs lowercase
 enum Browser: String {
     case Blisk = "org.blisk.blisk"
     case Brave = "com.brave.browser"
+    case BraveBeta = "com.brave.browser.beta"
     case BraveDev = "com.brave.browser.dev"
     case Chrome = "com.google.chrome"
     case ChromeCanary = "com.google.chrome.canary"
     case Edge = "com.microsoft.edgemac"
+    case EdgeBeta = "com.microsoft.edgemac.beta"
     case Firefox = "org.mozilla.firefox"
     case FirefoxDeveloperEdition = "org.mozilla.firefoxdeveloperedition"
-    case Opera = "com.operasoftware.opera"    
-    case Safari = "com.apple.safari"
+    case Opera = "com.operasoftware.opera"
     case Vivaldi = "com.vivaldi.vivaldi"
+    case Safari = "com.apple.safari"
 }
 
 public func getBrowserCommand(_ browserOpts: BrowserOpts, url: URL) -> [String] {
@@ -90,27 +93,30 @@ public func getBrowserCommand(_ browserOpts: BrowserOpts, url: URL) -> [String] 
     return command
 }
 
-private func getProfileOption(bundleId: String, profile: String) -> [String]? {    
+private func getProfileOption(bundleId: String, profile: String) -> [String]? {
     var profileOption: [String]? {
         switch bundleId.lowercased() {
-        case Browser.Brave.rawValue: return ["--profile-directory=\(profile)"]
-        case Browser.BraveDev.rawValue: return ["--profile-directory=\(profile)"]
+            case
+                Browser.Brave.rawValue,
+                Browser.BraveBeta.rawValue,
+                Browser.BraveDev.rawValue,
+                Browser.Chrome.rawValue,
+                Browser.Edge.rawValue,
+                Browser.EdgeBeta.rawValue,
+                Browser.Vivaldi.rawValue:
+                return ["--profile-directory=\(profile)"]
 
-        case Browser.Chrome.rawValue: return ["--profile-directory=\(profile)"]
-        case Browser.Edge.rawValue: return ["--profile-directory=\(profile)"]
-        case Browser.Vivaldi.rawValue: return ["--profile-directory=\(profile)"]
-            
-        // Blisk and Opera doesn't support multiple profiles even though they are Chromium based
-        // case Browser.Blisk.rawValue: return ["--profile-directory=\(profile)"]
-        // case Browser.Opera.rawValue: return ["--profile-directory=\(profile)"]
+            // Blisk and Opera doesn't support multiple profiles even though they are Chromium based
+            // case Browser.Blisk.rawValue: return ["--profile-directory=\(profile)"]
+            // case Browser.Opera.rawValue: return ["--profile-directory=\(profile)"]
 
-//        Disabling Firefox support due to unreliable performance
-//        Link: https://github.com/johnste/finicky/pull/113#issuecomment-672180597
-//
-//        case Browser.Firefox.rawValue: return ["-P", profile]
-//        case Browser.FirefoxDeveloperEdition.rawValue: return ["-P", profile]
+            // Disabling Firefox support due to unreliable performance
+            // Link: https://github.com/johnste/finicky/pull/113#issuecomment-672180597
+            //
+            // case Browser.Firefox.rawValue: return ["-P", profile]
+            // case Browser.FirefoxDeveloperEdition.rawValue: return ["-P", profile]
 
-        default: return nil
+            default: return nil
         }
     }
     return profileOption
