@@ -18,7 +18,12 @@ final class ResolveShortUrls: NSObject, URLSessionDelegate, URLSessionTaskDelega
         var newRequest: URLRequest? = request
 
         if [301, 302, 309].contains(response.statusCode) {
-            if let newUrl = URL(string: (response.allHeaderFields["Location"] as? String)!) {
+            guard let urlString = ((response.allHeaderFields["Location"] as? String)!).addingPercentEncoding(withAllowedCharacters: .urlQueryAllowed) else {
+                newRequest = nil
+                return
+            }
+
+            if let newUrl = URL(string: urlString) {
                 if !shortUrlResolver.isShortUrl(newUrl) {
                     newRequest = nil
                 }
@@ -78,7 +83,9 @@ final class FNShortUrlResolver {
 
         let task = session.dataTask(with: request, completionHandler: { (_, response, _) -> Void in
             if let httpResponse = response as? HTTPURLResponse {
-                let newUrl = URL(string: httpResponse.allHeaderFields["Location"] as? String ?? url.absoluteString)
+                let urlString = (httpResponse.allHeaderFields["Location"] as? String ?? url.absoluteString).addingPercentEncoding(withAllowedCharacters: .urlQueryAllowed) ?? url.absoluteString
+
+                let newUrl = URL(string: urlString)
                 callback(newUrl ?? url)
             } else {
                 callback(url)

@@ -96,15 +96,15 @@ public func getBrowserCommand(_ browserOpts: BrowserOpts, url: URL) -> [String] 
 private func getProfileOption(bundleId: String, profile: String) -> [String]? {
     var profileOption: [String]? {
         switch bundleId.lowercased() {
-            case
-                Browser.Brave.rawValue,
-                Browser.BraveBeta.rawValue,
-                Browser.BraveDev.rawValue,
-                Browser.Chrome.rawValue,
-                Browser.Edge.rawValue,
-                Browser.EdgeBeta.rawValue,
-                Browser.Vivaldi.rawValue:
-                return ["--profile-directory=\(profile)"]
+        case
+            Browser.Brave.rawValue,
+            Browser.BraveBeta.rawValue,
+            Browser.BraveDev.rawValue,
+            Browser.Chrome.rawValue,
+            Browser.Edge.rawValue,
+            Browser.EdgeBeta.rawValue,
+            Browser.Vivaldi.rawValue:
+            return ["--profile-directory=\(profile)"]
 
             // Blisk and Opera doesn't support multiple profiles even though they are Chromium based
             // case Browser.Blisk.rawValue: return ["--profile-directory=\(profile)"]
@@ -116,7 +116,7 @@ private func getProfileOption(bundleId: String, profile: String) -> [String]? {
             // case Browser.Firefox.rawValue: return ["-P", profile]
             // case Browser.FirefoxDeveloperEdition.rawValue: return ["-P", profile]
 
-            default: return nil
+        default: return nil
         }
     }
     return profileOption
