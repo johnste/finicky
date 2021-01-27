@@ -109,8 +109,9 @@ function createUrl(url: UrlObject) {
   let hash = url.hash ? `#${url.hash}` : "";
   let auth = url.username ? `${url.username}` : "";
   auth += url.password ? `:${url.password}` : "";
+  let slashes = (url.protocol === "msteams") ? "/":"//"
 
-  return `${protocol}://${auth}${host}${port}${pathname}${search}${hash}`;
+  return `${protocol}:${slashes}${auth}${host}${port}${pathname}${search}${hash}`;
 }
 
 function processUrlRewrites(config: FinickyConfig, options: Options) {
