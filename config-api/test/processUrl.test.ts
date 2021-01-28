@@ -1,4 +1,4 @@
-import { Matcher, BrowserResult, Handler, Rewriter, UrlObject } from "./../src/types";
+import { Matcher, Handler, Rewriter, UrlObject } from "./../src/types";
 import { processUrl } from "../src/processUrl";
 import { createAPI } from "../src/createAPI";
 import { Url, UrlFunction } from "../src/types";
@@ -6,7 +6,10 @@ import { Url, UrlFunction } from "../src/types";
 const createRewriteConfig = ({
   urlResult = "https://test.changed",
   match = () => true,
-}: { urlResult?: Partial<UrlObject> | Url | UrlFunction; match?: Matcher } = {}) => {
+}: {
+  urlResult?: Partial<UrlObject> | Url | UrlFunction;
+  match?: Matcher;
+} = {}) => {
   return {
     defaultBrowser: "test",
     rewrite: [{ match, url: urlResult }],
@@ -16,6 +19,18 @@ const createRewriteConfig = ({
 describe("Rewrites", () => {
   describe("Rewrite matcher", () => {
     beforeAll(() => {
+      // @ts-ignore
+      global.finickyInternalAPI = {
+        getKeys: () => ({
+          shift: false,
+          option: false,
+          command: false,
+          control: false,
+          capsLock: false,
+          function: false,
+        }),
+      };
+
       // @ts-ignore
       global.finicky = createAPI();
     });
@@ -46,7 +61,10 @@ describe("Rewrites", () => {
 
     test("match wildcard pattern", () => {
       const config = createRewriteConfig({ match: "https://test.example/*" });
-      const result = processUrl(config, "https://test.example" + "/path?query=123#anchor");
+      const result = processUrl(
+        config,
+        "https://test.example" + "/path?query=123#anchor"
+      );
       expect(result.url).toBe("https://test.changed");
     });
   });
@@ -64,7 +82,9 @@ describe("Rewrites", () => {
     });
 
     test("Function", () => {
-      const config = createRewriteConfig({ urlResult: () => "https://test.changed" });
+      const config = createRewriteConfig({
+        urlResult: () => "https://test.changed",
+      });
       const result = processUrl(config, "https://test.example");
       expect(result.url).toBe("https://test.changed");
     });
@@ -85,7 +105,7 @@ describe("Rewrites", () => {
       expect(result.url).toBe("https://test.example?https");
     });
 
-    test("Object result ", () => {
+    test.only("Object result ", () => {
       const config = createRewriteConfig({
         urlResult: ({ url }) => ({
           ...url,
@@ -96,7 +116,6 @@ describe("Rewrites", () => {
       expect(result.url).toBe("https://test2.example");
     });
   });
-
 
   describe("Rewrite partial url", () => {
     beforeAll(() => {
@@ -111,18 +130,21 @@ describe("Rewrites", () => {
     });
 
     test("Hostname change", () => {
-      const config = createRewriteConfig({ urlResult: { host: "example.org" } });
+      const config = createRewriteConfig({
+        urlResult: { host: "example.org" },
+      });
       const result = processUrl(config, "http://example.com");
       expect(result.url).toBe("http://example.org");
     });
 
     test("Multiple change", () => {
-      const config = createRewriteConfig({ urlResult: { hash: "anchor", port: 1234, pathname: "/a/path" } });
+      const config = createRewriteConfig({
+        urlResult: { hash: "anchor", port: 1234, pathname: "/a/path" },
+      });
       const result = processUrl(config, "http://example.com");
       expect(result.url).toBe("http://example.com:1234/a/path#anchor");
     });
   });
-
 });
 
 const EXAMPLE_BROWSER = "Default Browser";
@@ -184,9 +206,14 @@ describe("Handlers", () => {
 
     test("match wildcard pattern", () => {
       const config = createConfig({
-        handlers: [{ browser: CHANGED_BROWSER, match: "https://test.example/*" }],
+        handlers: [
+          { browser: CHANGED_BROWSER, match: "https://test.example/*" },
+        ],
       });
-      const result = processUrl(config, "https://test.example" + "/path?query=123#anchor");
+      const result = processUrl(
+        config,
+        "https://test.example" + "/path?query=123#anchor"
+      );
       expect(result.browsers[0].name).toBe(CHANGED_BROWSER);
     });
   });
@@ -294,7 +321,13 @@ describe("Handlers", () => {
   describe("Handlers with browser and url rewrite", () => {
     test("that matches and rewrites the url", () => {
       const config = createConfig({
-        handlers: [{ browser: CHANGED_BROWSER, url: "https://test.changed", match: () => true }],
+        handlers: [
+          {
+            browser: CHANGED_BROWSER,
+            url: "https://test.changed",
+            match: () => true,
+          },
+        ],
       });
       const result = processUrl(config, "https://test.example");
       expect(result.browsers[0].name).toBe(CHANGED_BROWSER);
