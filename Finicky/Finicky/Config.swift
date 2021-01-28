@@ -255,12 +255,27 @@ open class FinickyConfig {
     }
 
     func getShortUrlProviders() -> [String]? {
-        let urlShorteners = ctx.evaluateScript("module.exports.options && module.exports.options.urlShorteners || []")?.toArray()
-        let list = urlShorteners as! [String]?
-        if list?.count == 0 {
-            return nil
+        guard var urlShorteners = ctx.evaluateScript("module.exports.options && module.exports.options.urlShorteners || null") else {
+            return defaultUrlShorteners
         }
-        return list
+
+        if urlShorteners.isNull {
+            return defaultUrlShorteners
+        }
+
+        if urlShorteners.isArray {
+            let list = urlShorteners.toArray() as! [String]?
+            return list
+        }
+
+        urlShorteners = (ctx.evaluateScript("module.exports.options.urlShorteners")?.call(withArguments: [defaultUrlShorteners]))!
+
+        if urlShorteners.isArray {
+            let list = urlShorteners.toArray() as! [String]?
+            return list
+        }
+
+        return defaultUrlShorteners
     }
 
     open func determineOpeningApp(url: URL, sourceBundleIdentifier: String? = nil, sourceProcessPath: String? = nil) -> AppDescriptor? {
