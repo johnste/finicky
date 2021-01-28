@@ -1,3 +1,4 @@
+import AppKit
 import Foundation
 import JavaScriptCore
 
@@ -5,6 +6,7 @@ import JavaScriptCore
     static func log(_ message: String?) -> Void
     static func notify(_ title: JSValue, _ subtitle: JSValue) -> Void
     static func getBattery() -> NSDictionary?
+    static func getKeys() -> [String: Bool]
 }
 
 /*
@@ -32,6 +34,17 @@ import JavaScriptCore
         }
 
         return nil
+    }
+
+    static func getKeys() -> [String: Bool] {
+        return [
+            "shift": NSEvent.modifierFlags.contains(.shift),
+            "option": NSEvent.modifierFlags.contains(.option),
+            "command": NSEvent.modifierFlags.contains(.command),
+            "control": NSEvent.modifierFlags.contains(.control),
+            "capsLock": NSEvent.modifierFlags.contains(.capsLock),
+            "function": NSEvent.modifierFlags.contains(.function),
+        ]
     }
 
     static func notify(_ title: JSValue, _ informativeText: JSValue) {
