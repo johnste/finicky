@@ -1,8 +1,28 @@
-import { validate } from "./fastidious/index";
+import { parseUrl, matchHostnames } from "./createAPI";
 
 /**
- * Finicky Configuration Reference.
+ * Finicky Configuration Types
  */
+
+type LogFunction = (message: string) => void;
+type NotifyFunction = (title: string, subtitle: string) => void;
+type BatteryFunction = () => {
+  chargePercentage: number;
+  isCharging: boolean;
+  isPluggedIn: boolean;
+};
+
+// Finicky Config API
+export type ConfigAPI = {
+  log: LogFunction;
+  notify: NotifyFunction;
+  getBattery: BatteryFunction;
+  getUrlParts: typeof parseUrl;
+  parseUrl: typeof parseUrl;
+  getKeys(): KeyOptions;
+  matchHostnames: typeof matchHostnames;
+  matchDomains: typeof matchHostnames;
+};
 
 /**
  * This represents the full `.finicky.js` `module.exports` object.
@@ -28,26 +48,20 @@ export interface FinickyConfig {
    */
   defaultBrowser: Browser | BrowserFunction | Array<Browser | BrowserFunction>;
   options?: {
-    /** Whether or not to hide the finicky icon in the menu bar */
+    /* Whether or not to hide the finicky icon in the menu bar */
     hideIcon?: boolean;
-    /** An array of domain names to replace the built in list of url
+    /**
+     * An array of domain names to replace the built in list of url
      * shortener domains. Note that using this option replaces the list
      * completely.
      *
-     * Example:
-     * ```js
-     *  module.exports = {
-     *    options: {
-     *      urlShorteners: ["another-url-shortener-service.com"]
-     *    }
-     *  }
-     * ```
+     * Alternatively a function that returns an array of domains
      */
-    urlShorteners?: string[];
+    urlShorteners?: string[] | ((hostnames: string[]) => string[]);
   };
-  /** An array of Rewriters that can change the url being opened */
+  /* An array of Rewriters that can change the url being opened */
   rewrite?: Rewriter[];
-  /** An array of Handlers to select which browser to open for urls */
+  /* An array of Handlers to select which browser to open for urls */
   handlers?: Handler[];
 }
 
@@ -90,11 +104,16 @@ export type MatcherFunction = (options: Options) => boolean;
 export type Browser = string | BrowserObject;
 
 /**
+ * Represents the type of app to start. "None" means to not start any app.
+ */
+export type AppType = "appName" | "bundleId" | "appPath" | "none";
+
+/**
  * Represents a browser or app to open
  */
 export interface BrowserObject {
   name: string;
-  appType?: "appName" | "bundleId" | "appPath" | "none";
+  appType?: AppType;
   openInBackground?: boolean;
   profile?: string;
   args?: string[];
@@ -130,6 +149,18 @@ export interface UrlObject {
 }
 
 /**
+ * An object that represents a key options object
+ */
+export interface KeyOptions {
+  shift: boolean;
+  option: boolean;
+  command: boolean;
+  control: boolean;
+  capsLock: boolean;
+  function: boolean;
+}
+
+/**
  * A function that returns a url
  */
 export type UrlFunction = (options: Options) => PartialUrl;
@@ -138,17 +169,12 @@ export type UrlFunction = (options: Options) => PartialUrl;
  * Options sent as the argument to [[ProcessUrl]]
  */
 export interface ProcessOptions {
-  /** If opened in from an app, this string contains the bundle identifier from that app */
+  /** If opened from an app, this string contains the bundle identifier from that app */
   sourceBundleIdentifier?: string;
+  /** If opened from an app, this string contains the path to that app */
+  sourceProcessPath?: string;
   /** The state of keyboard state. E.g. shift === true if pressed. */
-  keys: {
-    shift: boolean;
-    option: boolean;
-    command: boolean;
-    control: boolean;
-    capsLock: boolean;
-    function: boolean;
-  };
+  keys: KeyOptions;
 }
 
 /**
@@ -160,84 +186,3 @@ export interface Options extends ProcessOptions {
   /** The url being opened as an object */
   url: UrlObject;
 }
-
-const urlObjectSchema = {
-  protocol: validate.string.isRequired,
-  username: validate.string,
-  password: validate.string,
-  host: validate.string.isRequired,
-  port: validate.oneOf([validate.number, validate.value(null)]),
-  pathname: validate.string,
-  search: validate.string,
-  hash: validate.string
-}
-
-const partialUrlSchema = {
-  ...urlObjectSchema,
-  protocol: validate.string,
-  host: validate.string,
-};
-
-
-export const urlSchema = {
-  url: validate.oneOf([
-    validate.string,
-    validate.shape(urlObjectSchema)
-  ]).isRequired
-};
-
-
-
-const browserSchema = validate.oneOf([
-  validate.string,
-  validate.shape({
-    name: validate.string.isRequired,
-    appType: validate.oneOf(["appName", "appPath", "bundleId"]),
-    openInBackground: validate.boolean,
-    profile: validate.string,
-    args: validate.arrayOf(validate.string),
-  }),
-  validate.function("options"),
-  validate.value(null)
-]);
-
-const multipleBrowsersSchema = validate.oneOf([
-  browserSchema,
-  validate.arrayOf(browserSchema.isRequired)
-]);
-
-const matchSchema = validate.oneOf([
-  validate.string,
-  validate.function("options"),
-  validate.regex,
-  validate.arrayOf(
-    validate.oneOf([
-      validate.string,
-      validate.function("options"),
-      validate.regex
-    ])
-  )
-]);
-
-export const finickyConfigSchema = {
-  defaultBrowser: multipleBrowsersSchema.isRequired,
-  options: validate.shape({
-    hideIcon: validate.boolean,
-    urlShorteners: validate.arrayOf(validate.string),
-    checkForUpdate: validate.boolean
-  }),
-  rewrite: validate.arrayOf(
-    validate.shape({
-      match: matchSchema.isRequired,
-      url: validate.oneOf([validate.string, validate.shape(partialUrlSchema), validate.function("options")])
-        .isRequired
-    }).isRequired
-  ),
-  handlers: validate.arrayOf(
-    validate.shape({
-      match: matchSchema.isRequired,
-      url: validate.oneOf([validate.string, validate.shape(partialUrlSchema), validate.function("options")]),
-      browser: multipleBrowsersSchema.isRequired
-    })
-  )
-};
