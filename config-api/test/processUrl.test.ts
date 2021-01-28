@@ -105,7 +105,7 @@ describe("Rewrites", () => {
       expect(result.url).toBe("https://test.example?https");
     });
 
-    test.only("Object result ", () => {
+    test("Object result ", () => {
       const config = createRewriteConfig({
         urlResult: ({ url }) => ({
           ...url,
