@@ -340,7 +340,6 @@ open class FinickyConfig {
         let optionsDict = [
             "sourceBundleIdentifier": sourceBundleIdentifier as Any,
             "sourceProcessPath": sourceProcessPath as Any,
-            "keys": getModifierKeyFlags(),
         ] as [AnyHashable: Any]
         let result: JSValue? = ctx.evaluateScript("finickyConfigApi.processUrl")?.call(withArguments: [configObject!, url.absoluteString, optionsDict])
         return result
