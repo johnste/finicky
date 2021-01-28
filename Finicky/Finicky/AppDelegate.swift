@@ -12,7 +12,7 @@ class AppDelegate: NSObject, NSApplicationDelegate, NSUserNotificationCenterDele
     @objc var statusItem: NSStatusItem!
 
     var configLoader: FinickyConfig!
-    var shortUrlResolver: FNShortUrlResolver = FNShortUrlResolver()
+    var shortUrlResolver = FNShortUrlResolver()
 
     func applicationWillFinishLaunching(_: Notification) {
         testUrlTextField.delegate = self
@@ -39,7 +39,7 @@ class AppDelegate: NSObject, NSApplicationDelegate, NSUserNotificationCenterDele
             shortUrlProviders: [String]?,
             checkForUpdate: Bool
         ) {
-            shortUrlResolver = FNShortUrlResolver(shortUrlProviders: shortUrlProviders)
+            shortUrlResolver = FNShortUrlResolver(shortUrlProviders: shortUrlProviders ?? defaultUrlShorteners)
 
             if statusItem != nil {
                 statusItem.isVisible = !hideIcon

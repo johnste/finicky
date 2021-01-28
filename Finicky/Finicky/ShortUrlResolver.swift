@@ -34,30 +34,16 @@ final class ResolveShortUrls: NSObject, URLSessionDelegate, URLSessionTaskDelega
     }
 }
 
-let defaultUrlShorteners = [
-    "adf.ly",
-    "bit.do",
-    "bit.ly",
-    "buff.ly",
-    "deck.ly",
-    "fur.ly",
-    "goo.gl",
-    "is.gd",
-    "mcaf.ee",
-    "ow.ly",
-    "spoti.fi",
-    "su.pr",
-    "t.co",
-    "tiny.cc",
-    "tinyurl.com",
-]
-
 final class FNShortUrlResolver {
     private var shortUrlProviders: [String] = []
     var version: String
 
-    init(shortUrlProviders: [String]? = nil) {
-        self.shortUrlProviders = shortUrlProviders ?? defaultUrlShorteners
+    convenience init() {
+        self.init(shortUrlProviders: [])
+    }
+
+    init(shortUrlProviders: [String]) {
+        self.shortUrlProviders = shortUrlProviders
         version = Bundle.main.infoDictionary!["CFBundleShortVersionString"] as! String
     }
 
