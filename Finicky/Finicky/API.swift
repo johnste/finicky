@@ -7,6 +7,7 @@ import JavaScriptCore
     static func notify(_ title: JSValue, _ subtitle: JSValue) -> Void
     static func getBattery() -> NSDictionary?
     static func getKeys() -> [String: Bool]
+    static func getSystemInfo() -> [String: String]
 }
 
 /*
@@ -44,6 +45,14 @@ import JavaScriptCore
             "control": NSEvent.modifierFlags.contains(.control),
             "capsLock": NSEvent.modifierFlags.contains(.capsLock),
             "function": NSEvent.modifierFlags.contains(.function),
+        ]
+    }
+
+    static func getSystemInfo() -> [String: String] {
+        return [
+            "localizedName": Host.current().name ?? "",
+            "name": Host.current().name ?? "",
+            "address": Host.current().address ?? "",
         ]
     }
 

@@ -11,12 +11,18 @@ type BatteryFunction = () => {
   isCharging: boolean;
   isPluggedIn: boolean;
 };
+type SystemInfoFunction = () => {
+  name: string;
+  localizedName: string;
+  address: string;
+};
 
 // Finicky Config API
 export type ConfigAPI = {
   log: LogFunction;
   notify: NotifyFunction;
   getBattery: BatteryFunction;
+  getSystemInfo: SystemInfoFunction;
   getUrlParts: typeof parseUrl;
   parseUrl: typeof parseUrl;
   getKeys(): KeyOptions;

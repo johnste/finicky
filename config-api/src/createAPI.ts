@@ -17,6 +17,7 @@ export function createAPI(overrides: Partial<ConfigAPI> = {}): ConfigAPI {
       finickyInternalAPI.notify(title, subtitle),
     getBattery: () => finickyInternalAPI.getBattery(),
     getKeys: () => finickyInternalAPI.getKeys(),
+    getSystemInfo: () => finickyInternalAPI.getSystemInfo(),
     parseUrl,
     getUrlParts: parseUrl,
     matchHostnames,
