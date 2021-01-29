@@ -12,7 +12,7 @@ export function createAPI(overrides: Partial<ConfigAPI> = {}): ConfigAPI {
   }
 
   return {
-    log: (message: string) => finickyInternalAPI.log(message),
+    log: (...messages: string[]) => finickyInternalAPI.log(messages.join(" ")),
     notify: (title: string, subtitle: string) =>
       finickyInternalAPI.notify(title, subtitle),
     getBattery: () => finickyInternalAPI.getBattery(),
