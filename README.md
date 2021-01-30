@@ -82,7 +82,7 @@ module.exports = {
   handlers: [
     {
       // Open apple.com and example.org urls in Safari
-      match: ["apple.com*", "example.org*"],
+      match: ["apple.com/*", "example.org/*"],
       browser: "Safari"
     },
     {
@@ -93,8 +93,8 @@ module.exports = {
     {
       // Open google.com and *.google.com urls in Google Chrome
       match: [
-        "google.com*", // match google.com urls
-        finicky.matchDomains(/.*\.google.com/) // use helper function to match on domain only
+        "google.com/*", // match google.com urls
+        "*.google.com/*", // match google.com subdomains
       ],
       browser: "Google Chrome"
     }
