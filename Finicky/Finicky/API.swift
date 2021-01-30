@@ -50,7 +50,7 @@ import JavaScriptCore
 
     static func getSystemInfo() -> [String: String] {
         return [
-            "localizedName": Host.current().name ?? "",
+            "localizedName": Host.current().localizedName ?? "",
             "name": Host.current().name ?? "",
             "address": Host.current().address ?? "",
         ]
