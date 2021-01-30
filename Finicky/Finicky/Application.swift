@@ -1,37 +1,26 @@
 import AppKit
-//
-//  App.swift
-//  Finicky
-//
-//  Created by John Sterling on 2021-01-29.
-//  Copyright © 2021 John sterling. All rights reserved.
-//
-// Represents an application
-
 import Foundation
 
 class Application {
-    
-    var application: NSRunningApplication?;
-    var path: String?;
-    var pid: Int32;
-    
+    var application: NSRunningApplication?
+    var path: String?
+    var pid: Int32
+
     init(pid: Int32) {
         let application = NSRunningApplication(processIdentifier: pid)
-        self.path = getPidPath(pid: pid)
+        path = getPidPath(pid: pid)
         self.pid = pid
         self.application = application
     }
-    
+
     func serialize() -> [String: Any] {
         return [
-            "pid": self.pid,
-            "path": self.path!,
-            "bundleId": (self.application?.bundleIdentifier! ?? nil) as Any,
-            "name": (self.application?.localizedName! ?? nil) as Any,
+            "pid": pid,
+            "path": path!,
+            "bundleId": (application?.bundleIdentifier! ?? nil) as Any,
+            "name": (application?.localizedName! ?? nil) as Any,
         ]
     }
-
 }
 
 func getPidPath(pid: Int32) -> String? {

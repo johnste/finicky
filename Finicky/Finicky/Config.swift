@@ -338,7 +338,7 @@ open class FinickyConfig {
 
     func getConfiguredAppValue(url: URL, opener: Application) -> JSValue? {
         let optionsDict = [
-            "opener": opener.serialize() as Any
+            "opener": opener.serialize() as Any,
         ] as [AnyHashable: Any]
         let result: JSValue? = ctx.evaluateScript("finickyConfigApi.processUrl")?.call(withArguments: [configObject!, url.absoluteString, optionsDict])
         return result
