@@ -7,6 +7,7 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		522F811425C45D0800643AF9 /* Application.swift in Sources */ = {isa = PBXBuildFile; fileRef = 522F811325C45D0800643AF9 /* Application.swift */; };
 		54121CB922D8D8270020A69C /* finickyConfigAPI.js in Resources */ = {isa = PBXBuildFile; fileRef = 54121CB822D8D8270020A69C /* finickyConfigAPI.js */; };
 		5443523E229DA01B00307E21 /* statusitemerror@2x.png in Resources */ = {isa = PBXBuildFile; fileRef = 5443523D229DA01B00307E21 /* statusitemerror@2x.png */; };
 		54435240229DB9E800307E21 /* statusitemerror.png in Resources */ = {isa = PBXBuildFile; fileRef = 5443523F229DB9E800307E21 /* statusitemerror.png */; };
@@ -43,6 +44,7 @@
 /* End PBXContainerItemProxy section */
 
 /* Begin PBXFileReference section */
+		522F811325C45D0800643AF9 /* Application.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Application.swift; sourceTree = "<group>"; };
 		52B32464249140A000A84F7F /* Finicky.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = Finicky.entitlements; sourceTree = "<group>"; };
 		54121CB822D8D8270020A69C /* finickyConfigAPI.js */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.javascript; path = finickyConfigAPI.js; sourceTree = "<group>"; };
 		5443523D229DA01B00307E21 /* statusitemerror@2x.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = "statusitemerror@2x.png"; sourceTree = "<group>"; };
@@ -132,6 +134,7 @@
 				54E4B1EA22971F7B002FA6F4 /* UpdateCheck.swift */,
 				54C2F15A22BEC9BC00B3E2C3 /* Browsers.swift */,
 				54FD9F552455A9A600217E30 /* Battery.swift */,
+				522F811325C45D0800643AF9 /* Application.swift */,
 			);
 			path = Finicky;
 			sourceTree = "<group>";
@@ -331,6 +334,7 @@
 				54B0E7031B4678CE003F8AEE /* ShortUrlResolver.swift in Sources */,
 				54E4B1EB22971F7B002FA6F4 /* UpdateCheck.swift in Sources */,
 				548F11CE1B2A43F700FDDC3C /* API.swift in Sources */,
+				522F811425C45D0800643AF9 /* Application.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

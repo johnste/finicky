@@ -4,7 +4,7 @@ import { parseUrl, matchHostnames } from "./createAPI";
  * Finicky Configuration Types
  */
 
-type LogFunction = (message: string) => void;
+type LogFunction = (...messages: string[]) => void;
 type NotifyFunction = (title: string, subtitle: string) => void;
 type BatteryFunction = () => {
   chargePercentage: number;
@@ -64,6 +64,10 @@ export interface FinickyConfig {
      * Alternatively a function that returns an array of domains
      */
     urlShorteners?: string[] | ((hostnames: string[]) => string[]);
+    /**
+     * Log all requests to console
+     */
+    logRequests?: boolean;
   };
   /* An array of Rewriters that can change the url being opened */
   rewrite?: Rewriter[];
@@ -171,16 +175,19 @@ export interface KeyOptions {
  */
 export type UrlFunction = (options: Options) => PartialUrl;
 
+export type Application = {
+  pid: number;
+  path?: string;
+  bundleId?: string;
+  name?: string;
+};
+
 /**
  * Options sent as the argument to [[ProcessUrl]]
  */
 export interface ProcessOptions {
-  /** If opened from an app, this string contains the bundle identifier from that app */
-  sourceBundleIdentifier?: string;
-  /** If opened from an app, this string contains the path to that app */
-  sourceProcessPath?: string;
-  /** The state of keyboard state. E.g. shift === true if pressed. */
-  keys: KeyOptions;
+  /** The opening application */
+  opener: Application;
 }
 
 /**
@@ -191,4 +198,16 @@ export interface Options extends ProcessOptions {
   urlString: string;
   /** The url being opened as an object */
   url: UrlObject;
+  /** If opened from an app, this string contains the bundle identifier from that app
+   * @deprecated Use opener.bundleId instead
+   */
+  sourceBundleIdentifier?: string;
+  /** If opened from an app, this string contains the path to that app
+   * @deprecated Use opener.path instead
+   */
+  sourceProcessPath?: string;
+  /** The state of keyboard state. E.g. shift === true if pressed.
+   * @deprecated Use finicky.getKeys() instead
+   */
+  keys: KeyOptions;
 }

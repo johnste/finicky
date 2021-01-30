@@ -1,4 +1,4 @@
-import { UrlObject, AppType } from "./types";
+import { UrlObject, AppType, Options } from "./types";
 import { ISchema, IValidator } from "./fastidious/types";
 import { getErrors } from "./fastidious/index";
 
@@ -77,4 +77,25 @@ export function validateSchema(
       errors.join("\n") + "\nReceived value: " + JSON.stringify(value, null, 2)
     );
   }
+}
+
+/**
+ * Create a proxy to warn on accessing deprecated options
+ */
+export function deprecate<T extends Object>(
+  target: T,
+  deprecated: Map<keyof T, string>
+): T {
+  const handler = {
+    get: function (target: T, prop: keyof T, receiver?: any) {
+      if (deprecated.has(prop)) {
+        // @ts-ignore
+        finicky.log("⚠️", prop, "is deprecated: ", deprecated.get(prop));
+      }
+
+      return Reflect.get(target, prop, receiver);
+    },
+  };
+
+  return new Proxy(target, handler);
 }

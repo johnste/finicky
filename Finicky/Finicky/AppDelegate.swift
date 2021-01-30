@@ -174,7 +174,8 @@ class AppDelegate: NSObject, NSApplicationDelegate, NSUserNotificationCenterDele
     }
 
     func performTest(url: URL) {
-        guard let appDescriptor = configLoader.determineOpeningApp(url: url, sourceBundleIdentifier: "net.kassett.finicky") else {
+        let opener = Application(pid: getpid())
+        guard let appDescriptor = configLoader.determineOpeningApp(url: url, opener: opener) else {
             return
         }
 
@@ -208,25 +209,12 @@ class AppDelegate: NSObject, NSApplicationDelegate, NSUserNotificationCenterDele
         return result
     }
 
-    func getPidPath(pid: Int32) -> String? {
-        let pathBuffer = UnsafeMutablePointer<UInt8>.allocate(capacity: Int(MAXPATHLEN))
-        defer {
-            pathBuffer.deallocate()
-        }
-        let pathLength = proc_pidpath(pid, pathBuffer, UInt32(MAXPATHLEN))
-
-        if pathLength > 0 {
-            let path = String(cString: pathBuffer)
-            return path
-        }
-        return nil
-    }
 
     @objc func handleGetURLEvent(_ event: NSAppleEventDescriptor?, withReplyEvent _: NSAppleEventDescriptor?) {
         toggleDockIcon(showIcon: false)
         let pid = event!.attributeDescriptor(forKeyword: AEKeyword(keySenderPIDAttr))!.int32Value
-        let sourceBundleIdentifier = NSRunningApplication(processIdentifier: pid)?.bundleIdentifier
-        let path = getPidPath(pid: pid)
+        
+        let opener = Application(pid: pid)
         var url: URL = URL(string: event!.paramDescriptor(forKeyword: AEKeyword(keyDirectObject))!.stringValue!)!
 
         if url.scheme == "finicky" || url.scheme == "finickys" {
@@ -243,12 +231,12 @@ class AppDelegate: NSObject, NSApplicationDelegate, NSUserNotificationCenterDele
             }
         }
         shortUrlResolver.resolveUrl(url, callback: { (URL) -> Void in
-            self.callUrlHandlers(sourceBundleIdentifier, url: URL, sourceProcessPath: path)
+            self.callUrlHandlers(opener: opener, url: URL)
         })
     }
 
-    @objc func callUrlHandlers(_ sourceBundleIdentifier: String?, url: URL, sourceProcessPath: String?) {
-        if let appDescriptor = configLoader.determineOpeningApp(url: url, sourceBundleIdentifier: sourceBundleIdentifier, sourceProcessPath: sourceProcessPath) {
+    func callUrlHandlers(opener: Application, url: URL) {
+        if let appDescriptor = configLoader.determineOpeningApp(url: url, opener: opener) {
             if let appToStart = getActiveApp(browsers: appDescriptor.browsers) {
                 var success = false
                 if let bundleId = appToStart.bundleId {
@@ -283,7 +271,8 @@ class AppDelegate: NSObject, NSApplicationDelegate, NSUserNotificationCenterDele
     func application(_: NSApplication, openFiles filenames: [String]) {
         toggleDockIcon(showIcon: false)
         for filename in filenames {
-            callUrlHandlers(nil, url: URL(fileURLWithPath: filename), sourceProcessPath: nil)
+            let opener = Application(pid: getpid())
+            callUrlHandlers(opener: opener, url: URL(fileURLWithPath: filename))
         }
     }
 
@@ -300,7 +289,8 @@ class AppDelegate: NSObject, NSApplicationDelegate, NSUserNotificationCenterDele
             return false
         }
 
-        callUrlHandlers(nil, url: url, sourceProcessPath: nil)
+        let opener = Application(pid: getpid())
+        callUrlHandlers(opener: opener, url: url)
         return true
     }
 

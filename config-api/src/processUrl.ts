@@ -16,6 +16,7 @@ import {
   guessAppType,
   composeUrl,
   validateSchema,
+  deprecate,
 } from "./utils";
 
 // Assume the module.exports is available
@@ -29,14 +30,29 @@ declare const finicky: ConfigAPI;
 export function processUrl(
   config: FinickyConfig,
   url: string,
-  processOptions?: ProcessOptions
+  processOptions: ProcessOptions
 ) {
-  let options = {
+  let options: Options = {
     urlString: url,
     url: finicky.parseUrl(url),
     keys: finicky.getKeys(),
+    sourceBundleIdentifier: processOptions?.opener?.bundleId,
+    sourceProcessPath: processOptions?.opener?.path,
     ...processOptions,
   };
+
+  if (config?.options?.logRequests) {
+    if (processOptions?.opener) {
+      const app = processOptions.opener;
+      finicky.log(
+        `Opening ${url} from ${app.name || "N/A"}\n\tbundleId: ${
+          app.bundleId || "N/A"
+        }\n\tpath: ${app.path || "N/A"}`
+      );
+    } else {
+      finicky.log(`Opening ${url} from an unknown application`);
+    }
+  }
 
   if (!config) {
     // If there's no config available use Safari as the browser
@@ -108,7 +124,26 @@ function isMatch(matcher: Matcher | Matcher[], options: Options) {
       const regex = createRegularExpression(matcher);
       return regex.test(options.urlString);
     } else if (typeof matcher === "function") {
-      return !!matcher(options);
+      // Add a deprecation warning when accessing certain deprecated properties
+      const deprecatedOptions = deprecate(
+        options,
+        new Map([
+          [
+            "keys",
+            "Use finicky.getKeys() instead, see https://github.com/johnste/finicky/wiki/Configuration#parameters",
+          ],
+          [
+            "sourceBundleIdentifier",
+            "Use opener.bundleId instead, see https://github.com/johnste/finicky/wiki/Configuration#parameters",
+          ],
+          [
+            "sourceProcessPath",
+            "Use opener.path instead, see https://github.com/johnste/finicky/wiki/Configuration#parameters",
+          ],
+        ])
+      );
+
+      return !!matcher(deprecatedOptions);
     }
 
     return false;

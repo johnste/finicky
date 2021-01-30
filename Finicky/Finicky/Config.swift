@@ -278,8 +278,8 @@ open class FinickyConfig {
         return defaultUrlShorteners
     }
 
-    open func determineOpeningApp(url: URL, sourceBundleIdentifier: String? = nil, sourceProcessPath: String? = nil) -> AppDescriptor? {
-        if let appValue = getConfiguredAppValue(url: url, sourceBundleIdentifier: sourceBundleIdentifier, sourceProcessPath: sourceProcessPath) {
+    func determineOpeningApp(url: URL, opener: Application) -> AppDescriptor? {
+        if let appValue = getConfiguredAppValue(url: url, opener: opener) {
             if !appValue.isObject {
                 return nil
             }
@@ -336,10 +336,9 @@ open class FinickyConfig {
         return nil
     }
 
-    func getConfiguredAppValue(url: URL, sourceBundleIdentifier: String?, sourceProcessPath: String?) -> JSValue? {
+    func getConfiguredAppValue(url: URL, opener: Application) -> JSValue? {
         let optionsDict = [
-            "sourceBundleIdentifier": sourceBundleIdentifier as Any,
-            "sourceProcessPath": sourceProcessPath as Any,
+            "opener": opener.serialize() as Any
         ] as [AnyHashable: Any]
         let result: JSValue? = ctx.evaluateScript("finickyConfigApi.processUrl")?.call(withArguments: [configObject!, url.absoluteString, optionsDict])
         return result

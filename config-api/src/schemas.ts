@@ -65,6 +65,7 @@ export const finickyConfigSchema = {
       validate.function("hostnames"),
     ]),
     checkForUpdate: validate.boolean,
+    logRequests: validate.boolean,
   }),
   rewrite: validate.arrayOf(
     validate.shape({
