@@ -16,7 +16,7 @@ class Application {
     func serialize() -> [String: Any] {
         return [
             "pid": pid,
-            "path": path!,
+            "path": path as Any,
             "bundleId": (application?.bundleIdentifier! ?? nil) as Any,
             "name": (application?.localizedName! ?? nil) as Any,
         ]
