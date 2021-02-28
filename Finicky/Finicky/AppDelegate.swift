@@ -16,18 +16,12 @@ class AppDelegate: NSObject, NSApplicationDelegate, NSUserNotificationCenterDele
 
     var configLoader: FinickyConfig!
     var settings: Settings!
-    var shortUrlResolver: FNShortUrlResolver = FNShortUrlResolver()
+    var shortUrlResolver = FNShortUrlResolver()
 
     func applicationWillFinishLaunching(_: Notification) {
         testUrlTextField.delegate = self
         ClearConsole()
         CheckDefaultBrowser()
-
-        let bundleId = "net.kassett.Finicky"
-        LSSetDefaultHandlerForURLScheme("http" as CFString, bundleId as CFString)
-        LSSetDefaultHandlerForURLScheme("https" as CFString, bundleId as CFString)
-        LSSetDefaultHandlerForURLScheme("finicky" as CFString, bundleId as CFString)
-        LSSetDefaultHandlerForURLScheme("finickys" as CFString, bundleId as CFString)
 
         NSUserNotificationCenter.default.delegate = self
         let img: NSImage! = NSImage(named: "statusitem")
@@ -35,13 +29,13 @@ class AppDelegate: NSObject, NSApplicationDelegate, NSUserNotificationCenterDele
 
         let invalidImg: NSImage! = NSImage(named: "statusitemerror")
         invalidImg.isTemplate = true
-        
+
         // Workaround for some bug: -1 instead of NSVariableStatusItemLength
         statusItem = NSStatusBar.system.statusItem(withLength: CGFloat(-1))
         statusItem.menu = statusItemMenu
         (statusItem.button?.cell! as! NSButtonCell).highlightsBy = NSCell.StyleMask.changeBackgroundCellMask
         statusItem.button?.image = invalidImg
-                
+
         toggleDockIcon(showIcon: false)
 
         func configureAppOptions(
@@ -49,7 +43,7 @@ class AppDelegate: NSObject, NSApplicationDelegate, NSUserNotificationCenterDele
             shortUrlProviders: [String]?,
             checkForUpdate: Bool
         ) {
-            shortUrlResolver = FNShortUrlResolver(shortUrlProviders: shortUrlProviders)
+            shortUrlResolver = FNShortUrlResolver(shortUrlProviders: shortUrlProviders ?? defaultUrlShorteners)
 
             if statusItem != nil {
                 statusItem.isVisible = !hideIcon
@@ -113,6 +107,12 @@ class AppDelegate: NSObject, NSApplicationDelegate, NSUserNotificationCenterDele
                 logToConsole("Finicky works best when it is set as the default browser")
             }
         }
+
+        let bundleId = "net.kassett.Finicky"
+        LSSetDefaultHandlerForURLScheme("http" as CFString, bundleId as CFString)
+        LSSetDefaultHandlerForURLScheme("https" as CFString, bundleId as CFString)
+        LSSetDefaultHandlerForURLScheme("finicky" as CFString, bundleId as CFString)
+        LSSetDefaultHandlerForURLScheme("finickys" as CFString, bundleId as CFString)
     }
 
     @IBAction func reloadConfig(_: NSMenuItem? = nil) {
@@ -213,11 +213,11 @@ class AppDelegate: NSObject, NSApplicationDelegate, NSUserNotificationCenterDele
         let formatter = DateFormatter()
         formatter.dateFormat = "yyyy-MM-dd HH:mm:ss"
         let dateString = formatter.string(from: date)
-        
-        textView.isAutomaticQuoteSubstitutionEnabled = false;
-        textView.isAutomaticTextReplacementEnabled = false;
-        textView.isAutomaticDashSubstitutionEnabled = false;
-        textView.isAutomaticSpellingCorrectionEnabled = false;
+
+        textView.isAutomaticQuoteSubstitutionEnabled = false
+        textView.isAutomaticTextReplacementEnabled = false
+        textView.isAutomaticDashSubstitutionEnabled = false
+        textView.isAutomaticSpellingCorrectionEnabled = false
 
         textView.string = textView.string + dateString + " - " + message + "\n"
         textView.scrollToEndOfDocument(self)
@@ -231,7 +231,10 @@ class AppDelegate: NSObject, NSApplicationDelegate, NSUserNotificationCenterDele
     }
 
     @IBAction func testUrl(_ sender: NSTextField) {
-        var value = sender.stringValue
+        guard var value = sender.stringValue.addingPercentEncoding(withAllowedCharacters: .urlQueryAllowed) else {
+            logToConsole("Could not parse URL")
+            return
+        }
 
         if value.starts(with: "finickys://") || value.starts(with: "finicky://") {
             logToConsole("Finicky will convert finickys:// and finicky:// urls to https:// and http:// respectively")
@@ -243,6 +246,7 @@ class AppDelegate: NSObject, NSApplicationDelegate, NSUserNotificationCenterDele
             logToConsole("Finicky only understands https:// and http:// urls")
             return
         }
+
         if let url = URL(string: value) {
             shortUrlResolver.resolveUrl(url, callback: { (URL) -> Void in
                 // Dispatch the call to the main thread
@@ -255,25 +259,28 @@ class AppDelegate: NSObject, NSApplicationDelegate, NSUserNotificationCenterDele
     }
 
     func performTest(url: URL) {
-        if let appDescriptor = configLoader.determineOpeningApp(url: url, sourceBundleIdentifier: "net.kassett.finicky") {
-            var description = ""
-
-            if appDescriptor.browsers.count == 1 {
-                if let browser = appDescriptor.browsers.first {
-                    description += "Opens browser: \(browser.name)\(browser.openInBackground ? " (opens in background)" : "")"
-                }
-            } else if appDescriptor.browsers.count == 0 {
-                description += "Won't open any browser"
-            } else {
-                description += "Opens first active browser of: "
-                for (index, browser) in appDescriptor.browsers.enumerated() {
-                    description += "[\(index)]: \(browser.name) \(browser.openInBackground ? "(opens in background)" : "")"
-                }
-            }
-
-            description += ", url: \(appDescriptor.url)"
-            logToConsole(description)
+        let opener = Application(pid: getpid())
+        guard let appDescriptor = configLoader.determineOpeningApp(url: url, opener: opener) else {
+            return
         }
+
+        var description = ""
+
+        if appDescriptor.browsers.count == 1 {
+            if let browser = appDescriptor.browsers.first {
+                description += "Opens browser: \(browser.name)\(browser.openInBackground ? " (opens in background)" : "")"
+            }
+        } else if appDescriptor.browsers.count == 0 {
+            description += "Won't open any browser"
+        } else {
+            description += "Opens first active browser of: "
+            for (index, browser) in appDescriptor.browsers.enumerated() {
+                description += "[\(index)]: \(browser.name) \(browser.openInBackground ? "(opens in background)" : "")"
+            }
+        }
+
+        description += ", url: \(appDescriptor.url)"
+        logToConsole(description)
     }
 
     @discardableResult
@@ -287,25 +294,11 @@ class AppDelegate: NSObject, NSApplicationDelegate, NSUserNotificationCenterDele
         return result
     }
 
-    func getPidPath(pid: Int32) -> String? {
-        let pathBuffer = UnsafeMutablePointer<UInt8>.allocate(capacity: Int(MAXPATHLEN))
-        defer {
-            pathBuffer.deallocate()
-        }
-        let pathLength = proc_pidpath(pid, pathBuffer, UInt32(MAXPATHLEN))
-
-        if pathLength > 0 {
-            let path = String(cString: pathBuffer)
-            return path
-        }
-        return nil
-    }
-
     @objc func handleGetURLEvent(_ event: NSAppleEventDescriptor?, withReplyEvent _: NSAppleEventDescriptor?) {
         toggleDockIcon(showIcon: false)
         let pid = event!.attributeDescriptor(forKeyword: AEKeyword(keySenderPIDAttr))!.int32Value
-        let sourceBundleIdentifier = NSRunningApplication(processIdentifier: pid)?.bundleIdentifier
-        let path = getPidPath(pid: pid)
+
+        let opener = Application(pid: pid)
         var url: URL = URL(string: event!.paramDescriptor(forKeyword: AEKeyword(keyDirectObject))!.stringValue!)!
 
         if url.scheme == "finicky" || url.scheme == "finickys" {
@@ -322,13 +315,12 @@ class AppDelegate: NSObject, NSApplicationDelegate, NSUserNotificationCenterDele
             }
         }
         shortUrlResolver.resolveUrl(url, callback: { (URL) -> Void in
-            self.callUrlHandlers(sourceBundleIdentifier, url: URL, sourceProcessPath: path)
+            self.callUrlHandlers(opener: opener, url: URL)
         })
     }
 
-
-    @objc func callUrlHandlers(_ sourceBundleIdentifier: String?, url: URL, sourceProcessPath: String?) {
-        if let appDescriptor = configLoader.determineOpeningApp(url: url, sourceBundleIdentifier: sourceBundleIdentifier, sourceProcessPath: sourceProcessPath) {
+    func callUrlHandlers(opener: Application, url: URL) {
+        if let appDescriptor = configLoader.determineOpeningApp(url: url, opener: opener) {
             if let appToStart = getActiveApp(browsers: appDescriptor.browsers) {
                 var success = false
                 if let bundleId = appToStart.bundleId {
@@ -363,16 +355,17 @@ class AppDelegate: NSObject, NSApplicationDelegate, NSUserNotificationCenterDele
     func application(_: NSApplication, openFiles filenames: [String]) {
         toggleDockIcon(showIcon: false)
         for filename in filenames {
-            callUrlHandlers(nil, url: URL(fileURLWithPath: filename), sourceProcessPath: nil)
+            let opener = Application(pid: getpid())
+            callUrlHandlers(opener: opener, url: URL(fileURLWithPath: filename))
         }
     }
 
-    func application(_ application: NSApplication, willContinueUserActivityWithType userActivityType: String) -> Bool {
+    func application(_: NSApplication, willContinueUserActivityWithType userActivityType: String) -> Bool {
         return userActivityType == NSUserActivityTypeBrowsingWeb
     }
 
-    func application(_ application: NSApplication, continue userActivity: NSUserActivity, restorationHandler: @escaping ([NSUserActivityRestoring]) -> Void) -> Bool {
-        if (userActivity.activityType != NSUserActivityTypeBrowsingWeb) {
+    func application(_: NSApplication, continue userActivity: NSUserActivity, restorationHandler _: @escaping ([NSUserActivityRestoring]) -> Void) -> Bool {
+        if userActivity.activityType != NSUserActivityTypeBrowsingWeb {
             return false
         }
 
@@ -380,10 +373,10 @@ class AppDelegate: NSObject, NSApplicationDelegate, NSUserNotificationCenterDele
             return false
         }
 
-        self.callUrlHandlers(nil, url: url, sourceProcessPath: nil)
+        let opener = Application(pid: getpid())
+        callUrlHandlers(opener: opener, url: url)
         return true
     }
 
-    func application(_ application: NSApplication, didFailToContinueUserActivityWithType userActivityType: String, error: Error) {
-    }
+    func application(_: NSApplication, didFailToContinueUserActivityWithType _: String, error _: Error) {}
 }

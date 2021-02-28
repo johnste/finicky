@@ -38,7 +38,7 @@ Finicky is a macOS application that allows you to set up rules that decide which
   - [Basic configuration](#basic-configuration)
   - [Rewrite urls](#rewrite-urls)
 - [Documentation](#documentation)
-- [Configuration ideas](#configuration-ideas)
+- [Configuration tips](#configuration-tips)
 - [Alternatives](#alternatives)
 - [Building Finicky from source](#building-finicky-from-source)
 - [Support development](#support-development)
@@ -82,7 +82,7 @@ module.exports = {
   handlers: [
     {
       // Open apple.com and example.org urls in Safari
-      match: ["apple.com*", "example.org*"],
+      match: ["apple.com/*", "example.org/*"],
       browser: "Safari"
     },
     {
@@ -93,8 +93,8 @@ module.exports = {
     {
       // Open google.com and *.google.com urls in Google Chrome
       match: [
-        "google.com*", // match google.com urls
-        finicky.matchDomains(/.*\.google.com/) // use helper function to match on domain only
+        "google.com/*", // match google.com urls
+        "*.google.com/*", // match google.com subdomains
       ],
       browser: "Google Chrome"
     }
@@ -108,9 +108,9 @@ See the [documentation](#documentation) for all the features Finicky supports.
 
 Finicky has extensive support for matching, rewriting and starting browsers or other application that handle urls. See the wiki for the [full configuration documentation](https://github.com/johnste/finicky/wiki/Configuration) explaining all available, APIs and options as well as detail information on how to match on urls.
 
-## Configuration ideas
+## Configuration tips
 
-See the wiki page for other [configuration ideas](https://github.com/johnste/finicky/wiki/Configuration-ideas) by users of Finicky.
+See the wiki page for other [configuration tips](https://github.com/johnste/finicky/wiki/Configuration-ideas) by users of Finicky.
 
 ## Alternatives
 

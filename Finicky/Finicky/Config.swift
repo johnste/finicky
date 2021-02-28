@@ -276,16 +276,31 @@ open class FinickyConfig {
     }
 
     private func getShortUrlProviders() -> [String]? {
-        let urlShorteners = ctx.evaluateScript("module.exports.options && module.exports.options.urlShorteners || []")?.toArray()
-        let list = urlShorteners as! [String]?
-        if list?.count == 0 {
-            return nil
+        guard var urlShorteners = ctx.evaluateScript("module.exports.options && module.exports.options.urlShorteners || null") else {
+            return defaultUrlShorteners
         }
-        return list
+
+        if urlShorteners.isNull {
+            return defaultUrlShorteners
+        }
+
+        if urlShorteners.isArray {
+            let list = urlShorteners.toArray() as! [String]?
+            return list
+        }
+
+        urlShorteners = (ctx.evaluateScript("module.exports.options.urlShorteners")?.call(withArguments: [defaultUrlShorteners]))!
+
+        if urlShorteners.isArray {
+            let list = urlShorteners.toArray() as! [String]?
+            return list
+        }
+
+        return defaultUrlShorteners
     }
 
-    func determineOpeningApp(url: URL, sourceBundleIdentifier: String? = nil, sourceProcessPath: String? = nil) -> AppDescriptor? {
-        if let appValue = getConfiguredAppValue(url: url, sourceBundleIdentifier: sourceBundleIdentifier, sourceProcessPath: sourceProcessPath) {
+    private func determineOpeningApp(url: URL, opener: Application) -> AppDescriptor? {
+        if let appValue = getConfiguredAppValue(url: url, opener: opener) {
             if !appValue.isObject {
                 return nil
             }
@@ -342,11 +357,9 @@ open class FinickyConfig {
         return nil
     }
 
-    private func getConfiguredAppValue(url: URL, sourceBundleIdentifier: String?, sourceProcessPath: String?) -> JSValue? {
+    private func getConfiguredAppValue(url: URL, opener: Application) -> JSValue? {
         let optionsDict = [
-            "sourceBundleIdentifier": sourceBundleIdentifier as Any,
-            "sourceProcessPath": sourceProcessPath as Any,
-            "keys": getModifierKeyFlags(),
+            "opener": opener.serialize() as Any,
         ] as [AnyHashable: Any]
         let result: JSValue? = ctx.evaluateScript("finickyConfigApi.processUrl")?.call(withArguments: [configObject!, url.absoluteString, optionsDict])
         return result
