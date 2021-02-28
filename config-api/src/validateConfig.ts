@@ -1,4 +1,5 @@
-import { FinickyConfig, finickyConfigSchema } from "./types";
+import { FinickyConfig } from "./types";
+import { finickyConfigSchema } from "./schemas";
 import { getErrors } from "./fastidious/index";
 
 export function validateConfig(config: FinickyConfig) {

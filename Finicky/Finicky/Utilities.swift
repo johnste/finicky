@@ -25,3 +25,21 @@ func getModificationDate(fileManager: FileManager = FileManager.default, atPath:
         return nil
     }
 }
+
+let defaultUrlShorteners = [
+    "adf.ly",
+    "bit.do",
+    "bit.ly",
+    "buff.ly",
+    "deck.ly",
+    "fur.ly",
+    "goo.gl",
+    "is.gd",
+    "mcaf.ee",
+    "ow.ly",
+    "spoti.fi",
+    "su.pr",
+    "t.co",
+    "tiny.cc",
+    "tinyurl.com",
+]

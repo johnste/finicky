@@ -176,6 +176,8 @@ open class FinickyConfig {
         hasError = false
         var config: String?
 
+        usleep(100 * 1000) // Sleep for a few millisconds to make sure file is available (See https://github.com/johnste/finicky/issues/140)
+
         do {
             let filename: String = (FNConfigPath as NSString).resolvingSymlinksInPath
             config = try String(contentsOfFile: filename, encoding: String.Encoding.utf8)
@@ -208,16 +210,12 @@ open class FinickyConfig {
         }
 
         setupAPI()
-
         ctx.evaluateScript(config)
         configObject = ctx.evaluateScript("module.exports")
 
         if config != nil {
             let success = parseConfig(configObject!)
             if success {
-                // toggleIconCallback?(getHideIcon())
-                // setShortUrlProviders?(getShortUrlProviders())
-
                 configureAppOptions(
                     getSimpleOption(name: "hideIcon", defaultValue: false),
                     getShortUrlProviders(),
@@ -257,16 +255,31 @@ open class FinickyConfig {
     }
 
     func getShortUrlProviders() -> [String]? {
-        let urlShorteners = ctx.evaluateScript("module.exports.options && module.exports.options.urlShorteners || []")?.toArray()
-        let list = urlShorteners as! [String]?
-        if list?.count == 0 {
-            return nil
+        guard var urlShorteners = ctx.evaluateScript("module.exports.options && module.exports.options.urlShorteners || null") else {
+            return defaultUrlShorteners
         }
-        return list
+
+        if urlShorteners.isNull {
+            return defaultUrlShorteners
+        }
+
+        if urlShorteners.isArray {
+            let list = urlShorteners.toArray() as! [String]?
+            return list
+        }
+
+        urlShorteners = (ctx.evaluateScript("module.exports.options.urlShorteners")?.call(withArguments: [defaultUrlShorteners]))!
+
+        if urlShorteners.isArray {
+            let list = urlShorteners.toArray() as! [String]?
+            return list
+        }
+
+        return defaultUrlShorteners
     }
 
-    open func determineOpeningApp(url: URL, sourceBundleIdentifier: String? = nil, sourceProcessPath: String? = nil) -> AppDescriptor? {
-        if let appValue = getConfiguredAppValue(url: url, sourceBundleIdentifier: sourceBundleIdentifier, sourceProcessPath: sourceProcessPath) {
+    func determineOpeningApp(url: URL, opener: Application) -> AppDescriptor? {
+        if let appValue = getConfiguredAppValue(url: url, opener: opener) {
             if !appValue.isObject {
                 return nil
             }
@@ -279,6 +292,7 @@ open class FinickyConfig {
                     let openInBackground: Bool? = dict["openInBackground"] as? Bool
                     let browserName = dict["name"] as! String
                     let browserProfile: String? = dict["profile"] as? String
+                    let args: [String] = dict["args"] as? [String] ?? []
 
                     if browserName == "" {
                         return nil
@@ -286,7 +300,13 @@ open class FinickyConfig {
 
                     do {
                         // Default to opening the application in the bg if Finicky is not activated.
-                        let browser = try BrowserOpts(name: browserName, appType: appType!, openInBackground: openInBackground, profile:browserProfile)
+                        let browser = try BrowserOpts(
+                            name: browserName,
+                            appType: appType!,
+                            openInBackground: openInBackground,
+                            profile: browserProfile,
+                            args: args
+                        )
                         return browser
                     } catch _ as BrowserError {
                         showNotification(title: "Couldn't find browser \"\(browserName)\"")
@@ -316,11 +336,9 @@ open class FinickyConfig {
         return nil
     }
 
-    func getConfiguredAppValue(url: URL, sourceBundleIdentifier: String?, sourceProcessPath: String?) -> JSValue? {
+    func getConfiguredAppValue(url: URL, opener: Application) -> JSValue? {
         let optionsDict = [
-            "sourceBundleIdentifier": sourceBundleIdentifier as Any,
-            "sourceProcessPath": sourceProcessPath as Any,
-            "keys": getModifierKeyFlags(),
+            "opener": opener.serialize() as Any,
         ] as [AnyHashable: Any]
         let result: JSValue? = ctx.evaluateScript("finickyConfigApi.processUrl")?.call(withArguments: [configObject!, url.absoluteString, optionsDict])
         return result

@@ -22,6 +22,7 @@ public struct BrowserOpts: CustomStringConvertible {
     public var bundleId: String?
     public var appPath: String?
     public var profile: String?
+    public var args: [String]
 
     public var description: String {
         if let bundleId = self.bundleId {
@@ -33,10 +34,24 @@ public struct BrowserOpts: CustomStringConvertible {
         }
     }
 
-    public init(name: String, appType: AppDescriptorType, openInBackground: Bool?, profile: String?) throws {
+    public init(
+        name: String,
+        appType: AppDescriptorType,
+        openInBackground: Bool?,
+        profile: String?,
+        args: [String]
+    ) throws {
         self.name = name
-        self.openInBackground = openInBackground ?? !NSApplication.shared.isActive
+        if openInBackground == nil {
+            // Open the browser in the background depending on if Finicky recieved focus
+            usleep(50 * 1000) // Sleep for a few millisconds to attempt to work around focus issue (See https://github.com/johnste/finicky/issues/126#issuecomment-769804767)
+            self.openInBackground = !NSApplication.shared.isActive
+        } else {
+            self.openInBackground = openInBackground!
+        }
+
         self.profile = profile
+        self.args = args
 
         if appType == AppDescriptorType.bundleId {
             bundleId = name
