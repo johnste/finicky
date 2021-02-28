@@ -130,7 +130,7 @@ open class FinickyConfig {
     }
 
     @discardableResult
-    private func createJSContext() -> JSContext {
+    open func createJSContext() -> JSContext {
         let ctx: JSContext = JSContext()
 
         ctx.exceptionHandler = {
@@ -155,7 +155,7 @@ open class FinickyConfig {
     }
 
     @discardableResult
-    private func parseConfig(_: JSValue) -> Bool {
+    open func parseConfig(_: JSValue) -> Bool {
         if hasError {
             return false
         }
@@ -190,7 +190,7 @@ open class FinickyConfig {
         return false
     }
 
-    private func reload(from configPath: String, showSuccess: Bool) {
+    func reload(from configPath: String, showSuccess: Bool) {
         print("Reloading config")
         hasError = false
         var config: String?
@@ -251,7 +251,7 @@ open class FinickyConfig {
         }
     }
 
-    private func getSimpleOption<T>(name: String, defaultValue: T) -> T {
+    func getSimpleOption<T>(name: String, defaultValue: T) -> T {
         if name.count == 0 {
             print("Tried to get an option with no name")
             return defaultValue
@@ -275,7 +275,7 @@ open class FinickyConfig {
         return defaultValue
     }
 
-    private func getShortUrlProviders() -> [String]? {
+    func getShortUrlProviders() -> [String]? {
         guard var urlShorteners = ctx.evaluateScript("module.exports.options && module.exports.options.urlShorteners || null") else {
             return defaultUrlShorteners
         }
@@ -299,7 +299,7 @@ open class FinickyConfig {
         return defaultUrlShorteners
     }
 
-    private func determineOpeningApp(url: URL, opener: Application) -> AppDescriptor? {
+    func determineOpeningApp(url: URL, opener: Application) -> AppDescriptor? {
         if let appValue = getConfiguredAppValue(url: url, opener: opener) {
             if !appValue.isObject {
                 return nil
@@ -357,7 +357,7 @@ open class FinickyConfig {
         return nil
     }
 
-    private func getConfiguredAppValue(url: URL, opener: Application) -> JSValue? {
+    func getConfiguredAppValue(url: URL, opener: Application) -> JSValue? {
         let optionsDict = [
             "opener": opener.serialize() as Any,
         ] as [AnyHashable: Any]
@@ -365,7 +365,7 @@ open class FinickyConfig {
         return result
     }
 
-    private func getModifierKeyFlags() -> [String: Bool] {
+    func getModifierKeyFlags() -> [String: Bool] {
         return [
             "shift": NSEvent.modifierFlags.contains(.shift),
             "option": NSEvent.modifierFlags.contains(.option),
@@ -376,7 +376,7 @@ open class FinickyConfig {
         ]
     }
 
-    private func setupAPI() {
+    open func setupAPI() {
         ctx = createJSContext()
         FinickyAPI.setLog(logToConsole)
         FinickyAPI.setContext(ctx)
