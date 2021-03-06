@@ -9,9 +9,13 @@ class AppDelegate: NSObject, NSApplicationDelegate, NSUserNotificationCenterDele
     @IBOutlet var testUrlTextField: NSTextField!
     @IBOutlet var textView: NSTextView!
     @IBOutlet var openConfigMenuItem: NSMenuItem!
+    @IBOutlet var createDefaultConfigMenuItem: NSMenuItem!
+    @IBOutlet var replaceConfigMenuItem: NSMenuItem!
+    @IBOutlet var revealInFinderMenuItem: NSMenuItem!
     @objc var statusItem: NSStatusItem!
 
     var configLoader: FinickyConfig!
+    var settings: Settings!
     var shortUrlResolver = FNShortUrlResolver()
 
     func applicationWillFinishLaunching(_: Notification) {
@@ -51,15 +55,46 @@ class AppDelegate: NSObject, NSApplicationDelegate, NSUserNotificationCenterDele
         }
 
         func updateStatus(status: FinickyConfig.Status) {
-            openConfigMenuItem.isEnabled = status != .unavailable
-            if status == .valid {
+            switch status {
+            case .valid:
                 statusItem.button?.image = img
-            } else {
+                openConfigMenuItem.isEnabled = true
+                createDefaultConfigMenuItem.isEnabled = true
+                replaceConfigMenuItem.isEnabled = true
+                revealInFinderMenuItem.isEnabled = true
+            case .invalid:
                 statusItem.button?.image = invalidImg
+                openConfigMenuItem.isEnabled = true
+                createDefaultConfigMenuItem.isEnabled = true
+                replaceConfigMenuItem.isEnabled = true
+                revealInFinderMenuItem.isEnabled = true
+            case .unavailable:
+                statusItem.button?.image = invalidImg
+                openConfigMenuItem.isEnabled = false
+                createDefaultConfigMenuItem.isEnabled = true
+                replaceConfigMenuItem.isEnabled = true
+                revealInFinderMenuItem.isEnabled = false
             }
         }
 
-        configLoader = FinickyConfig(configureAppCb: configureAppOptions, logCb: logToConsole, updateStatusCb: updateStatus)
+        settings = Settings(userDefaults: .standard)
+
+        if settings.configLocation == nil,
+           FileManager.default.fileExists(atPath: FinickyConfig.defaultConfigLocation.path) {
+            logToConsole("Found config file at \(FinickyConfig.defaultConfigLocation.path). Saving location to settings.")
+            settings.configLocation = FinickyConfig.defaultConfigLocation
+        }
+
+        func getConfigPath() -> String? {
+            return settings.configLocation?.absoluteURL.path
+        }
+
+        configLoader = FinickyConfig(
+            configureAppCb: configureAppOptions,
+            logCb: logToConsole,
+            updateStatusCb: updateStatus,
+            configPath: getConfigPath
+        )
 
         let appleEventManager = NSAppleEventManager.shared()
         appleEventManager.setEventHandler(self, andSelector: #selector(AppDelegate.handleGetURLEvent(_:withReplyEvent:)), forEventClass: AEEventClass(kInternetEventClass), andEventID: AEEventID(kAEGetURL))
@@ -80,16 +115,66 @@ class AppDelegate: NSObject, NSApplicationDelegate, NSUserNotificationCenterDele
         LSSetDefaultHandlerForURLScheme("finickys" as CFString, bundleId as CFString)
     }
 
-    @IBAction func reloadConfig(_: NSMenuItem) {
+    @IBAction func reloadConfig(_: NSMenuItem? = nil) {
         configLoader.listenToChanges(showInitialSuccess: true)
     }
 
-    @IBAction func openConfig(_: NSMenuItem) {
-        NSWorkspace.shared.openFile((FNConfigPath as NSString).resolvingSymlinksInPath)
+    @IBAction func openConfig(_: NSMenuItem? = nil) {
+        guard let location = settings.configLocation else { return }
+        NSWorkspace.shared.open(location)
+    }
+
+    @IBAction func revealConfigInFinder(_: NSMenuItem? = nil) {
+        guard let location = settings.configLocation else { return }
+        NSWorkspace.shared.selectFile(location.path, inFileViewerRootedAtPath: location.deletingLastPathComponent().path)
     }
 
     @IBAction func checkUpdates(_: NSMenuItem? = nil) {
         checkForAvailableUpdate(alwaysNotify: true)
+    }
+
+    @IBAction func createDefaultConfig(_: NSMenuItem? = nil) {
+        guard let defaultConfigURL = Bundle.main.url(forResource: "defaultConfig", withExtension: "js") else {
+            return
+        }
+
+        let suggestedConfigLocation = (settings.configLocation ?? FinickyConfig.defaultConfigLocation)
+
+        let savePanel = NSSavePanel()
+        savePanel.allowedFileTypes = ["js"]
+        savePanel.allowsOtherFileTypes = false
+        savePanel.isExtensionHidden = false
+        savePanel.canSelectHiddenExtension = false
+        savePanel.canCreateDirectories = true
+        savePanel.nameFieldStringValue = suggestedConfigLocation.lastPathComponent
+        savePanel.directoryURL = suggestedConfigLocation.deletingLastPathComponent()
+
+        let modalResponse = savePanel.runModal()
+
+        if modalResponse == .OK, let url = savePanel.url {
+            try? FileManager.default.copyItem(at: defaultConfigURL, to: url)
+            settings.configLocation = url
+            reloadConfig()
+            openConfig()
+        }
+    }
+
+    @IBAction func replaceConfig(_: NSMenuItem? = nil) {
+        let suggestedConfigLocation = (settings.configLocation ?? FinickyConfig.defaultConfigLocation)
+        let openPanel = NSOpenPanel()
+        openPanel.allowedFileTypes = ["js"]
+        openPanel.canChooseFiles = true
+        openPanel.canChooseDirectories = false
+        openPanel.allowsOtherFileTypes = false
+        openPanel.allowsMultipleSelection = false
+        openPanel.directoryURL = suggestedConfigLocation.deletingLastPathComponent()
+
+        let modalResponse = openPanel.runModal()
+
+        if modalResponse == .OK, let url = openPanel.url {
+            settings.configLocation = url
+            reloadConfig()
+        }
     }
 
     func checkForAvailableUpdate(alwaysNotify: Bool = false) {

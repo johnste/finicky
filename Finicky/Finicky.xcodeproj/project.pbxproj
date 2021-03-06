@@ -31,6 +31,8 @@
 		54E4B1EB22971F7B002FA6F4 /* UpdateCheck.swift in Sources */ = {isa = PBXBuildFile; fileRef = 54E4B1EA22971F7B002FA6F4 /* UpdateCheck.swift */; };
 		54FD9F562455A9A600217E30 /* Battery.swift in Sources */ = {isa = PBXBuildFile; fileRef = 54FD9F552455A9A600217E30 /* Battery.swift */; };
 		7804C1542433F40800E595D9 /* Fixtures in Resources */ = {isa = PBXBuildFile; fileRef = 7804C1532433F40700E595D9 /* Fixtures */; };
+		E3B53D6F253F957700F4CB19 /* defaultConfig.js in Resources */ = {isa = PBXBuildFile; fileRef = E3B53D6E253F957700F4CB19 /* defaultConfig.js */; };
+		E3B53D7A253F97FC00F4CB19 /* Settings.swift in Sources */ = {isa = PBXBuildFile; fileRef = E3B53D72253F975700F4CB19 /* Settings.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -74,6 +76,8 @@
 		54E4B1EA22971F7B002FA6F4 /* UpdateCheck.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = UpdateCheck.swift; sourceTree = "<group>"; };
 		54FD9F552455A9A600217E30 /* Battery.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Battery.swift; sourceTree = "<group>"; };
 		7804C1532433F40700E595D9 /* Fixtures */ = {isa = PBXFileReference; lastKnownFileType = folder; path = Fixtures; sourceTree = "<group>"; };
+		E3B53D6E253F957700F4CB19 /* defaultConfig.js */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.javascript; path = defaultConfig.js; sourceTree = "<group>"; };
+		E3B53D72253F975700F4CB19 /* Settings.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Settings.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -135,6 +139,7 @@
 				54E4B1EA22971F7B002FA6F4 /* UpdateCheck.swift */,
 				54C2F15A22BEC9BC00B3E2C3 /* Browsers.swift */,
 				54FD9F552455A9A600217E30 /* Battery.swift */,
+				E3B53D72253F975700F4CB19 /* Settings.swift */,
 			);
 			path = Finicky;
 			sourceTree = "<group>";
@@ -184,6 +189,7 @@
 			isa = PBXGroup;
 			children = (
 				54121CB822D8D8270020A69C /* finickyConfigAPI.js */,
+				E3B53D6E253F957700F4CB19 /* defaultConfig.js */,
 			);
 			name = js;
 			sourceTree = "<group>";
@@ -281,6 +287,7 @@
 				544B57891B28B87900812908 /* statusitem.png in Resources */,
 				54435240229DB9E800307E21 /* statusitemerror.png in Resources */,
 				5443523E229DA01B00307E21 /* statusitemerror@2x.png in Resources */,
+				E3B53D6F253F957700F4CB19 /* defaultConfig.js in Resources */,
 				544B578A1B28B87900812908 /* statusitem@2x.png in Resources */,
 				548F11CC1B2A39F800FDDC3C /* finicky.icns in Resources */,
 				54899CD81B20D5BC00647101 /* Images.xcassets in Resources */,
@@ -333,6 +340,7 @@
 				54899CD61B20D5BC00647101 /* AppDelegate.swift in Sources */,
 				54B0E7031B4678CE003F8AEE /* ShortUrlResolver.swift in Sources */,
 				54E4B1EB22971F7B002FA6F4 /* UpdateCheck.swift in Sources */,
+				E3B53D7A253F97FC00F4CB19 /* Settings.swift in Sources */,
 				548F11CE1B2A43F700FDDC3C /* API.swift in Sources */,
 				522F811425C45D0800643AF9 /* Application.swift in Sources */,
 			);

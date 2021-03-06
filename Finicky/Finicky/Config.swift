@@ -2,13 +2,12 @@ import AppKit
 import Foundation
 import JavaScriptCore
 
-var FNConfigPath: String = "~/.finicky.js"
-
 public typealias Callback<T> = (T) -> Void
 public typealias Callback2<T, U> = (T, U) -> Void
 public typealias OptionsCb = (_ hideIcon: Bool,
                               _ shortUrlProviders: [String]?,
                               _ checkForUpdate: Bool) -> Void
+public typealias ConfigPathProvider = () -> String?
 
 /*
  FinickyConfig deals with everything related to the config file.
@@ -20,6 +19,16 @@ public typealias OptionsCb = (_ hideIcon: Bool,
     - Runs the process that determines the browser we should start
  */
 open class FinickyConfig {
+
+    private struct Constants {
+        static let defaultConfigPath: NSString = "~/.finicky.js"
+    }
+
+    static var defaultConfigLocation: URL {
+        let path = Constants.defaultConfigPath.resolvingSymlinksInPath
+        return URL(fileURLWithPath: path)
+    }
+
     var ctx: JSContext!
     var configAPIString: String
     var configAPI: JSValue?
@@ -32,6 +41,7 @@ open class FinickyConfig {
     var logToConsole: Callback2<String, Bool>
     var configureAppOptions: OptionsCb
     var updateStatus: Callback<Status>?
+    var configPathProvider: ConfigPathProvider
 
     public enum Status {
         case unavailable
@@ -39,23 +49,27 @@ open class FinickyConfig {
         case valid
     }
 
-    public init(configureAppCb: @escaping OptionsCb, logCb: @escaping Callback2<String, Bool>, updateStatusCb: @escaping Callback<Status>) {
+    public init(configureAppCb: @escaping OptionsCb,
+                logCb: @escaping Callback2<String, Bool>,
+                updateStatusCb: @escaping Callback<Status>,
+                configPath: @escaping ConfigPathProvider) {
         configAPIString = loadJS("finickyConfigAPI.js")
 
         configureAppOptions = configureAppCb
         logToConsole = logCb
         updateStatus = updateStatusCb
+        configPathProvider = configPath
         listenToChanges(showInitialSuccess: false)
     }
 
     func waitForFile() {
-        let filename: String = (FNConfigPath as NSString).resolvingSymlinksInPath
         Timer.scheduledTimer(withTimeInterval: 2.0, repeats: true, block: { timer in
-            let fileDescriptor = open(filename, O_EVTONLY)
-            if fileDescriptor != -1 {
-                timer.invalidate()
-                self.listenToChanges(showInitialSuccess: true)
+            guard let configPath = self.configPathProvider(),
+                  open(configPath, O_EVTONLY) != -1 else {
+                return
             }
+            timer.invalidate()
+            self.listenToChanges(showInitialSuccess: true)
         })
     }
 
@@ -72,10 +86,14 @@ open class FinickyConfig {
 
         resetFileDescriptor()
 
-        let filename: String = (FNConfigPath as NSString).resolvingSymlinksInPath
-        fileDescriptor = open(filename, O_EVTONLY)
+        guard let configPath = self.configPathProvider() else {
+            logToConsole("No config file specified", false)
+            showNotification(at: .default, title: "No config file specified", subtitle: "You need to create a new one", informativeText: "Config > Create new...", error: true)
+            return
+        }
 
-        reload(showSuccess: showInitialSuccess)
+        fileDescriptor = open(configPath, O_EVTONLY)
+        reload(from: configPath, showSuccess: showInitialSuccess)
 
         guard fileDescriptor != -1 else {
             print("Couldn't find or read the file. Error: \(String(describing: strerror(errno)))")
@@ -84,27 +102,28 @@ open class FinickyConfig {
             return
         }
 
-        lastModificationDate = getModificationDate(atPath: filename)
+        lastModificationDate = getModificationDate(atPath: configPath)
 
         dispatchSource =
             DispatchSource.makeFileSystemObjectSource(fileDescriptor: fileDescriptor, eventMask: [.attrib, .delete], queue: DispatchQueue.main)
 
         dispatchSource?.setEventHandler { [weak self] in
+            guard let self = self else { return }
             print("Detected file change")
-            if let modificationDate = getModificationDate(atPath: filename) {
-                if !(self!.lastModificationDate != nil) || modificationDate > self!.lastModificationDate! {
+            if let modificationDate = getModificationDate(atPath: configPath) {
+                if !(self.lastModificationDate != nil) || modificationDate > self.lastModificationDate! {
                     print("Reloading config")
-                    self!.lastModificationDate = modificationDate
-                    self!.reload(showSuccess: true)
+                    self.lastModificationDate = modificationDate
+                    self.reload(from: configPath, showSuccess: true)
                 }
             } else {
-                self!.updateStatus?(.unavailable)
-                self!.waitForFile()
+                self.updateStatus?(.unavailable)
+                self.waitForFile()
             }
         }
 
-        dispatchSource?.setCancelHandler {
-            self.resetFileDescriptor()
+        dispatchSource?.setCancelHandler { [weak self] in
+            self?.resetFileDescriptor()
         }
 
         dispatchSource?.resume()
@@ -171,16 +190,18 @@ open class FinickyConfig {
         return false
     }
 
-    func reload(showSuccess: Bool) {
+    func reload(from configPath: String, showSuccess: Bool) {
         print("Reloading config")
         hasError = false
         var config: String?
 
         usleep(100 * 1000) // Sleep for a few millisconds to make sure file is available (See https://github.com/johnste/finicky/issues/140)
 
+
+        logToConsole("Trying to read config file from: \(configPath)", false)
+        
         do {
-            let filename: String = (FNConfigPath as NSString).resolvingSymlinksInPath
-            config = try String(contentsOfFile: filename, encoding: String.Encoding.utf8)
+            config = try String(contentsOfFile: configPath, encoding: .utf8)
         } catch let error as NSError {
             config = nil
             print("\(error.localizedDescription)", terminator: "")
@@ -189,7 +210,7 @@ open class FinickyConfig {
         if config == nil {
             hasError = true
             let message = "Config file could not be read or found"
-            showNotification(title: message, subtitle: "Click here for help", error: true)
+            showNotification(title: message, subtitle: "Click here for help", informativeText: "Path: \(configPath)", error: true)
             logToConsole("Config file could not be read or found. * Example configuration: \n" + """
                 /**
                 * Save as ~/.finicky.js
