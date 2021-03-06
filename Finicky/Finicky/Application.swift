@@ -17,8 +17,8 @@ class Application {
         return [
             "pid": pid,
             "path": path as Any,
-            "bundleId": (application?.bundleIdentifier! ?? nil) as Any,
-            "name": (application?.localizedName! ?? nil) as Any,
+            "bundleId": (application?.bundleIdentifier ?? nil) as Any,
+            "name": (application?.localizedName ?? nil) as Any,
         ]
     }
 }
