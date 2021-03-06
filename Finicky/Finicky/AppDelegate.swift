@@ -96,7 +96,7 @@ class AppDelegate: NSObject, NSApplicationDelegate, NSUserNotificationCenterDele
             configPath: getConfigPath
         )
 
-        let appleEventManager: NSAppleEventManager = NSAppleEventManager.shared()
+        let appleEventManager = NSAppleEventManager.shared()
         appleEventManager.setEventHandler(self, andSelector: #selector(AppDelegate.handleGetURLEvent(_:withReplyEvent:)), forEventClass: AEEventClass(kInternetEventClass), andEventID: AEEventID(kAEGetURL))
     }
 
@@ -299,7 +299,7 @@ class AppDelegate: NSObject, NSApplicationDelegate, NSUserNotificationCenterDele
         let pid = event!.attributeDescriptor(forKeyword: AEKeyword(keySenderPIDAttr))!.int32Value
 
         let opener = Application(pid: pid)
-        var url: URL = URL(string: event!.paramDescriptor(forKeyword: AEKeyword(keyDirectObject))!.stringValue!)!
+        var url = URL(string: event!.paramDescriptor(forKeyword: AEKeyword(keyDirectObject))!.stringValue!)!
 
         if url.scheme == "finicky" || url.scheme == "finickys" {
             if var urlComponents = URLComponents(url: url, resolvingAgainstBaseURL: true) {

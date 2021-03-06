@@ -12,7 +12,7 @@ public struct Version: Decodable, Hashable {
     }
 }
 
-struct defaultsKeys {
+enum defaultsKeys {
     static let keyLatestVersionSeen = "firstStringKey"
 }
 
@@ -23,7 +23,7 @@ struct defaultsKeys {
 
 func checkForUpdate(_ alwaysNotify: Bool, _ newVersionCallback: @escaping (Version?, String) -> Void) {
     guard let currentVersion = Bundle.main.infoDictionary?["CFBundleShortVersionString"] as? String,
-        let url = URL(string: "https://api.github.com/repos/johnste/finicky/releases") else { return }
+          let url = URL(string: "https://api.github.com/repos/johnste/finicky/releases") else { return }
     var request = URLRequest(url: url)
     request.setValue("finicky/\(currentVersion)", forHTTPHeaderField: "User-Agent")
 

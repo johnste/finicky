@@ -126,6 +126,7 @@
 				548376AB2360C7D100834B68 /* Finicky-Bridging-Header.h */,
 				54CBA90D22A5C7EA0074A67F /* js */,
 				54899CD51B20D5BC00647101 /* AppDelegate.swift */,
+				522F811325C45D0800643AF9 /* Application.swift */,
 				54899CD91B20D5BC00647101 /* MainMenu.xib */,
 				54899CD31B20D5BC00647101 /* Supporting Files */,
 				54E33FD61B24E27000998E13 /* Config.swift */,
@@ -139,7 +140,6 @@
 				54C2F15A22BEC9BC00B3E2C3 /* Browsers.swift */,
 				54FD9F552455A9A600217E30 /* Battery.swift */,
 				E3B53D72253F975700F4CB19 /* Settings.swift */,
-				522F811325C45D0800643AF9 /* Application.swift */,
 			);
 			path = Finicky;
 			sourceTree = "<group>";

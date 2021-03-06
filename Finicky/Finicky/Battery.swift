@@ -44,8 +44,9 @@ func getBatteryStatus() -> BatteryStatus? {
 
             // Pull out the name and current capacity
             if let capacity = info[kIOPSCurrentCapacityKey] as? Int,
-                let isCharging = info[kIOPSIsChargingKey] as? Bool,
-                let powerSource = info[kIOPSPowerSourceStateKey] as? String {
+               let isCharging = info[kIOPSIsChargingKey] as? Bool,
+               let powerSource = info[kIOPSPowerSourceStateKey] as? String
+            {
                 let isPluggedIn = powerSource == kIOPSACPowerValue
                 return BatteryStatus(chargePercentage: capacity, isCharging: isCharging, isPluggedIn: isPluggedIn)
             }
