@@ -112,7 +112,7 @@ open class FinickyConfig {
 
     @discardableResult
     open func createJSContext() -> JSContext {
-        let ctx = JSContext()
+        let ctx : JSContext = JSContext()
 
         ctx.exceptionHandler = {
             (_: JSContext!, exception: JSValue!) in
