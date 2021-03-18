@@ -1,8 +1,9 @@
 {
-  "name": "Finicky Comrade",
-  "description": "Hey Finicky!",
-  "version": "1.0",
+  "name": "Finicky",
+  "description": "The Official Finicky Browser Extension. Requires Finicky (macOS only)",
+  "version": "0.1",
   "manifest_version": 2,
+  "homepage_url": "https://github.com/johnste/finicky",
   "background": {
     "scripts": ["background.js"]
   },
@@ -12,5 +13,10 @@
       "js": ["contentScript.js"]
     }
   ],
-  "permissions": ["contextMenus", "tabs", "<all_urls>"]  
+  "icons": { 
+    "16": "icon16.png",
+    "48": "icon48.png",
+   "128": "icon128.png" 
+  },
+  "permissions": ["contextMenus", "<all_urls>"]  
 }

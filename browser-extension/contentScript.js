@@ -1,5 +1,4 @@
 let isIntercepting = false;
-console.log("👇 hiya")
 
 window.addEventListener("keydown", (event) => {
   if (event.key.toLowerCase() === "alt") {
@@ -13,9 +12,12 @@ window.addEventListener("keyup", (event) => {
   }
 });
 
+window.addEventListener("blur", (event) => {
+  isIntercepting = false;
+});
+
 function getAnchor(element) {
   do {
-    
     if (element.tagName?.toLowerCase() === "a") {
       return element;
     }
@@ -26,57 +28,44 @@ function getAnchor(element) {
   return undefined;
 }
 
+window.addEventListener(
+  "mousedown", 
+  function (event) {
+    const anchor = getAnchor(event.target);
+    if (!anchor) return;
+
+    console.log("mousedowned something", anchor, isIntercepting);
+  }
+);
 
 window.addEventListener(
-  "mousedown", // doubleclick instead?
+  "click", 
   function (event) {
-    if (!isIntercepting) {
-      return; 
-    }
-   
-    event.preventDefault();
-    event.stopImmediatePropagation();
-    
-    const anchor = getAnchor(event.target);
+    const anchor = capture(event);
+    if (!anchor) return;
 
-    
-    if (!anchor?.hasAttribute("href")) {
-      return;
-    }
-    console.log('mousedowned something', anchor, isIntercepting)
-    event.preventDefault();
-    event.stopImmediatePropagation();
-    
-  })
-
-
-window.addEventListener(
-  "click", // doubleclick instead?
-  function (event) {
-    if (!isIntercepting) {
-      return; 
-    }
-    event.preventDefault();
-    event.stopImmediatePropagation();
-    
-    const anchor = getAnchor(event.target);
-
-    
-    if (!anchor?.hasAttribute("href")) {
-      return;
-    }
-    console.log('clicked something', anchor, isIntercepting)
+    console.log("clicked something", anchor, isIntercepting);
 
     try {
       const url = new URL(anchor.href, document.baseURI).href;
-      console.log("opening url in finicky", url);      
-      window.location = "finicky://" + url
+      console.log("opening url in finicky", url);
+      window.location = "finicky://" + url;
     } catch (ex) {
-      console.log(ex);
+      console.error("Finicky Browser Extension Error", ex);
     }
-
-    event.preventDefault();
-    event.stopImmediatePropagation();
   },
   true
 );
+
+function capture(event) {
+  if (!isIntercepting) return;    
+
+  const anchor = getAnchor(event.target);
+
+  if (!anchor?.hasAttribute("href")) return;
+
+  event.preventDefault();
+  event.stopImmediatePropagation();
+
+  return anchor;
+}
