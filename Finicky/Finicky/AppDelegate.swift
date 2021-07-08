@@ -112,7 +112,6 @@ class AppDelegate: NSObject, NSApplicationDelegate, NSUserNotificationCenterDele
         LSSetDefaultHandlerForURLScheme("http" as CFString, bundleId as CFString)
         LSSetDefaultHandlerForURLScheme("https" as CFString, bundleId as CFString)
         LSSetDefaultHandlerForURLScheme("finicky" as CFString, bundleId as CFString)
-        LSSetDefaultHandlerForURLScheme("finickys" as CFString, bundleId as CFString)
     }
 
     @IBAction func reloadConfig(_: NSMenuItem? = nil) {
@@ -231,15 +230,9 @@ class AppDelegate: NSObject, NSApplicationDelegate, NSUserNotificationCenterDele
     }
 
     @IBAction func testUrl(_ sender: NSTextField) {
-        guard var value = sender.stringValue.addingPercentEncoding(withAllowedCharacters: .urlQueryAllowed) else {
+        guard let value = sender.stringValue.addingPercentEncoding(withAllowedCharacters: .urlQueryAllowed) else {
             logToConsole("Could not parse URL")
             return
-        }
-
-        if value.starts(with: "finickys://") || value.starts(with: "finicky://") {
-            logToConsole("Finicky will convert finickys:// and finicky:// urls to https:// and http:// respectively")
-            value = value.replacingOccurrences(of: "finicky://", with: "http://", options: .literal, range: nil)
-            value = value.replacingOccurrences(of: "finickys://", with: "https://", options: .literal, range: nil)
         }
 
         if !value.starts(with: "https://"), !value.starts(with: "http://") {
@@ -299,21 +292,15 @@ class AppDelegate: NSObject, NSApplicationDelegate, NSUserNotificationCenterDele
         let pid = event!.attributeDescriptor(forKeyword: AEKeyword(keySenderPIDAttr))!.int32Value
 
         let opener = Application(pid: pid)
-        var url = URL(string: event!.paramDescriptor(forKeyword: AEKeyword(keyDirectObject))!.stringValue!)!
-
-        if url.scheme == "finicky" || url.scheme == "finickys" {
-            if var urlComponents = URLComponents(url: url, resolvingAgainstBaseURL: true) {
-                if url.scheme == "finicky" {
-                    urlComponents.scheme = "http"
-                }
-
-                if url.scheme == "finickys" {
-                    urlComponents.scheme = "https"
-                }
-
-                url = urlComponents.url!
-            }
+        
+        var rawUrl = event!.paramDescriptor(forKeyword: AEKeyword(keyDirectObject))!.stringValue!
+                
+        if rawUrl.hasPrefix("finicky://") {
+            rawUrl.removeFirst("finicky://".count)
         }
+        
+        let url = URL(string: rawUrl)!
+            
         shortUrlResolver.resolveUrl(url, callback: { (URL) -> Void in
             self.callUrlHandlers(opener: opener, url: URL)
         })
