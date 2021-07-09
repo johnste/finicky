@@ -20,9 +20,6 @@ Finicky is a macOS application that allows you to set up rules that decide which
 [![GitHub start](https://badgen.net/github/stars/johnste/finicky?color=pink&icon=github)](https://GitHub.com/johnste/finicky/)
 [![GitHub release](https://badgen.net/github/release/johnste/finicky/stable?color=purple)](https://GitHub.com/johnste/finicky/releases/)
 
-
-
-
 <div align="center">
 <img src="https://raw.githubusercontent.com/johnste/finicky/gh-pages/Screenshot.png" alt="Finicky screenshot" width="75%"/>
 </div>
@@ -129,6 +126,12 @@ make run
 ```
 
 ## Support development
+
+### Looking for co-maintainers
+
+Do you want to help out with the development of Finicky? My time to spend to work on Finicky is very limited, and my limited experience with Swift and MacOS I feel is holding it back. If this sounds interesting to you please reach out to me, preferably on [Twitter](https://twitter.com/johnste_).
+
+### Donations 
 
 If you want to help support further development of finicky, feel free to buy me a coffee on ko-fi.
 
