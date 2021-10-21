@@ -129,7 +129,7 @@ make run
 
 ### Looking for co-maintainers
 
-Do you want to help out with the development of Finicky? My time to spend to work on Finicky is very limited, and my limited experience with Swift and MacOS I feel is holding it back. If you are experienced in Swifdt and MacOS development and this sounds interesting to you please reach out to me, preferably on [Twitter](https://twitter.com/johnste_).
+Do you want to help out with the development of Finicky? My time to spend to work on Finicky is very limited, and my limited experience with Swift and MacOS I feel is holding it back. If you are experienced in Swift and MacOS development and this sounds interesting to you please reach out to me, preferably on [Twitter](https://twitter.com/johnste_).
 
 ### Donations 
 
