@@ -7,7 +7,9 @@
   />
   </h1>
 
-  <strong>Always open the right browser</strong>
+  <strong>Always open the right browser</strong><br>
+  [![GitHub start](https://badgen.net/github/stars/johnste/finicky?color=pink&icon=github)](https://GitHub.com/johnste/finicky/)
+  [![GitHub release](https://badgen.net/github/release/johnste/finicky/stable?color=purple)](https://GitHub.com/johnste/finicky/releases/)
 
 </div>
 
@@ -17,8 +19,7 @@ Finicky is a macOS application that allows you to set up rules that decide which
 - Edit urls before opening them
 - Complete control over configuration using JavaScript
 
-[![GitHub start](https://badgen.net/github/stars/johnste/finicky?color=pink&icon=github)](https://GitHub.com/johnste/finicky/)
-[![GitHub release](https://badgen.net/github/release/johnste/finicky/stable?color=purple)](https://GitHub.com/johnste/finicky/releases/)
+
 
 <div align="center">
 <img src="https://raw.githubusercontent.com/johnste/finicky/gh-pages/Screenshot.png" alt="Finicky screenshot" width="75%"/>
@@ -32,8 +33,6 @@ Finicky is a macOS application that allows you to set up rules that decide which
 
 - [Installation](#installation)
 - [Example configuration](#example-configuration)
-  - [Basic configuration](#basic-configuration)
-  - [Rewrite urls](#rewrite-urls)
 - [Documentation](#documentation)
 - [Configuration tips](#configuration-tips)
 - [Alternatives](#alternatives)
