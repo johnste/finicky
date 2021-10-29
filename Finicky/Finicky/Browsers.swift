@@ -49,6 +49,7 @@ enum Browser: String {
     case Opera = "com.operasoftware.opera"
     case Vivaldi = "com.vivaldi.vivaldi"
     case Safari = "com.apple.safari"
+    case Wavebox = "com.bookry.wavebox"
 }
 
 public func getBrowserCommand(_ browserOpts: BrowserOpts, url: URL) -> [String] {
@@ -103,7 +104,8 @@ private func getProfileOption(bundleId: String, profile: String) -> [String]? {
             Browser.Chrome.rawValue,
             Browser.Edge.rawValue,
             Browser.EdgeBeta.rawValue,
-            Browser.Vivaldi.rawValue:
+            Browser.Vivaldi.rawValue,
+            Browser.Wavebox.rawValue:
             return ["--profile-directory=\(profile)"]
 
             // Blisk and Opera doesn't support multiple profiles even though they are Chromium based
