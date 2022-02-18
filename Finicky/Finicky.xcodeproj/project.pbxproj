@@ -20,7 +20,6 @@
 		54899CDB1B20D5BC00647101 /* MainMenu.xib in Resources */ = {isa = PBXBuildFile; fileRef = 54899CD91B20D5BC00647101 /* MainMenu.xib */; };
 		54899CF11B20D5CC00647101 /* JavaScriptCore.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 54899CF01B20D5CC00647101 /* JavaScriptCore.framework */; };
 		54899CF31B20D5D100647101 /* Cocoa.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 54899CF21B20D5D100647101 /* Cocoa.framework */; };
-		548F11CC1B2A39F800FDDC3C /* finicky.icns in Resources */ = {isa = PBXBuildFile; fileRef = 548F11CB1B2A39F800FDDC3C /* finicky.icns */; };
 		548F11CE1B2A43F700FDDC3C /* API.swift in Sources */ = {isa = PBXBuildFile; fileRef = 548F11CD1B2A43F700FDDC3C /* API.swift */; };
 		54B0E7031B4678CE003F8AEE /* ShortUrlResolver.swift in Sources */ = {isa = PBXBuildFile; fileRef = 54B0E7021B4678CE003F8AEE /* ShortUrlResolver.swift */; };
 		54B12879229C59EC00990D0D /* AppDescriptor.swift in Sources */ = {isa = PBXBuildFile; fileRef = 54B12878229C59EC00990D0D /* AppDescriptor.swift */; };
@@ -65,7 +64,6 @@
 		54899CE51B20D5BC00647101 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
 		54899CF01B20D5CC00647101 /* JavaScriptCore.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = JavaScriptCore.framework; path = System/Library/Frameworks/JavaScriptCore.framework; sourceTree = SDKROOT; };
 		54899CF21B20D5D100647101 /* Cocoa.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = Cocoa.framework; path = System/Library/Frameworks/Cocoa.framework; sourceTree = SDKROOT; };
-		548F11CB1B2A39F800FDDC3C /* finicky.icns */ = {isa = PBXFileReference; lastKnownFileType = image.icns; path = finicky.icns; sourceTree = "<group>"; };
 		548F11CD1B2A43F700FDDC3C /* API.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = API.swift; sourceTree = "<group>"; };
 		54B0E7021B4678CE003F8AEE /* ShortUrlResolver.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = ShortUrlResolver.swift; sourceTree = "<group>"; };
 		54B12878229C59EC00990D0D /* AppDescriptor.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppDescriptor.swift; sourceTree = "<group>"; };
@@ -150,7 +148,6 @@
 				5443523F229DB9E800307E21 /* statusitemerror.png */,
 				5443523D229DA01B00307E21 /* statusitemerror@2x.png */,
 				54899CD71B20D5BC00647101 /* Images.xcassets */,
-				548F11CB1B2A39F800FDDC3C /* finicky.icns */,
 				544B57871B28B87900812908 /* statusitem.png */,
 				544B57881B28B87900812908 /* statusitem@2x.png */,
 				54899CD41B20D5BC00647101 /* Info.plist */,
@@ -289,7 +286,6 @@
 				5443523E229DA01B00307E21 /* statusitemerror@2x.png in Resources */,
 				E3B53D6F253F957700F4CB19 /* defaultConfig.js in Resources */,
 				544B578A1B28B87900812908 /* statusitem@2x.png in Resources */,
-				548F11CC1B2A39F800FDDC3C /* finicky.icns in Resources */,
 				54899CD81B20D5BC00647101 /* Images.xcassets in Resources */,
 				54121CB922D8D8270020A69C /* finickyConfigAPI.js in Resources */,
 				54899CDB1B20D5BC00647101 /* MainMenu.xib in Resources */,
