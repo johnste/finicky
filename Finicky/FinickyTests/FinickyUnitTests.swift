@@ -14,6 +14,31 @@ struct Fixture<T: Decodable & Equatable> {
     }
 }
 
+func createBrowserOpts(name: String = "",
+                       appType: String = "appName",
+                       openInBackground: Bool = false,
+                       profile: String? = nil,
+                       container: String? = nil,
+                       args: [String] = []) -> BrowserOpts? {
+    if let appType = AppDescriptorType(rawValue: appType){
+        do {
+            let browserOpts = try BrowserOpts(
+                name: name,
+                appType: appType,
+                openInBackground: openInBackground,
+                profile: profile,
+                container: container,
+                args: args
+            )
+            return browserOpts
+        }
+        catch _ {
+            return nil
+        }
+    }
+    return nil
+}
+
 class FinickyUnitTests: XCTestCase {
     func testRewrite() {
         XCTAssertEqual(try compareVersions("1.2.3", "0.9"), ComparisonResult.orderedDescending)
@@ -51,6 +76,27 @@ class FinickyUnitTests: XCTestCase {
         XCTAssertEqual(notification.soundName, NSUserNotificationDefaultSoundName)
 
         center.removeDeliveredNotification(notification)
+    }
+    
+    func test_getContainerUrl() throws {
+        if let browserOpts = createBrowserOpts(name: "Firefox"), let incomingUrl = URL(string: "https://www.example.com"){
+            let url = getBrowserUrl(browserOpts, incomingUrl: incomingUrl)
+            XCTAssertEqual(url, "https://www.example.com")
+        } else {
+            XCTFail()
+        }
+        if let browserOpts = createBrowserOpts(name: "Firefox", container: "TestContainer"), let incomingUrl = URL(string: "https://www.example.com"){
+            let url = getBrowserUrl(browserOpts, incomingUrl: incomingUrl)
+            XCTAssertEqual(url, "ext+container:?name=TestContainer&url=https://www.example.com")
+        }
+        if let browserOpts = createBrowserOpts(name: "Firefox", container: "TestContainer"), let incomingUrl = URL(string: "https://www.example.com?test=123&test1=1234"){
+            let url = getBrowserUrl(browserOpts, incomingUrl: incomingUrl)
+            XCTAssertEqual(url, "ext+container:?name=TestContainer&url=https://www.example.com?test%3D123%26test1%3D1234")
+        }
+        if let browserOpts = createBrowserOpts(name: "Safari", container: "TestContainer"), let incomingUrl = URL(string: "https://www.example.com"){
+            let url = getBrowserUrl(browserOpts, incomingUrl: incomingUrl)
+            XCTAssertEqual(url, "https://www.example.com")
+        }
     }
 
     func test_makeVersionParts_error() {

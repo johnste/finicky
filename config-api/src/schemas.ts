@@ -32,6 +32,7 @@ const browserSchema = validate.oneOf([
     appType: validate.oneOf(["appName", "appPath", "bundleId"]),
     openInBackground: validate.boolean,
     profile: validate.string,
+    container: validate.string,
     args: validate.arrayOf(validate.string),
   }),
   validate.function("options"),
@@ -100,5 +101,6 @@ export const appDescriptorSchema = {
   ]).isRequired,
   openInBackground: validate.boolean,
   profile: validate.string,
+  container: validate.string,
   args: validate.arrayOf(validate.string),
 };

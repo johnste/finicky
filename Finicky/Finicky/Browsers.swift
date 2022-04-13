@@ -30,7 +30,8 @@ public func getActiveApp(browsers: [BrowserOpts]) -> BrowserOpts? {
 
 public func openUrlWithBrowser(_ url: URL, browserOpts: BrowserOpts) {
     print("Opening \(browserOpts) at: " + url.absoluteString)
-    let command = getBrowserCommand(browserOpts, url: url)
+    let browserUrl = getBrowserUrl(browserOpts, incomingUrl: url)
+    let command = getBrowserCommand(browserOpts, url: browserUrl)
     shell(command)
 }
 
@@ -52,7 +53,37 @@ enum Browser: String {
     case Wavebox = "com.bookry.wavebox"
 }
 
-public func getBrowserCommand(_ browserOpts: BrowserOpts, url: URL) -> [String] {
+public func getBrowserUrl(_ browserOpts: BrowserOpts, incomingUrl: URL) -> String {
+    var url = incomingUrl
+    if let container = browserOpts.container, let bundleId: String = browserOpts.bundleId {
+        if let browserUrl: URL = getContainerUrl(bundleId: bundleId, container: container, url: url) {
+            url = browserUrl
+        }
+    }
+    return url.absoluteString
+}
+
+private func getContainerUrl(bundleId: String, container: String, url: URL) -> URL? {
+    var containerUrl: URL? {
+        switch bundleId.lowercased() {
+        case
+            Browser.Firefox.rawValue,
+            Browser.FirefoxDeveloperEdition.rawValue:
+            var urlComponents = URLComponents()
+            urlComponents.scheme = "ext+container"
+            urlComponents.queryItems = [
+                URLQueryItem(name: "name", value: container),
+                URLQueryItem(name: "url", value: url.absoluteString)
+            ]
+            return urlComponents.url
+
+        default: return nil
+        }
+    }
+    return containerUrl
+}
+
+public func getBrowserCommand(_ browserOpts: BrowserOpts, url: String) -> [String] {
     var command = ["open"]
     var commandArgs: [String] = []
     var appendUrl = true
@@ -88,7 +119,7 @@ public func getBrowserCommand(_ browserOpts: BrowserOpts, url: URL) -> [String] 
     }
 
     if appendUrl {
-        command.append(url.absoluteString)
+        command.append(url)
     }
 
     return command

@@ -126,6 +126,7 @@ export interface BrowserObject {
   appType?: AppType;
   openInBackground?: boolean;
   profile?: string;
+  container?: string;
   args?: string[];
 }
 
