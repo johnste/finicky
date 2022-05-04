@@ -382,5 +382,21 @@ open class FinickyConfig {
         FinickyAPI.setContext(ctx)
         ctx.setObject(FinickyAPI.self, forKeyedSubscript: "finickyInternalAPI" as NSCopying & NSObjectProtocol)
         ctx.evaluateScript("var finicky = finickyConfigApi.createAPI();")
+        
+        // Add polyfills
+        let require: @convention(block) (String) -> (JSValue?) = { path in
+            let expandedPath = NSString(string: path).expandingTildeInPath
+
+            // Return void or throw an error here.
+            guard FileManager.default.fileExists(atPath: expandedPath)
+                else { debugPrint("Require: filename \(expandedPath) does not exist")
+                       return nil }
+
+            guard let fileContent = try? String(contentsOfFile: expandedPath)
+                else { return nil }
+
+            return self.ctx.evaluateScript(fileContent)
+        }
+        ctx.setObject(require, forKeyedSubscript: "require" as NSString)
     }
 }
