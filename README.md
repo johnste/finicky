@@ -37,7 +37,7 @@ Finicky is a macOS application that allows you to set up rules that decide which
 - [Configuration tips](#configuration-tips)
 - [Alternatives](#alternatives)
 - [Building Finicky from source](#building-finicky-from-source)
-- [Support development](#support-development)
+- [Current status of Finicky development](#current-status-of-finicky-development)
 - [Issues](#issues)
   - [Bugs](#bugs)
   - [Feature Requests](#feature-requests)
@@ -124,7 +124,11 @@ make
 make run
 ```
 
-## Support development
+## Current status of Finicky development
+
+I don't have time to work on Finicky actively, and that has been the case for a little bit over a year. I still use it every day and it works really well for my use cases. When I have time I try to respond to support requests on twitter and github.
+
+Don't expect any work on features, new releases, or even bug fixes on my part at this point. Unless things change a lot in my personal or professional life I won't have time to work on Finicky for the forseeable future.
 
 ### Looking for co-maintainers
 
