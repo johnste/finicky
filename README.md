@@ -134,12 +134,6 @@ Don't expect any work on features, new releases, or even bug fixes on my part at
 
 Do you want to help out with the development of Finicky? My time to spend to work on Finicky is very limited, and my limited experience with Swift and MacOS I feel is holding it back. If you are experienced in Swift and MacOS development and this sounds interesting to you please reach out to me, preferably on [Twitter](https://twitter.com/johnste_).
 
-### Donations 
-
-If you want to help support further development of finicky, feel free to buy me a coffee on ko-fi.
-
-<a href='https://ko-fi.com/E1E5W973' target='_blank'><img height='36' style='border:0px;height:36px;' src='https://az743702.vo.msecnd.net/cdn/kofi1.png?v=2' border='0' alt='Buy Me a Coffee at ko-fi.com' /></a>
-
 ## Issues
 
 ### Bugs
