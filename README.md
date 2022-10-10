@@ -7,7 +7,7 @@
   />
   </h1>
 
-  <strong>Always open the right browser</strong><br>
+  <strong>🇺🇦 Always open the right browser 🇺🇦</strong><br>
   [![GitHub start](https://badgen.net/github/stars/johnste/finicky?color=pink&icon=github)](https://GitHub.com/johnste/finicky/)
   [![GitHub release](https://badgen.net/github/release/johnste/finicky/stable?color=purple)](https://GitHub.com/johnste/finicky/releases/)
 
