@@ -1,3 +1,4 @@
+import { chromeProfile } from "./chrome";
 import { parseUrl, matchHostnames } from "./createAPI";
 
 /**
@@ -28,6 +29,7 @@ export type ConfigAPI = {
   getKeys(): KeyOptions;
   matchHostnames: typeof matchHostnames;
   matchDomains: typeof matchHostnames;
+  chromeProfile: typeof chromeProfile;
 };
 
 /**
