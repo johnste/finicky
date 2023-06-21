@@ -112,11 +112,10 @@ private func getProfileOption(bundleId: String, profile: String) -> [String]? {
             // case Browser.Blisk.rawValue: return ["--profile-directory=\(profile)"]
             // case Browser.Opera.rawValue: return ["--profile-directory=\(profile)"]
 
-            // Disabling Firefox support due to unreliable performance
+            // Firefox support might have unreliable performance
             // Link: https://github.com/johnste/finicky/pull/113#issuecomment-672180597
-            //
-            // case Browser.Firefox.rawValue: return ["-P", profile]
-            // case Browser.FirefoxDeveloperEdition.rawValue: return ["-P", profile]
+             case Browser.Firefox.rawValue: return ["-P", profile]
+             case Browser.FirefoxDeveloperEdition.rawValue: return ["-P", profile]
 
         default: return nil
         }

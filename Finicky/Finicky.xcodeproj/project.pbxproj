@@ -246,15 +246,14 @@
 				TargetAttributes = {
 					54899CCF1B20D5BC00647101 = {
 						CreatedOnToolsVersion = 6.3;
-						DevelopmentTeam = C3XWNKDP3M;
+						DevelopmentTeam = DM5FXX35M7;
 						LastSwiftMigration = 1020;
 						ProvisioningStyle = Automatic;
 					};
 					54899CDF1B20D5BC00647101 = {
 						CreatedOnToolsVersion = 6.3;
-						DevelopmentTeam = C3XWNKDP3M;
+						DevelopmentTeam = DM5FXX35M7;
 						LastSwiftMigration = 1020;
-						ProvisioningStyle = Automatic;
 						TestTargetID = 54899CCF1B20D5BC00647101;
 					};
 				};
@@ -405,7 +404,6 @@
 				CLANG_WARN_SUSPICIOUS_MOVE = YES;
 				CLANG_WARN_UNREACHABLE_CODE = YES;
 				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
-				CODE_SIGN_IDENTITY = "Apple Development";
 				COPY_PHASE_STRIP = NO;
 				DEBUG_INFORMATION_FORMAT = dwarf;
 				ENABLE_HARDENED_RUNTIME = YES;
@@ -464,7 +462,6 @@
 				CLANG_WARN_SUSPICIOUS_MOVE = YES;
 				CLANG_WARN_UNREACHABLE_CODE = YES;
 				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
-				CODE_SIGN_IDENTITY = "Apple Development";
 				COPY_PHASE_STRIP = NO;
 				DEBUG_INFORMATION_FORMAT = "dwarf-with-dsym";
 				ENABLE_HARDENED_RUNTIME = YES;
@@ -494,7 +491,7 @@
 				CODE_SIGN_IDENTITY = "Mac Developer";
 				CODE_SIGN_STYLE = Automatic;
 				COMBINE_HIDPI_IMAGES = YES;
-				DEVELOPMENT_TEAM = C3XWNKDP3M;
+				DEVELOPMENT_TEAM = DM5FXX35M7;
 				ENABLE_HARDENED_RUNTIME = YES;
 				INFOPLIST_FILE = Finicky/Info.plist;
 				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/../Frameworks";
@@ -516,7 +513,7 @@
 				CODE_SIGN_IDENTITY = "Mac Developer";
 				CODE_SIGN_STYLE = Automatic;
 				COMBINE_HIDPI_IMAGES = YES;
-				DEVELOPMENT_TEAM = C3XWNKDP3M;
+				DEVELOPMENT_TEAM = DM5FXX35M7;
 				ENABLE_HARDENED_RUNTIME = YES;
 				INFOPLIST_FILE = Finicky/Info.plist;
 				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/../Frameworks";
@@ -534,10 +531,9 @@
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				BUNDLE_LOADER = "$(TEST_HOST)";
-				CODE_SIGN_IDENTITY = "Apple Development";
-				CODE_SIGN_STYLE = Automatic;
+				CODE_SIGN_IDENTITY = "Mac Developer";
 				COMBINE_HIDPI_IMAGES = YES;
-				DEVELOPMENT_TEAM = C3XWNKDP3M;
+				DEVELOPMENT_TEAM = DM5FXX35M7;
 				FRAMEWORK_SEARCH_PATHS = (
 					"$(DEVELOPER_FRAMEWORKS_DIR)",
 					"$(inherited)",
@@ -552,6 +548,7 @@
 				PRODUCT_BUNDLE_IDENTIFIER = "net.kassett.$(PRODUCT_NAME:rfc1034identifier)";
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				PROVISIONING_PROFILE_SPECIFIER = "";
+				"PROVISIONING_PROFILE_SPECIFIER[sdk=macosx*]" = "";
 				SWIFT_VERSION = 5.0;
 				TEST_HOST = "$(BUILT_PRODUCTS_DIR)/Finicky.app/Contents/MacOS/Finicky";
 			};
@@ -561,10 +558,9 @@
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				BUNDLE_LOADER = "$(TEST_HOST)";
-				CODE_SIGN_IDENTITY = "Apple Development";
-				CODE_SIGN_STYLE = Automatic;
+				CODE_SIGN_IDENTITY = "Mac Developer";
 				COMBINE_HIDPI_IMAGES = YES;
-				DEVELOPMENT_TEAM = C3XWNKDP3M;
+				DEVELOPMENT_TEAM = DM5FXX35M7;
 				FRAMEWORK_SEARCH_PATHS = (
 					"$(DEVELOPER_FRAMEWORKS_DIR)",
 					"$(inherited)",
@@ -575,6 +571,7 @@
 				PRODUCT_BUNDLE_IDENTIFIER = "net.kassett.$(PRODUCT_NAME:rfc1034identifier)";
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				PROVISIONING_PROFILE_SPECIFIER = "";
+				"PROVISIONING_PROFILE_SPECIFIER[sdk=macosx*]" = "";
 				SWIFT_VERSION = 5.0;
 				TEST_HOST = "$(BUILT_PRODUCTS_DIR)/Finicky.app/Contents/MacOS/Finicky";
 			};

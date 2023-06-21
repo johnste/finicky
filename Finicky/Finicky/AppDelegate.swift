@@ -268,7 +268,8 @@ class AppDelegate: NSObject, NSApplicationDelegate, NSUserNotificationCenterDele
 
         if appDescriptor.browsers.count == 1 {
             if let browser = appDescriptor.browsers.first {
-                description += "Opens browser: \(browser.name)\(browser.openInBackground ? " (opens in background)" : "")"
+                description += "Opens browser: \(browser.name) \(browser.profile != nil ? "profile: \(browser.profile)" : "") \(browser.openInBackground ? "(opens in background)" : "")"
+//                description += "Opens browser: \(browser.name)\(browser.openInBackground ? " (opens in background)" : "")"
             }
         } else if appDescriptor.browsers.count == 0 {
             description += "Won't open any browser"

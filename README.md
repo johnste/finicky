@@ -1,3 +1,7 @@
+This is a fork of the official finicky project, hosted on Github under /johnste/finicky.
+The ffprofiles branch re-enables the disabled Firefox profile support, and adds a comment when trying links in the app's console.
+
+--
 <div align="center">
   <h1><img
     height="100"
@@ -31,6 +35,7 @@ Finicky is a macOS application that allows you to set up rules that decide which
 <!-- START doctoc generated TOC please keep comment here to allow auto update -->
 <!-- DON'T EDIT THIS SECTION, INSTEAD RE-RUN doctoc TO UPDATE -->
 
+- [Table of Contents](#table-of-contents)
 - [Installation](#installation)
 - [Example configuration](#example-configuration)
 - [Documentation](#documentation)
@@ -38,10 +43,11 @@ Finicky is a macOS application that allows you to set up rules that decide which
 - [Alternatives](#alternatives)
 - [Building Finicky from source](#building-finicky-from-source)
 - [Current status of Finicky development](#current-status-of-finicky-development)
+	- [Looking for co-maintainers](#looking-for-co-maintainers)
 - [Issues](#issues)
-  - [Bugs](#bugs)
-  - [Feature Requests](#feature-requests)
-  - [Questions](#questions)
+	- [Bugs](#bugs)
+	- [Feature Requests](#feature-requests)
+	- [Questions](#questions)
 - [License](#license)
 
 
