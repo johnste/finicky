@@ -3,9 +3,7 @@ module.exports = {
   testEnvironment: "node",
 
   testPathIgnorePatterns: ["/node_modules/", "src/fastidious/"],
-  globals: {
-    "ts-jest": {
-      diagnostics: true
-    }
-  }
+  transform: {
+    "^.+\\.ts$": ["ts-jest"],
+  },
 };

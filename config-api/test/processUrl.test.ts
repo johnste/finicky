@@ -123,7 +123,7 @@ describe("Rewrites", () => {
         }),
       });
       const result = processUrl(config, "https://test.example", processOptions);
-      expect(result.url).toBe("https://test2.example");
+      expect(result.url).toBe("https://test2.example/");
     });
   });
 
@@ -136,7 +136,7 @@ describe("Rewrites", () => {
     test("Protocol change", () => {
       const config = createRewriteConfig({ urlResult: { protocol: "ftp" } });
       const result = processUrl(config, "http://example.com", processOptions);
-      expect(result.url).toBe("ftp://example.com");
+      expect(result.url).toBe("ftp://example.com/");
     });
 
     test("Hostname change", () => {
@@ -144,7 +144,7 @@ describe("Rewrites", () => {
         urlResult: { host: "example.org" },
       });
       const result = processUrl(config, "http://example.com", processOptions);
-      expect(result.url).toBe("http://example.org");
+      expect(result.url).toBe("http://example.org/");
     });
 
     test("Multiple change", () => {

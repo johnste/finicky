@@ -84,13 +84,12 @@ export function validateSchema(
  */
 export function deprecate<T extends Object>(
   target: T,
-  deprecated: Map<keyof T, string>
+  deprecated: Map<string, string>
 ): T {
-  const handler = {
-    get: function (target: T, prop: keyof T, receiver?: any) {
+  const handler: ProxyHandler<T> = {
+    get: function (target: T, prop: string, receiver?: any) {
       if (deprecated.has(prop)) {
-        // @ts-ignore
-        finicky.log("⚠️", prop, "is deprecated: ", deprecated.get(prop));
+        finicky.log("⚠️", prop, "is deprecated: ", deprecated.get(prop) || "");
       }
 
       return Reflect.get(target, prop, receiver);
