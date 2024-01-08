@@ -77,8 +77,8 @@ module.exports = {
   ],
   handlers: [
     {
-      // Open apple.com and example.org urls in Safari
-      match: ["apple.com/*", "example.org/*"],
+      // Open apple.com and example.com urls in Safari
+      match: finicky.matchHostnames(["apple.com", "example.com"]),
       browser: "Safari"
     },
     {
