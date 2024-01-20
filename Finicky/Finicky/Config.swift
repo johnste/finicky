@@ -313,6 +313,7 @@ open class FinickyConfig {
                     let openInBackground: Bool? = dict["openInBackground"] as? Bool
                     let browserName = dict["name"] as! String
                     let browserProfile: String? = dict["profile"] as? String
+                    let browserContainer: String? = dict["container"] as? String
                     let args: [String] = dict["args"] as? [String] ?? []
 
                     if browserName == "" {
@@ -326,6 +327,7 @@ open class FinickyConfig {
                             appType: appType!,
                             openInBackground: openInBackground,
                             profile: browserProfile,
+                            container: browserContainer,
                             args: args
                         )
                         return browser
