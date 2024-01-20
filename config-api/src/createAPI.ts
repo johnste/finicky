@@ -1,4 +1,5 @@
 import urlParse from "url-parse";
+import { chromeProfile } from "./chrome";
 import { ConfigAPI, UrlObject, Matcher, Options } from "./types";
 
 declare const finickyInternalAPI: any;
@@ -22,6 +23,7 @@ export function createAPI(overrides: Partial<ConfigAPI> = {}): ConfigAPI {
     getUrlParts: parseUrl,
     matchHostnames,
     matchDomains: matchHostnames,
+    chromeProfile,
     ...overrides,
   };
 }
