@@ -1,0 +1,53 @@
+/*!
+ * File: FinickyHelper.css
+ * Description: Popup CSS. Redirects http(s):// to finicky(s):// for specific URLs
+ * Author: Alex Torma (https://github.com/torma616/)
+ * Date: July 24, 2024
+ * Copyright: © 2024 Alex Torma
+ * License: MIT
+ * Version: 1
+ *
+ */
+body {
+  min-width: 200px;
+  max-width: 700px;
+  text-align: center;
+}
+
+h3,
+p {
+  margin: 0;
+}
+
+.options-wrapper {
+  display: ruby;
+}
+
+#patterns,
+#prefixes {
+  margin: 0.5rem 0 1rem 0;
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  max-width: calc(200px * 3 + 10px * 2);
+  /* Ensure enough width for 3 columns */
+  /* grid-template-columns: repeat(3, 1fr); */
+  gap: 10px;
+}
+
+#patterns-wrapper,
+#prefixes-wrapper {
+  width: fit-content;
+}
+
+.pattern,
+.prefix {
+  display: flex;
+  flex-direction: column;
+}
+
+.pattern input,
+.prefix input {
+  width: 100%;
+  box-sizing: border-box;
+  min-width: 200px;
+}
