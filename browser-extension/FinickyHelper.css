@@ -1,17 +1,18 @@
 /*!
- * File: FinickyHelper.css
- * Description: Popup CSS. Redirects http(s):// to finicky(s):// for specific URLs
- * Author: Alex Torma (https://github.com/torma616/)
- * Date: July 24, 2024
- * Copyright: © 2024 Alex Torma
- * License: MIT
- * Version: 1
- *
- */
+* File: FinickyHelper.css
+* Description: Popup CSS. Redirects http(s):// to finicky(s):// for specific URLs
+* Author: Alex Torma (https://github.com/torma616/)
+* Date: July 24, 2024
+* Copyright: ©2024 Alex Torma
+* License: MIT
+* Version: 1
+*
+*/
 body {
-  min-width: 200px;
-  max-width: 700px;
+  width: max-content;
   text-align: center;
+  max-width: 700px;
+  background-color: #aaa;
 }
 
 h3,
@@ -19,35 +20,61 @@ p {
   margin: 0;
 }
 
-.options-wrapper {
-  display: ruby;
-}
-
-#patterns,
-#prefixes {
-  margin: 0.5rem 0 1rem 0;
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-  max-width: calc(200px * 3 + 10px * 2);
-  /* Ensure enough width for 3 columns */
-  /* grid-template-columns: repeat(3, 1fr); */
-  gap: 10px;
+#options-wrapper {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  width: 100%
 }
 
 #patterns-wrapper,
 #prefixes-wrapper {
-  width: fit-content;
+  width: 100%;
 }
 
-.pattern,
-.prefix {
+.patterns,
+.browsers,
+#prefixes {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  justify-content: center;
+}
+
+.browsers {
+  margin: 0.5rem 0 0 0;
+  width: 100%;
+}
+
+[class*=-patterns] {
+  align-items: center;
   display: flex;
   flex-direction: column;
 }
 
-.pattern input,
-.prefix input {
+.patterns,
+#prefixes {
+  width: 98%;
+  margin: 0.5rem 0 1rem 0;
+}
+
+.pattern,
+.prefix {
+  display: inline-flex;
+  flex-direction: column;
+}
+
+.pattern {
+  flex: 0 0 220px;
+  /* Adjust as needed for minimum width */
+}
+
+.prefix {
+  flex: 0 0 250px;
+  /* Adjust as needed for minimum width */
+}
+
+.browsers .pattern {
   width: 100%;
-  box-sizing: border-box;
-  min-width: 200px;
+  flex-grow: 1;
 }

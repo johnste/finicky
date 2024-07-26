@@ -1,13 +1,13 @@
 <!-- /*!
- * File: FinickyHelper.html
- * Description: Popup HTML. Redirects http(s):// to finicky(s):// for specific URLs
- * Author: Alex Torma (https://github.com/torma616/)
- * Date: July 24, 2024
- * Copyright: © 2024 Alex Torma
- * License: MIT
- * Version: 1
- *
- */ -->
+* File: FinickyHelper.html
+* Description: Popup HTML. Redirects http(s):// to finicky(s):// for specific URLs
+* Author: Alex Torma (https://github.com/torma616/)
+* Date: July 24, 2024
+* Copyright: ©2024 Alex Torma
+* License: MIT
+* Version: 1
+*
+*/ -->
 <!DOCTYPE html>
 <html>
 
@@ -18,20 +18,24 @@
 
 <body>
   <h2>Finicky Helper</h2>
-  <div class="options-wrapper">
+  <div id="options-wrapper">
     <div id="patterns-wrapper">
       <h3>Enter URL Patterns</h3>
-      <p>No protocol necessary. Place an asterisk (*) at the end to for a wildcard match on ALL subpages of a URL:</p>
-      <div id="patterns"></div>
+      <p>No protocol necessary. Place an asterisk (*) at the end for a wildcard match on ALL subpages of a URL:</p>
+      <div id="match-patterns">
+      </div>
     </div>
     <br>
     <div id="prefixes-wrapper">
       <h3>Enter URL Prefixes</h3>
       <p>All URLs entered above will also be tested with the following URL prefixes:</p>
-      <div id="prefixes"></div>
+      <div class="prefix-patterns">
+        <div id="prefixes"></div>
+      </div>
     </div>
   </div>
+  <script src="FinickyHelper_Shared.js"></script>
   <script src="FinickyHelper.js"></script>
-</bosdy>
+</body>
 
 </html>
