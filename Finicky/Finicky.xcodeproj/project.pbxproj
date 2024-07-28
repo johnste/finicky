@@ -30,6 +30,7 @@
 		54E33FD71B24E27000998E13 /* Config.swift in Sources */ = {isa = PBXBuildFile; fileRef = 54E33FD61B24E27000998E13 /* Config.swift */; };
 		54E4B1EB22971F7B002FA6F4 /* UpdateCheck.swift in Sources */ = {isa = PBXBuildFile; fileRef = 54E4B1EA22971F7B002FA6F4 /* UpdateCheck.swift */; };
 		54FD9F562455A9A600217E30 /* Battery.swift in Sources */ = {isa = PBXBuildFile; fileRef = 54FD9F552455A9A600217E30 /* Battery.swift */; };
+		727EDA072C56DB86005C1A54 /* NativeHost.swift in Sources */ = {isa = PBXBuildFile; fileRef = 727EDA062C56DB86005C1A54 /* NativeHost.swift */; };
 		7804C1542433F40800E595D9 /* Fixtures in Resources */ = {isa = PBXBuildFile; fileRef = 7804C1532433F40700E595D9 /* Fixtures */; };
 		E3B53D6F253F957700F4CB19 /* defaultConfig.js in Resources */ = {isa = PBXBuildFile; fileRef = E3B53D6E253F957700F4CB19 /* defaultConfig.js */; };
 		E3B53D7A253F97FC00F4CB19 /* Settings.swift in Sources */ = {isa = PBXBuildFile; fileRef = E3B53D72253F975700F4CB19 /* Settings.swift */; };
@@ -75,6 +76,7 @@
 		54E33FD61B24E27000998E13 /* Config.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = Config.swift; sourceTree = "<group>"; };
 		54E4B1EA22971F7B002FA6F4 /* UpdateCheck.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = UpdateCheck.swift; sourceTree = "<group>"; };
 		54FD9F552455A9A600217E30 /* Battery.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Battery.swift; sourceTree = "<group>"; };
+		727EDA062C56DB86005C1A54 /* NativeHost.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NativeHost.swift; sourceTree = "<group>"; };
 		7804C1532433F40700E595D9 /* Fixtures */ = {isa = PBXFileReference; lastKnownFileType = folder; path = Fixtures; sourceTree = "<group>"; };
 		E3B53D6E253F957700F4CB19 /* defaultConfig.js */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.javascript; path = defaultConfig.js; sourceTree = "<group>"; };
 		E3B53D72253F975700F4CB19 /* Settings.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Settings.swift; sourceTree = "<group>"; };
@@ -132,6 +134,7 @@
 				54E33FD61B24E27000998E13 /* Config.swift */,
 				548F11CD1B2A43F700FDDC3C /* API.swift */,
 				54B0E7021B4678CE003F8AEE /* ShortUrlResolver.swift */,
+				727EDA062C56DB86005C1A54 /* NativeHost.swift */,
 				5479FDD321655A3400D15A3C /* Notifications.swift */,
 				54B5771522860D0B0016BF77 /* Credits.rtf */,
 				546F1677228B487F006C5375 /* Utilities.swift */,
@@ -337,6 +340,7 @@
 				54C2F15B22BEC9BC00B3E2C3 /* Browsers.swift in Sources */,
 				54E33FD71B24E27000998E13 /* Config.swift in Sources */,
 				54FD9F562455A9A600217E30 /* Battery.swift in Sources */,
+				727EDA072C56DB86005C1A54 /* NativeHost.swift in Sources */,
 				54899CD61B20D5BC00647101 /* AppDelegate.swift in Sources */,
 				54B0E7031B4678CE003F8AEE /* ShortUrlResolver.swift in Sources */,
 				54E4B1EB22971F7B002FA6F4 /* UpdateCheck.swift in Sources */,
