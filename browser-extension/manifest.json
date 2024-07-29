@@ -1,16 +1,36 @@
 {
-  "name": "Finicky Comrade",
-  "description": "Hey Finicky!",
+  "manifest_version": 3,
+  "name": "Finicky Helper",
   "version": "1.0",
-  "manifest_version": 2,
-  "background": {
-    "scripts": ["background.js"]
+  "description": "Redirects http:// to finicky:// and https:// to finickys://",
+  "icons": {
+    "1024": "assets/FinickyHelper_1024.png",
+    "512": "assets/FinickyHelper_512.png",
+    "256": "assets/FinickyHelper_256.png",
+    "128": "assets/FinickyHelper_128.png",
+    "64": "assets/FinickyHelper_64.png",
+    "32": "assets/FinickyHelper_32.png",
+    "16": "assets/FinickyHelper_16.png"
   },
-  "content_scripts": [
-    {
-      "matches": ["<all_urls>"],
-      "js": ["contentScript.js"]
-    }
+  "permissions": [
+    "webNavigation",
+    "tabs",
+    "storage"
   ],
-  "permissions": ["contextMenus", "tabs", "<all_urls>"]  
+  "options_ui": {
+    "page": "FinickyHelper.html",
+    "open_in_tab": true
+  },
+  "background": {
+    "service_worker": "FinickyHelper_Worker.js"
+  },
+  "action": {
+    "default_icon": {
+      "1024": "assets/FinickyHelper_1024.png"
+    },
+    "default_popup": "FinickyHelper.html"
+  },
+  "host_permissions": [
+    "*://*/*"
+  ]
 }
