@@ -1,0 +1,95 @@
+/*!
+* File: FinickyHelper.css
+* Description: Popup CSS. Redirects http(s):// to finicky(s):// for specific URLs
+* Author: Alex Torma (https://github.com/torma616/)
+* Date: July 24, 2024
+* Copyright: ©2024 Alex Torma
+* License: MIT
+* Version: 1
+*
+*/
+body {
+  width: max-content;
+  margin: auto;
+  text-align: center;
+  font-size: 10px;
+  max-width: 550px;
+  background-color: #aaa;
+}
+
+input {
+  font-size: 10px;
+}
+
+#popup,
+h2 {
+  margin: 5px;
+}
+
+h3,
+p {
+  margin: 0;
+}
+
+#options-wrapper {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  width: 100%
+}
+
+#patterns-wrapper,
+#prefixes-wrapper {
+  width: 100%;
+}
+
+.patterns,
+.browsers,
+#prefixes {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 5px;
+  justify-content: center;
+}
+
+.browsers {
+  margin: 0.5rem 0 0 0;
+  width: 100%;
+}
+
+[class*=-patterns] {
+  align-items: center;
+  display: flex;
+  flex-direction: column;
+}
+
+.patterns,
+#prefixes {
+  width: 98%;
+  margin: 0.5rem 0 1rem 0;
+}
+
+.pattern,
+.prefix {
+  display: inline-flex;
+  flex-direction: column;
+}
+
+.pattern {
+  flex: 0 0 170px;
+}
+
+.prefix {
+  flex: 0 0 180px;
+}
+
+.browsers .pattern {
+  width: 100%;
+  flex-grow: 1;
+}
+
+#current-browser input,
+.browsers input {
+  font-weight: bold;
+  text-align: center;
+}

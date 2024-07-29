@@ -42,4 +42,5 @@ let defaultUrlShorteners = [
     "t.co",
     "tiny.cc",
     "tinyurl.com",
+    "urlshortener.teams.microsoft.com",
 ]

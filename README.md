@@ -7,7 +7,9 @@
   />
   </h1>
 
-  <strong>Always open the right browser</strong>
+  <strong>🇺🇦 Always open the right browser 🇺🇦</strong><br>
+  [![GitHub start](https://badgen.net/github/stars/johnste/finicky?color=pink&icon=github)](https://GitHub.com/johnste/finicky/)
+  [![GitHub release](https://badgen.net/github/release/johnste/finicky/stable?color=purple)](https://GitHub.com/johnste/finicky/releases/)
 
 </div>
 
@@ -16,10 +18,6 @@ Finicky is a macOS application that allows you to set up rules that decide which
 - Decide what urls to open in what browser or app
 - Edit urls before opening them
 - Complete control over configuration using JavaScript
-
-[![GitHub start](https://badgen.net/github/stars/johnste/finicky?color=pink&icon=github)](https://GitHub.com/johnste/finicky/)
-[![GitHub release](https://badgen.net/github/release/johnste/finicky/stable?color=purple)](https://GitHub.com/johnste/finicky/releases/)
-
 
 
 
@@ -35,13 +33,11 @@ Finicky is a macOS application that allows you to set up rules that decide which
 
 - [Installation](#installation)
 - [Example configuration](#example-configuration)
-  - [Basic configuration](#basic-configuration)
-  - [Rewrite urls](#rewrite-urls)
 - [Documentation](#documentation)
 - [Configuration tips](#configuration-tips)
 - [Alternatives](#alternatives)
 - [Building Finicky from source](#building-finicky-from-source)
-- [Support development](#support-development)
+- [Current status of Finicky development](#current-status-of-finicky-development)
 - [Issues](#issues)
   - [Bugs](#bugs)
   - [Feature Requests](#feature-requests)
@@ -81,8 +77,8 @@ module.exports = {
   ],
   handlers: [
     {
-      // Open apple.com and example.org urls in Safari
-      match: ["apple.com/*", "example.org/*"],
+      // Open apple.com and example.com urls in Safari
+      match: finicky.matchHostnames(["apple.com", "example.com"]),
       browser: "Safari"
     },
     {
@@ -128,11 +124,15 @@ make
 make run
 ```
 
-## Support development
+## Current status of Finicky development
 
-If you want to help support further development of finicky, feel free to buy me a coffee on ko-fi.
+I don't have time to work on Finicky actively, and that has been the case for several years. I still use it every day and it works really well for my use cases. When I have time I try to respond to support requests on twitter and github.
 
-<a href='https://ko-fi.com/E1E5W973' target='_blank'><img height='36' style='border:0px;height:36px;' src='https://az743702.vo.msecnd.net/cdn/kofi1.png?v=2' border='0' alt='Buy Me a Coffee at ko-fi.com' /></a>
+Don't expect any work on features, new releases, or even bug fixes on my part at this point. Unless things change a lot in my personal or professional life I won't have time to work on Finicky for the forseeable future.
+
+### Looking for co-maintainers
+
+Do you want to help out with the development of Finicky? My time to spend to work on Finicky is very limited, and my limited experience with Swift and MacOS I feel is holding it back. If you are experienced in Swift and MacOS development and this sounds interesting to you please reach out to me, preferably on [Twitter](https://twitter.com/johnste_).
 
 ## Issues
 
@@ -151,7 +151,7 @@ a 👍.
 
 ### Questions
 
-Have any other questions or need help? Please feel free to reach out to me on [Twitter](https://twitter.com/johnste_).
+Have any other questions or need help? Please feel free to reach out to me on [Mastodon](https://mastodon.se/@john) or [Twitter](https://twitter.com/johnste_).
 
 ## License
 

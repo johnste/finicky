@@ -5,6 +5,7 @@ import chalk from "chalk";
 import { processUrl } from "./processUrl";
 import { validateConfig } from "./validateConfig";
 import { createAPI } from "./createAPI";
+import { ProcessOptions } from "./types";
 
 const [, , ...args] = process.argv;
 
@@ -42,22 +43,22 @@ let config;
 try {
   config = require(configPath);
 } catch (ex) {
-  errorMessage("Couldn't open configuration file. ", ex);
+  errorMessage("Couldn't open configuration file. ", ex as Error);
   process.exit(1);
 }
 
 try {
   validateConfig(config);
 } catch (ex) {
-  errorMessage("Couldn't validate configuration. ", ex);
+  errorMessage("Couldn't validate configuration. ", ex as Error);
   process.exit(1);
 }
 
 try {
-  const result = processUrl(config, url);
+  const result = processUrl(config, url, null as unknown as ProcessOptions);
   console.log(chalk`Result:
 {green ${JSON.stringify(result, null, 2)}}`);
 } catch (ex) {
-  errorMessage("Couldn't validate result. ", ex);
+  errorMessage("Couldn't validate result. ", ex as Error);
   process.exit(1);
 }
