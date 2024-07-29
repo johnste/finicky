@@ -30,37 +30,52 @@
   };
   const uniqueString = uniqueStringGen('temp');
 
-  const setUpFields = (patterns, prefixes) => {
+  const setUpEnv = (currentBrowser) => {
+    const currentBrowserInput = document.querySelector('#current-browser input');
+    const writeToStorage = () => FinickyHelper.storage.local.set({ currentBrowser: currentBrowserInput.value })
+
+    if (currentBrowser === '' && currentBrowserInput.value !== '') {
+      writeToStorage();
+    }
+
+    if (currentBrowser !== '' && currentBrowserInput.value === '') {
+      currentBrowserInput.value = currentBrowser;
+      writeToStorage();
+    }
+
+    if (currentBrowser === '' && currentBrowserInput.value === '') {
+      const userInput = prompt('Please put the name of the current browser in the "Current Browser" field.');
+      currentBrowserInput.value = currentBrowser = userInput;
+      writeToStorage();
+    };
+
+    currentBrowserInput.addEventListener('input', writeToStorage)
+  }
+
+  const setUpFields = (currentBrowser, patterns, prefixes) => {
+    console.log(patterns)
+    setUpEnv(currentBrowser);
     document.querySelector('#prefixes').innerHTML = document.getElementById('match-patterns').innerHTML = '';
     patterns.forEach(([browser, patternEntries, type = 'pattern']) => {
-      createSelect(type, browser);
+      createBrowserInput(type, browser);
       patternEntries.forEach(pattern => createInput(type, browser, pattern));
       ensureEmptyField(type, browser);
     });
-    ensureEmptyField('pattern', 'make-selection', true);
+    ensureEmptyField('pattern', 'browser', true);
 
     prefixes.forEach(prefix => createInput('prefix', '', prefix));
     ensureEmptyField('prefix', '');
   };
 
-  const createOptions = (options) => options.map(opt => createElement({ tag: 'option', ...opt }));
-
-  const createSelect = (type, browser) => {
-    const newSelect = createElement({
-      tag: 'select', children: createOptions([
-        { value: 'make-selection', innerHTML: 'Choose A Browser' },
-        { value: 'chrome', innerHTML: 'Google Chrome' },
-        { value: 'edge', innerHTML: 'Microsoft Edge' },
-        { value: 'chromium', innerHTML: 'Chromium' }
-      ])
-    });
-    newSelect.addEventListener('input', handleInput);
+  const createBrowserInput = (type, browser) => {
+    const newInput = createElement({ tag: 'input', placeholder: "Enter Browser", type: "text", classList: ['browser-input'] });
+    newInput.addEventListener('input', handleInput);
 
     const matchWrapper = createElement({
       tag: 'div', classList: [`${browser}-patterns`], children: [
         createElement({
           tag: 'div', classList: ['browsers'], children: [
-            createElement({ tag: 'div', className: type, children: [newSelect] })
+            createElement({ tag: 'div', className: type, children: [newInput] })
           ]
         }),
         createElement({ tag: 'div', classList: ['patterns'] })
@@ -68,7 +83,7 @@
     });
 
     document.getElementById('match-patterns').appendChild(matchWrapper);
-    newSelect.value = ['chrome', 'chromium', 'edge'].includes(browser) ? browser : 'make-selection';
+    newInput.value = !browser.startsWith('temp') ? browser : '';
   };
 
   const createInput = (type, browser = '', value = '') => {
@@ -76,7 +91,7 @@
     const targetDiv = type === 'pattern'
       ? document.querySelector(`.${browser}-patterns .patterns`)
       : document.querySelector('#prefixes');
-    const newInput = createElement({ tag: 'input', type: 'text', placeholder, value });
+    const newInput = createElement({ tag: 'input', type: 'text', placeholder, value, classList: [`${type}-input`] });
     newInput.addEventListener('input', handleInput);
     const inputWrapper = createElement({ tag: 'div', className: type, children: [newInput] });
     targetDiv.appendChild(inputWrapper);
@@ -87,23 +102,22 @@
     const type = inputField.parentNode.classList.contains('pattern') ? 'pattern' : 'prefix';
     const browser = inputField.closest('[class*="-patterns"]')?.classList[0]?.split('-')?.[0] ?? '';
 
-    (inputField.tagName === 'SELECT' && inputField.tagName !== 'INPUT')
-      ? handleSelectInput(inputField, type, browser)
+    inputField.classList.contains('browser-input')
+      ? handleBrowserInput(inputField, type, browser)
       : handleTextInput(inputField, type, browser);
     saveMatches();
   };
 
-  const handleSelectInput = (inputField, type, browser) => {
-    const browserSelects = document.querySelectorAll(`.${browser}-patterns select`);
-    const lastSelect = browserSelects[browserSelects.length - 1];
+  const handleBrowserInput = (inputField, type, browser) => {
+    const browserInputs = document.querySelectorAll(`.${browser}-patterns input.browser-input`);
 
-    if (lastSelect === inputField) {
-      if (inputField.value === 'make-selection') {
-        inputField.closest('[class*="-patterns"]').remove();
+    if (browserInputs[browserInputs.length - 1] === inputField) {
+      if (inputField.value === '') {
+        inputField.addEventListener('blur', () => inputField.closest('[class*="-patterns"]').remove());
       }
-      ensureEmptyField(type, 'make-selection', true);
-    } else if (browserSelects.length > 1) {
-      inputField.parentElement.remove();
+      ensureEmptyField(type, 'browser', true);
+    } else if (browserInputs.length > 1) {
+      inputField.addEventListener('blur', () => inputField.parentElement.remove());
       ensureEmptyField(type, browser, true);
     }
   };
@@ -119,17 +133,17 @@
         ensureEmptyField(type, browser);
       }
     } else if (inputFields.length > 1) {
-      inputField.parentElement.remove();
+      inputField.addEventListener('blur', () => inputField.parentElement.remove());
       ensureEmptyField(type, browser);
     }
   };
 
   const ensureEmptyField = (type, browser, browserDiv = false) => {
     if (browserDiv) {
-      browser = browser !== 'make-selection' ? browser : uniqueString();
-      const selectFields = document.querySelectorAll('.browsers select');
-      if (selectFields.length === 0 || selectFields[selectFields.length - 1].value.trim() !== 'make-selection') {
-        createSelect(type, browser);
+      browser = browser !== 'browser' ? browser : uniqueString();
+      const browserInputFields = document.querySelectorAll('.browsers input');
+      if (browserInputFields.length === 0 || browserInputFields[browserInputFields.length - 1].value.trim() !== '') {
+        createBrowserInput(type, browser);
         createInput(type, browser);
       }
       return;
@@ -146,12 +160,12 @@
   };
 
   const saveMatches = () => {
-    const browsers = [...document.querySelectorAll('.browsers select')];
+    const browsers = [...document.querySelectorAll('.browsers input.browser-input')];
     const prefixInputs = document.querySelectorAll('#prefixes input');
 
     const patterns = browsers.map(browser => [
       browser.value,
-      [...browser.closest('.browsers').parentNode.querySelectorAll('input')].map(field => field.value.trim()).filter(Boolean)
+      [...browser.closest('.browsers').parentNode.querySelectorAll('input.pattern-input')].map(field => field.value.trim()).filter(Boolean)
     ]).filter(([_, array]) => array.length > 0);
     const prefixes = Array.from(prefixInputs).map(field => field.value.trim()).filter(Boolean);
 
@@ -159,8 +173,8 @@
   };
 
   const initialize = () =>
-    FinickyHelper.storage.local.get(['patterns', 'prefixes'], ({ patterns = [], prefixes = [] }) =>
-      setUpFields(patterns, prefixes));
+    FinickyHelper.storage.local.get(['currentBrowser', 'patterns', 'prefixes'], ({ currentBrowser = '', patterns = [], prefixes = [] }) =>
+      setUpFields(currentBrowser, patterns, prefixes));
 
   document.addEventListener('DOMContentLoaded', initialize)
 })();

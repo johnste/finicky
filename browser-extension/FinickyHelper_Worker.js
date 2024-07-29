@@ -1,4 +1,4 @@
-/*
+/*!
 * File: FinickyHelper_Worker.js
 * Description: Finicky Helper Service Worker. Redirects http(s):// to finicky(s):// for specific URLs
 * Author: Alex Torma (https://github.com/torma616/)
@@ -17,11 +17,13 @@
       case 'update':
         console.log('Thanks for using Finicky Helper')
         FinickyHelper.storage.local.set({
+          currentBrowser: '',
           patterns: [
           ],
           prefixes: [
           ]
         });
+        chrome.tabs.create({ url: chrome.runtime.getURL('FinickyHelper.html') });
         break;
 
       default:
@@ -52,12 +54,12 @@
   };
 
   const listenForNav = () => FinickyHelper.webNavigation.onBeforeNavigate.addListener(details => {
-    FinickyHelper.storage.local.get(['patterns', 'prefixes'], ({ patterns = [], prefixes = [] }) => {
+    FinickyHelper.storage.local.get(['currentBrowser', 'patterns', 'prefixes'], ({ currentBrowser = '', patterns = [], prefixes = [] }) => {
       const url = new URL(details.url);
-      const currentBrowser = detectBrowser();
+      const thisBrowser = currentBrowser;
 
       const filteredPatterns = patterns
-        .filter(([browser]) => browser !== currentBrowser) // Exclude patterns for the current browser
+        .filter(([browser]) => browser !== thisBrowser) // Exclude patterns for the current browser
         .flatMap(([, patternList]) => patternList);
 
       if (checkUrlAgainstPatterns(url.href, filteredPatterns, prefixes)) {

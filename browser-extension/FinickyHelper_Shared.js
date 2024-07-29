@@ -9,29 +9,3 @@
 *
 */
 const FinickyHelper = (() => typeof chrome !== 'undefined' ? chrome : browser)();
-
-const detectBrowser = () => {
-  const userAgent = navigator.userAgent;
-
-  if (typeof chrome !== 'undefined') {
-    if (navigator.userAgentData) {
-      const brands = navigator.userAgentData.brands;
-      const brandMap = {
-        'Google Chrome': 'chrome',
-        'Microsoft Edge': 'edge',
-        'Chromium': brands.length === 2 ? 'chromium' : null
-      };
-
-      for (const { brand } of brands) {
-        if (brandMap[brand]) return brandMap[brand];
-      }
-    } else {
-      if (userAgent.includes('Edg')) return 'edge';
-      if (userAgent.includes('Chrome')) return 'chrome';
-    }
-  } else if (typeof browser !== 'undefined') {
-    return 'firefox';
-  }
-
-  return 'Unknown';
-};

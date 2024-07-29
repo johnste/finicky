@@ -17,20 +17,23 @@
 </head>
 
 <body>
-  <h2>Finicky Helper</h2>
-  <div id="options-wrapper">
-    <div id="patterns-wrapper">
-      <h3>Enter URL Patterns</h3>
-      <p>No protocol necessary. Place an asterisk (*) at the end for a wildcard match on ALL subpages of a URL:</p>
-      <div id="match-patterns">
+  <div id="popup">
+    <h2>Finicky Helper</h2>
+    <div id="current-browser"><input type="text" placeholder="Current Browser"></div><br>
+    <div id="options-wrapper">
+      <div id="patterns-wrapper">
+        <h3>Enter URL Patterns</h3>
+        <p>No protocol necessary. Place an asterisk (*) at the end for a wildcard match on ALL subpages of a URL:</p>
+        <div id="match-patterns">
+        </div>
       </div>
-    </div>
-    <br>
-    <div id="prefixes-wrapper">
-      <h3>Enter URL Prefixes</h3>
-      <p>All URLs entered above will also be tested with the following URL prefixes:</p>
-      <div class="prefix-patterns">
-        <div id="prefixes"></div>
+      <br>
+      <div id="prefixes-wrapper">
+        <h3>Enter URL Prefixes</h3>
+        <p>All URLs entered above will also be tested with the following URL prefixes:</p>
+        <div class="prefix-patterns">
+          <div id="prefixes"></div>
+        </div>
       </div>
     </div>
   </div>
