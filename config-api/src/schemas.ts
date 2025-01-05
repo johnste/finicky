@@ -29,9 +29,15 @@ const browserSchema = validate.oneOf([
   validate.string,
   validate.shape({
     name: validate.string.isRequired,
-    appType: validate.oneOf(["appName", "appPath", "bundleId"]),
+    appType: validate.oneOf([
+      validate.value("bundleId"),
+      validate.value("appName"),
+      validate.value("appPath"),
+      validate.value("command"),
+    ]),
     openInBackground: validate.boolean,
     profile: validate.string,
+    command: validate.string,
     args: validate.arrayOf(validate.string),
   }),
   validate.function("options"),
@@ -96,9 +102,11 @@ export const appDescriptorSchema = {
     validate.value("bundleId"),
     validate.value("appName"),
     validate.value("appPath"),
+    validate.value("command"),
     validate.value("none"),
   ]).isRequired,
   openInBackground: validate.boolean,
   profile: validate.string,
+  command: validate.string,
   args: validate.arrayOf(validate.string),
 };

@@ -9,6 +9,7 @@ public enum AppDescriptorType: String {
     case bundleId
     case appName
     case appPath
+    case command
     case none
 }
 
@@ -22,6 +23,7 @@ public struct BrowserOpts: CustomStringConvertible {
     public var bundleId: String?
     public var appPath: String?
     public var profile: String?
+    public var command: String?
     public var args: [String]
 
     public var description: String {
@@ -39,6 +41,7 @@ public struct BrowserOpts: CustomStringConvertible {
         appType: AppDescriptorType,
         openInBackground: Bool?,
         profile: String?,
+        command: String?,
         args: [String]
     ) throws {
         self.name = name
@@ -54,12 +57,15 @@ public struct BrowserOpts: CustomStringConvertible {
         }
 
         self.profile = profile
+        self.command = command
         self.args = args
 
         if appType == AppDescriptorType.bundleId {
             bundleId = name
         } else if appType == AppDescriptorType.appPath {
             appPath = name
+        } else if appType == AppDescriptorType.command {
+            appPath = command
         } else if let path = NSWorkspace.shared.fullPath(forApplication: name) {
             if let bundle = Bundle(path: path) {
                 bundleId = bundle.bundleIdentifier!
