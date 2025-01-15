@@ -20,7 +20,7 @@ import JavaScriptCore
 
     static func log(_ message: String?) {
         if message != nil {
-            NSLog(message!)
+            NSLog("%@", message!)
             logToConsole?(message!, false)
         }
     }
