@@ -22,6 +22,7 @@ public struct BrowserOpts: CustomStringConvertible {
     public var bundleId: String?
     public var appPath: String?
     public var profile: String?
+    public var container: String?
     public var args: [String]
 
     public var description: String {
@@ -39,6 +40,7 @@ public struct BrowserOpts: CustomStringConvertible {
         appType: AppDescriptorType,
         openInBackground: Bool?,
         profile: String?,
+        container: String?,
         args: [String]
     ) throws {
         self.name = name
@@ -54,6 +56,7 @@ public struct BrowserOpts: CustomStringConvertible {
         }
 
         self.profile = profile
+        self.container = container
         self.args = args
 
         if appType == AppDescriptorType.bundleId {
