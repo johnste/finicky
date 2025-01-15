@@ -126,13 +126,9 @@ make run
 
 ## Current status of Finicky development
 
-I don't have time to work on Finicky actively, and that has been the case for several years. I still use it every day and it works really well for my use cases. When I have time I try to respond to support requests on twitter and github.
+I'm working on a rewrite of Finicky. I expect an early version to be out sometime early this year. It will not be fully backwards compatible.
 
-Don't expect any work on features, new releases, or even bug fixes on my part at this point. Unless things change a lot in my personal or professional life I won't have time to work on Finicky for the forseeable future.
-
-### Looking for co-maintainers
-
-Do you want to help out with the development of Finicky? My time to spend to work on Finicky is very limited, and my limited experience with Swift and MacOS I feel is holding it back. If you are experienced in Swift and MacOS development and this sounds interesting to you please reach out to me, preferably on [Twitter](https://twitter.com/johnste_).
+I will post updates on Bluesky https://bsky.app/profile/mejkarsense.se
 
 ## Issues
 
