@@ -29,7 +29,6 @@ public func getActiveApp(browsers: [BrowserOpts]) -> BrowserOpts? {
 }
 
 public func openUrlWithBrowser(_ url: URL, browserOpts: BrowserOpts) {
-    print("Opening \(browserOpts) at: " + url.absoluteString)
     let command = getBrowserCommand(browserOpts, url: url)
     shell(command)
 }
@@ -54,9 +53,19 @@ enum Browser: String {
 }
 
 public func getBrowserCommand(_ browserOpts: BrowserOpts, url: URL) -> [String] {
-    var command = ["open"]
+    var command: [String] = []
     var commandArgs: [String] = []
     var appendUrl = true
+
+    // command takes priority over appPath, bundleId and openInBackground
+    if browserOpts.command != nil {
+        command.append(browserOpts.command!)
+        command.append(contentsOf: commandArgs)
+        command.append(url.absoluteString)
+        return command
+    } else {
+        command.append("open")
+    }
 
     // appPath takes priority over bundleId as it is always unique.
     if let appPath = browserOpts.appPath {

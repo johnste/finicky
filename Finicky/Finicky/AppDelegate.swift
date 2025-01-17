@@ -314,6 +314,7 @@ class AppDelegate: NSObject, NSApplicationDelegate, NSUserNotificationCenterDele
                 url = urlComponents.url!
             }
         }
+        logToConsole("Calling url handlers for url: \(url.absoluteString)")
         shortUrlResolver.resolveUrl(url, callback: { (URL) -> Void in
             self.callUrlHandlers(opener: opener, url: URL)
         })
@@ -324,11 +325,16 @@ class AppDelegate: NSObject, NSApplicationDelegate, NSUserNotificationCenterDele
             if let appToStart = getActiveApp(browsers: appDescriptor.browsers) {
                 var success = false
                 if let bundleId = appToStart.bundleId {
+                    logToConsole("Bundle id: \(bundleId)")
                     if NSWorkspace.shared.absolutePathForApplication(withBundleIdentifier: bundleId) != nil {
                         openUrlWithBrowser(appDescriptor.url, browserOpts: appToStart)
                         success = true
                     }
+                } else if appToStart.command != nil {
+                    openUrlWithBrowser(appDescriptor.url, browserOpts: appToStart)
+                    success = true
                 } else if let appPath = appToStart.appPath {
+                    logToConsole("App path: \(appPath)")
                     if BrowserOpts.isAppDirectory(appPath) {
                         openUrlWithBrowser(appDescriptor.url, browserOpts: appToStart)
                         success = true
