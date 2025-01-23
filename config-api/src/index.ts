@@ -60,6 +60,10 @@ export function mergeConfig(
   }
 }
 
+export function getOption(option: keyof Config["options"], config: Config): unknown {
+  return config.options && option in config.options ? config.options[option] : undefined;
+}
+
 export function openUrl(
   urlString: string,
   pid: number,

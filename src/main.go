@@ -9,6 +9,7 @@ package main
 import "C"
 
 import (
+	"bytes"
 	"embed"
 	"encoding/json"
 	"finicky/browser"
@@ -19,6 +20,7 @@ import (
 	"os"
 	"path/filepath"
 	"runtime"
+	"runtime/pprof"
 	"time"
 
 	"github.com/dop251/goja"
@@ -88,7 +90,7 @@ func main() {
 				elapsedTime := time.Since(startTime)
 				log.Printf("Time taken: %v", elapsedTime)
 
-			case <-time.After(1220 * time.Second):
+			case <-time.After(5 * time.Second):
 				log.Println("Exiting all processes due to timeout")
 				os.Exit(1)
 			}
@@ -163,6 +165,15 @@ func setupVM() (*goja.Runtime, error) {
 	}
 	if !validConfig.ToBoolean() {
 		return nil, fmt.Errorf("configuration is invalid: %s", validConfig.String())
+	}
+
+	// Check logRequests option
+	logRequests, err := vm.RunString("finickyConfigAPI.getOption('logRequests', mergedConfig)")
+	log.Printf("logRequests: %v", logRequests)
+
+	// Setup file logging if enabled
+	if err := setupFileLogger(logRequests.ToBoolean()); err != nil {
+		log.Printf("Warning: Failed to setup file logging: %v", err)
 	}
 
 	return vm, nil
@@ -317,17 +328,28 @@ func evaluateURL(vm *goja.Runtime, url string, pid int32, opener *ProcessInfo) e
 }
 
 func setupLogger() {
-	homeDir, err := os.UserHomeDir()
-	if err != nil {
-		log.Fatalf("Failed to get user home directory: %v", err)
+	log.SetFlags(log.LstdFlags | log.Lmicroseconds)
+
+	// Start with in-memory logging
+	memLog = &bytes.Buffer{}
+	multiWriter = io.MultiWriter(memLog, os.Stdout)
+	log.SetOutput(multiWriter)
+}
+
+func setupFileLogger(shouldLog bool) error {
+	if !shouldLog {
+		return nil
 	}
 
-	log.SetFlags(log.LstdFlags | log.Lmicroseconds)
+	homeDir, err := os.UserHomeDir()
+	if err != nil {
+		return fmt.Errorf("failed to get user home directory: %v", err)
+	}
 
 	logDir := filepath.Join(homeDir, "Library", "Logs", "Finicky")
 	err = os.MkdirAll(logDir, 0755) // Create directory if it doesn't exist
 	if err != nil {
-		log.Fatalf("Failed to create log directory: %v", err)
+		return fmt.Errorf("failed to create log directory: %v", err)
 	}
 
 	currentTime := time.Now().Format("2006-01-02_15-04-05.000")
@@ -335,17 +357,25 @@ func setupLogger() {
 
 	file, err = os.OpenFile(logFile, os.O_APPEND|os.O_CREATE|os.O_WRONLY, 0644)
 	if err != nil {
-		log.Fatalf("Failed to open log file: %v", err)
+		return fmt.Errorf("failed to open log file: %v", err)
 	}
 
-	// Set up logging
-	multiWriter := io.MultiWriter(file, os.Stdout)
+	// Write buffered logs to file
+	if _, err := file.Write(memLog.Bytes()); err != nil {
+		return fmt.Errorf("failed to write buffered logs: %v", err)
+	}
+
+	// Update writer to include file
+	multiWriter = io.MultiWriter(file, os.Stdout)
 	log.SetOutput(multiWriter)
+	return nil
 }
 
 func closeLogger() {
 	log.Println("Application closed!")
-	defer file.Close()
+	if file != nil {
+		defer file.Close()
+	}
 }
 
 func getModifierKeys() map[string]bool {

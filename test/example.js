@@ -15,7 +15,7 @@ export default {
     defaultBrowser: 'Firefox',
     options: {
       urlShorteners: [],
-      logRequests: true,
+      logRequests: false,
     },
     rewrite: [
       {
