@@ -45,7 +45,7 @@ var file *os.File
 var namespace = "finickyConfig"
 
 func main() {
-
+	startTime := time.Now()
 	setupLogger()
 	log.Println("Starting Finicky 🍇")
 	runtime.LockOSThread()
@@ -61,25 +61,38 @@ func main() {
 		log.Println("Is the default browser")
 	}
 
+	vm, err := setupVM()
+	if err != nil {
+		log.Fatalf("failed to setup VM: %v", err)
+	}
+
+	log.Printf("VM setup complete in %v", time.Since(startTime))
 	go func() {
 		for {
 			log.Println("Listening for URL...")
 
 			select {
 			case urlInfo := <-urlListener:
-
+				startTime := time.Now()
 				url := urlInfo.URL
 				opener := urlInfo.Opener
 				pid := urlInfo.PID
 
 				log.Printf("URL received! %s", url)
-				err = evaluateURL(url, pid, opener)
+				err = evaluateURL(vm, url, pid, opener)
 				if err != nil {
 					log.Printf("failed to load config: %v", err)
 					os.Exit(1)
 				}
 
+				elapsedTime := time.Since(startTime)
+				log.Printf("Time taken: %v", elapsedTime)
 			case <-time.After(10 * time.Second):
+				log.Println("Releasing VM resources...")
+				vm.ClearInterrupt()
+				runtime.GC()
+
+			case <-time.After(1220 * time.Second):
 				log.Println("Exiting all processes due to timeout")
 				os.Exit(1)
 			}
@@ -88,6 +101,84 @@ func main() {
 
 	C.RunApp()
 
+}
+
+func setupVM() (*goja.Runtime, error) {
+	log.Println("🕵️ Preparing config... 1")
+	bundlePath, simpleConfigPath, err := prepareConfig()
+	if err != nil {
+		log.Fatalf("failed to bundle config: %v", err)
+	}
+	log.Println("🕵️ Preparing config... 2")
+	apiContent, err := embeddedFiles.ReadFile("build/finickyConfigAPI.js")
+	if err != nil {
+		log.Fatalf("failed to read bundled file: %v", err)
+	}
+	log.Println("🕵️ Preparing config... 3")
+	var content []byte
+	if bundlePath != "" {
+		content, err = os.ReadFile(bundlePath)
+		if err != nil {
+			log.Fatalf("failed to read file: %v", err)
+		}
+	}
+	log.Println("🕵️ Preparing config... 4")
+	var simpleContent []byte
+	if simpleConfigPath != "" {
+		simpleContent, err = os.ReadFile(simpleConfigPath)
+		var simpleConfig map[string]interface{}
+		if err := json.Unmarshal(simpleContent, &simpleConfig); err != nil {
+			log.Fatalf("failed to unmarshal simple config: %v", err)
+		}
+		if err != nil {
+			log.Fatalf("failed to read file: %v", err)
+		}
+	}
+	log.Println("🕵️ Preparing config... 5")
+	vm := goja.New()
+	vm.Set("self", vm.GlobalObject())
+	vm.Set("console", GetConsoleMap())
+	log.Println("🕵️ Preparing config... 6")
+	_, err = vm.RunString(string(apiContent))
+	if err != nil {
+		log.Fatalf("failed to run api script: %v", err)
+	}
+	log.Println("🕵️ Preparing config... 7")
+	userAPI := vm.Get("finickyConfigAPI").ToObject(vm).Get("utilities").ToObject(vm)
+	finicky := make(map[string]interface{})
+	for _, key := range userAPI.Keys() {
+		finicky[key] = userAPI.Get(key)
+	}
+
+	finicky["getModifierKeys"] = getModifierKeys
+	finicky["getSystemInfo"] = getSystemInfo
+	vm.Set("finicky", finicky)
+	log.Println("🕵️ Preparing config... 8")
+	if content != nil {
+		_, err = vm.RunString(string(content))
+		if err != nil {
+			return nil, fmt.Errorf("failed to run config script: %v", err)
+		}
+	} else {
+		vm.Set(namespace, map[string]interface{}{})
+	}
+	log.Println("🕵️ Preparing config... 9")
+	mergedConfig, err := vm.RunString(fmt.Sprintf("finickyConfigAPI.mergeConfig(%s.default, %s)", namespace, simpleContent))
+	if err != nil {
+		return nil, fmt.Errorf("failed to get merged config: %v", err)
+	}
+	vm.Set("mergedConfig", mergedConfig)
+	log.Println("🕵️ Preparing config... 10")
+	validConfig, err := vm.RunString("finickyConfigAPI.validateConfig(mergedConfig)")
+	if err != nil {
+		return nil, fmt.Errorf("failed to get valid config: %v", err)
+	}
+	log.Println("🕵️ Preparing config... 11")
+	if !validConfig.ToBoolean() {
+		return nil, fmt.Errorf("configuration is invalid: %s", validConfig.String())
+	}
+
+	return vm, nil
 }
 
 //export HandleURL
@@ -195,85 +286,7 @@ func getSimpleConfigPath() (string, error) {
 	return "", fmt.Errorf("no simple config file found")
 }
 
-func evaluateURL(url string, pid int32, opener *ProcessInfo) error {
-
-	bundlePath, simpleConfigPath, err := prepareConfig()
-	if err != nil {
-		log.Fatalf("failed to bundle config: %v", err)
-	}
-
-	apiContent, err := embeddedFiles.ReadFile("build/finickyConfigAPI.js")
-	if err != nil {
-		log.Fatalf("failed to read bundled file: %v", err)
-	}
-
-	var content []byte
-	if bundlePath != "" {
-		content, err = os.ReadFile(bundlePath)
-		if err != nil {
-			log.Fatalf("failed to read file: %v", err)
-		}
-	}
-
-	var simpleContent []byte
-	if simpleConfigPath != "" {
-		simpleContent, err = os.ReadFile(simpleConfigPath)
-		var simpleConfig map[string]interface{}
-		if err := json.Unmarshal(simpleContent, &simpleConfig); err != nil {
-			log.Fatalf("failed to unmarshal simple config: %v", err)
-		}
-		if err != nil {
-			log.Fatalf("failed to read file: %v", err)
-		}
-	}
-
-	vm := goja.New()
-	vm.Set("self", vm.GlobalObject())
-	vm.Set("console", GetConsoleMap())
-
-	_, err = vm.RunString(string(apiContent))
-	if err != nil {
-		log.Fatalf("failed to run api script: %v", err)
-	}
-
-	userAPI := vm.Get("finickyConfigAPI").ToObject(vm).Get("utilities").ToObject(vm)
-	finicky := make(map[string]interface{})
-	for _, key := range userAPI.Keys() {
-		finicky[key] = userAPI.Get(key)
-	}
-
-	finicky["getModifierKeys"] = getModifierKeys
-	finicky["getSystemInfo"] = getSystemInfo
-	vm.Set("finicky", finicky)
-
-	if content != nil {
-		_, err = vm.RunString(string(content))
-		if err != nil {
-			log.Fatalf("failed to run config script: %v", err)
-		}
-	} else {
-		vm.Set(namespace, map[string]interface{}{})
-	}
-
-	mergedConfig, err := vm.RunString(fmt.Sprintf("finickyConfigAPI.mergeConfig(%s.default, %s)", namespace, simpleContent))
-	if err != nil {
-		log.Fatalf("failed to get merged config: %v", err)
-	}
-	vm.Set("mergedConfig", mergedConfig)
-
-	validConfig, err := vm.RunString("finickyConfigAPI.validateConfig(mergedConfig)")
-	if err != nil {
-		log.Fatalf("failed to get valid config: %v", err)
-	}
-	if validConfig.ToBoolean() {
-		log.Println("Configuration is valid")
-	} else {
-		log.Printf("Configuration is invalid: %s\n", validConfig.String())
-	}
-
-	if !validConfig.ToBoolean() {
-		return nil
-	}
+func evaluateURL(vm *goja.Runtime, url string, pid int32, opener *ProcessInfo) error {
 
 	log.Printf("Evaluating URL: %s, PID: %d, Opener: %+v", url, pid, opener)
 
