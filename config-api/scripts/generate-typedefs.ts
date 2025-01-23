@@ -1,6 +1,22 @@
-import { zodToTs, printNode, createTypeAlias } from 'zod-to-ts';
-import fs from 'fs';
-import { ConfigSchema } from '../src/configSchema.ts';
+import { zodToTs, printNode, createTypeAlias, withGetType } from "zod-to-ts";
+import fs from "fs";
+import { z as zod } from "zod";
+import { generateConfigSchema } from "../src/generateSchema.ts";
+
+// Helper utility to make the RegExp type work with zod-to-ts
+// See https://github.com/sachinraja/zod-to-ts/issues/7
+const NativeUrlSchema = withGetType(zod.instanceof(URL), (ts) =>
+  ts.factory.createIdentifier("URL")
+);
+
+const RegexpSchema = withGetType(zod.instanceof(RegExp), (ts) =>
+  ts.factory.createIdentifier("RegExp")
+);
+
+const { ConfigSchema } = generateConfigSchema(
+    NativeUrlSchema,
+    RegexpSchema
+);
 
 const { node } = zodToTs(ConfigSchema, 'FinickyConfig');
 const config = printNode(createTypeAlias(node, 'FinickyConfig'))
@@ -31,10 +47,6 @@ declare global {
 }
 
 export ${config}
-`
+`;
 
-fs.writeFileSync(
-  '../assets/finicky.d.ts',
-  output,
-  'utf-8'
-);
+fs.writeFileSync("../assets/finicky.d.ts", output, "utf-8");

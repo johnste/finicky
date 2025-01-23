@@ -87,10 +87,6 @@ func main() {
 
 				elapsedTime := time.Since(startTime)
 				log.Printf("Time taken: %v", elapsedTime)
-			case <-time.After(10 * time.Second):
-				log.Println("Releasing VM resources...")
-				vm.ClearInterrupt()
-				runtime.GC()
 
 			case <-time.After(1220 * time.Second):
 				log.Println("Exiting all processes due to timeout")
@@ -104,17 +100,14 @@ func main() {
 }
 
 func setupVM() (*goja.Runtime, error) {
-	log.Println("🕵️ Preparing config... 1")
 	bundlePath, simpleConfigPath, err := prepareConfig()
 	if err != nil {
 		log.Fatalf("failed to bundle config: %v", err)
 	}
-	log.Println("🕵️ Preparing config... 2")
 	apiContent, err := embeddedFiles.ReadFile("build/finickyConfigAPI.js")
 	if err != nil {
 		log.Fatalf("failed to read bundled file: %v", err)
 	}
-	log.Println("🕵️ Preparing config... 3")
 	var content []byte
 	if bundlePath != "" {
 		content, err = os.ReadFile(bundlePath)
@@ -122,7 +115,6 @@ func setupVM() (*goja.Runtime, error) {
 			log.Fatalf("failed to read file: %v", err)
 		}
 	}
-	log.Println("🕵️ Preparing config... 4")
 	var simpleContent []byte
 	if simpleConfigPath != "" {
 		simpleContent, err = os.ReadFile(simpleConfigPath)
@@ -134,16 +126,15 @@ func setupVM() (*goja.Runtime, error) {
 			log.Fatalf("failed to read file: %v", err)
 		}
 	}
-	log.Println("🕵️ Preparing config... 5")
 	vm := goja.New()
 	vm.Set("self", vm.GlobalObject())
 	vm.Set("console", GetConsoleMap())
-	log.Println("🕵️ Preparing config... 6")
+	log.Println("Evaluating API script...")
 	_, err = vm.RunString(string(apiContent))
 	if err != nil {
 		log.Fatalf("failed to run api script: %v", err)
 	}
-	log.Println("🕵️ Preparing config... 7")
+	log.Println("Done evaluating API script")
 	userAPI := vm.Get("finickyConfigAPI").ToObject(vm).Get("utilities").ToObject(vm)
 	finicky := make(map[string]interface{})
 	for _, key := range userAPI.Keys() {
@@ -153,7 +144,6 @@ func setupVM() (*goja.Runtime, error) {
 	finicky["getModifierKeys"] = getModifierKeys
 	finicky["getSystemInfo"] = getSystemInfo
 	vm.Set("finicky", finicky)
-	log.Println("🕵️ Preparing config... 8")
 	if content != nil {
 		_, err = vm.RunString(string(content))
 		if err != nil {
@@ -162,18 +152,15 @@ func setupVM() (*goja.Runtime, error) {
 	} else {
 		vm.Set(namespace, map[string]interface{}{})
 	}
-	log.Println("🕵️ Preparing config... 9")
 	mergedConfig, err := vm.RunString(fmt.Sprintf("finickyConfigAPI.mergeConfig(%s.default, %s)", namespace, simpleContent))
 	if err != nil {
 		return nil, fmt.Errorf("failed to get merged config: %v", err)
 	}
 	vm.Set("mergedConfig", mergedConfig)
-	log.Println("🕵️ Preparing config... 10")
 	validConfig, err := vm.RunString("finickyConfigAPI.validateConfig(mergedConfig)")
 	if err != nil {
 		return nil, fmt.Errorf("failed to get valid config: %v", err)
 	}
-	log.Println("🕵️ Preparing config... 11")
 	if !validConfig.ToBoolean() {
 		return nil, fmt.Errorf("configuration is invalid: %s", validConfig.String())
 	}

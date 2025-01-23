@@ -1,5 +1,3 @@
-import { OpenUrlOptions } from "./configSchema";
-
 type Matcher = string | RegExp
 
 export function matchHostnames(matchers: Matcher | Matcher[]) {
