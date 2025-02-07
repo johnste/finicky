@@ -258,6 +258,17 @@ class AppDelegate: NSObject, NSApplicationDelegate, NSUserNotificationCenterDele
         }
     }
 
+    func browserDescription(browser: BrowserOpts) -> String {
+        var description = browser.name
+        if let profile = browser.profile {
+            description += " (in profile: \(profile))"
+        }
+        if browser.openInBackground {
+            description += " (opens in background)"
+        }
+        return description
+    }
+
     func performTest(url: URL) {
         let opener = Application(pid: getpid())
         guard let appDescriptor = configLoader.determineOpeningApp(url: url, opener: opener) else {
@@ -268,14 +279,14 @@ class AppDelegate: NSObject, NSApplicationDelegate, NSUserNotificationCenterDele
 
         if appDescriptor.browsers.count == 1 {
             if let browser = appDescriptor.browsers.first {
-                description += "Opens browser: \(browser.name)\(browser.openInBackground ? " (opens in background)" : "")"
+                description += "Opens browser: \(browserDescription(browser: browser))"
             }
         } else if appDescriptor.browsers.count == 0 {
             description += "Won't open any browser"
         } else {
             description += "Opens first active browser of: "
             for (index, browser) in appDescriptor.browsers.enumerated() {
-                description += "[\(index)]: \(browser.name) \(browser.openInBackground ? "(opens in background)" : "")"
+                description += "[\(index)]: \(browserDescription(browser: browser)))"
             }
         }
 
