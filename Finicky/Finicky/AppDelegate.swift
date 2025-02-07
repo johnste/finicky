@@ -259,7 +259,14 @@ class AppDelegate: NSObject, NSApplicationDelegate, NSUserNotificationCenterDele
     }
 
     func browserDescription(browser: BrowserOpts) -> String {
-        return "\(browser.name)\(browser.openInBackground ? " (opens in background)" : "")"
+        var description = browser.name
+        if let profile = browser.profile {
+            description += " (in profile: \(profile))"
+        }
+        if browser.openInBackground {
+            description += " (opens in background)"
+        }
+        return description
     }
 
     func performTest(url: URL) {
