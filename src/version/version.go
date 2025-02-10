@@ -12,6 +12,8 @@ import (
 	"strconv"
 	"strings"
 	"time"
+
+	"github.com/dop251/goja"
 )
 
 type GithubRelease struct {
@@ -85,19 +87,19 @@ func getLastUpdateCheck() time.Time {
 	if cacheDir == "" {
 		return time.Time{}
 	}
-	
+
 	cacheFile := filepath.Join(cacheDir, "last_update_check")
 	data, err := os.ReadFile(cacheFile)
 	if err != nil {
 		// If file doesn't exist or can't be read, return zero time
 		return time.Time{}
 	}
-	
+
 	timestamp, err := strconv.ParseInt(strings.TrimSpace(string(data)), 10, 64)
 	if err != nil {
 		return time.Time{}
 	}
-	
+
 	return time.Unix(timestamp, 0)
 }
 
@@ -106,7 +108,7 @@ func setLastUpdateCheck(t time.Time) {
 	if cacheDir == "" {
 		return
 	}
-	
+
 	cacheFile := filepath.Join(cacheDir, "last_update_check")
 	timestamp := fmt.Sprintf("%d", t.Unix())
 	if err := os.WriteFile(cacheFile, []byte(timestamp), 0644); err != nil {
@@ -140,7 +142,7 @@ func GetCurrentVersion() string {
 
 func CheckForUpdatesAsync() {
 	log.Println("Checking update schedule...")
-	
+
 	lastCheck := getLastUpdateCheck()
 	if !lastCheck.IsZero() {
 		timeSinceLastCheck := time.Since(lastCheck)
@@ -224,4 +226,18 @@ func CheckForUpdatesAsync() {
 
 	// Update the last check time
 	setLastUpdateCheck(time.Now())
-} 
+}
+
+// CheckForUpdatesFromConfig checks if updates should be performed based on VM configuration
+func CheckForUpdatesFromConfig(vm *goja.Runtime) error {
+	// Check checkForUpdates option
+	checkForUpdates, err := vm.RunString("finickyConfigAPI.getOption('checkForUpdates', mergedConfig)")
+	if err != nil {
+		return fmt.Errorf("failed to get checkForUpdates option: %v", err)
+	}
+
+	if checkForUpdates.ToBoolean() {
+		CheckForUpdatesAsync()
+	}
+	return nil
+}

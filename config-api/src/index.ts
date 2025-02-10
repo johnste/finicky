@@ -211,11 +211,7 @@ function isMatch(
       return false; // Empty string should not match anything
     }
 
-    if (match.includes("*")) {
-      return matchWildcard(match, url.href);
-    }
-
-    return urlWithoutProtocol.includes(match);
+    return matchWildcard(match, url.href);
   }
 
   if (match instanceof RegExp) {
