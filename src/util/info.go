@@ -4,7 +4,7 @@ package util
 #cgo CFLAGS: -x objective-c
 #cgo LDFLAGS: -framework Cocoa -framework CoreServices
 #include <stdlib.h>
-#include "../main.h"
+#include "info.h"
 */
 import "C"
 

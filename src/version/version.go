@@ -16,6 +16,8 @@ import (
 	"github.com/dop251/goja"
 )
 
+const updateCheckInterval = 24 * time.Hour
+
 type GithubRelease struct {
 	TagName    string `json:"tag_name"`
 	Name       string `json:"name"`
@@ -146,7 +148,7 @@ func CheckForUpdatesAsync() {
 	lastCheck := getLastUpdateCheck()
 	if !lastCheck.IsZero() {
 		timeSinceLastCheck := time.Since(lastCheck)
-		if timeSinceLastCheck < 24*time.Hour {
+		if timeSinceLastCheck < updateCheckInterval {
 			log.Printf("Skipping update check - last checked %v ago", timeSinceLastCheck.Round(time.Minute))
 			return
 		}
