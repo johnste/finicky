@@ -9,7 +9,7 @@ import (
 	"github.com/dop251/goja"
 )
 
-func GetConsoleMap() map[string]interface{} {
+func GetConsoleMap(namespace string) map[string]interface{} {
 	logFunction := func(prefix string) func(call goja.FunctionCall) goja.Value {
 		return func(call goja.FunctionCall) goja.Value {
 			var args []string
@@ -32,8 +32,8 @@ func GetConsoleMap() map[string]interface{} {
 	}
 
 	return map[string]interface{}{
-		"log":   logFunction("[js]"),
-		"error": logFunction("[js] [error]"),
-		"warn":  logFunction("[js] [warn]"),
+		"log":   logFunction("[" + namespace + "]"),
+		"error": logFunction("[" + namespace + "] [error]"),
+		"warn":  logFunction("[" + namespace + "] [warn]"),
 	}
 }

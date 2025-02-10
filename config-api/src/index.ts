@@ -11,8 +11,10 @@ import {
   UrlMatcherPattern,
   BrowserConfig,
   BrowserConfigStrict,
+  AppType,
 } from "./configSchema";
 import * as utilities from "./utilities";
+import { matchWildcard } from "./wildcard";
 
 export { utilities };
 
@@ -37,7 +39,7 @@ export function mergeConfig(
       defaultBrowser,
       handlers: Object.entries(handlers).map(([key, value]) => ({
         match: key,
-        browser: value,
+        open: value,
       })),
     };
   }
@@ -60,8 +62,13 @@ export function mergeConfig(
   }
 }
 
-export function getOption(option: keyof Config["options"], config: Config): unknown {
-  return config.options && option in config.options ? config.options[option] : undefined;
+export function getOption(
+  option: keyof Config["options"],
+  config: Config
+): unknown {
+  return config.options && option in config.options
+    ? config.options[option]
+    : undefined;
 }
 
 export function openUrl(
@@ -90,9 +97,9 @@ export function openUrl(
   }
 
   if (config.handlers) {
-    for (const handler of config.handlers) {
+    for (const [index, handler] of config.handlers.entries()) {
       if (isMatch(handler.match, url, options)) {
-        return resolveBrowser(handler.browser, url, options);
+        return resolveBrowser(handler.open, url, options);
       }
     }
   }
@@ -100,11 +107,9 @@ export function openUrl(
   return resolveBrowser(config.defaultBrowser, url, options);
 }
 
-function resolveBrowser(
-  browser: BrowserPattern,
-  url: URL,
-  options: OpenUrlOptions
-): BrowserConfigStrict {
+function createBrowserConfig(
+  browser: string | BrowserConfig | null
+): Omit<BrowserConfigStrict, "url"> {
   const defaults = {
     appType: "name" as const,
     openInBackground: false,
@@ -112,29 +117,67 @@ function resolveBrowser(
     args: [],
   };
 
-  const createBrowserConfig = (
-    browserName: string | BrowserConfig
-  ): BrowserConfigStrict => {
-    if (typeof browserName === "string") {
-      return {
-        ...defaults,
-        name: browserName,
-        url: url.href,
-      };
-    }
-    return { ...defaults, ...browserName, url: url.href };
-  };
-
-  if (typeof browser === "object") {
-    return createBrowserConfig(browser);
+  if (browser === null) {
+    return {
+      ...defaults,
+      name: "",
+      appType: "none" as const,
+    };
   }
 
-  if (typeof browser === "function") {
-    browser = browser(url, options);
-    return createBrowserConfig(browser);
+  if (typeof browser === "string") {
+    const browserInfo = resolveBrowserInfo(browser);
+
+    return {
+      ...defaults,
+      ...browserInfo,
+    };
   }
 
-  return createBrowserConfig(browser);
+  return { ...defaults, ...browser };
+}
+
+function resolveBrowserInfo(
+  browser: string
+): Pick<BrowserConfigStrict, "name" | "appType" | "profile"> {
+  const [name, profile] = browser.split(":");
+  const appType = autodetectAppStringType(name);
+
+  return { name, appType, profile: profile || "" };
+}
+
+function resolveBrowser(
+  browser: BrowserPattern,
+  url: URL,
+  options: OpenUrlOptions
+): BrowserConfigStrict {
+  const config =
+    typeof browser === "function" ? browser(url, options) : browser;
+
+  return { ...createBrowserConfig(config), url: url.href };
+}
+
+function autodetectAppStringType(app: string | null): AppType {
+  let appType: AppType = "name";
+
+  if (app === null) {
+    appType = "none";
+  }
+
+  // The bundle ID string must contain only alphanumeric characters (A-Z, a-z, 0-9), hyphen (-), and period (.).
+  // https://help.apple.com/xcode/mac/current/#/deve70ea917b
+  else if (/^[a-zA-Z0-9.-]+$/.test(app)) {
+    appType = "bundleId";
+  }
+
+  // The app path should be an absolute path to an app, e.g. /Applications/Google Chrome.app or relative to
+  // the user's home directory, e.g. ~/Applications/Google Chrome.app
+  else if (/^(~?(?:\/[^/\n]+)+\/[^/\n]+\.app)$/.test(app)) {
+    appType = "path";
+  }
+
+  console.log(`App value "${app}" autodetected as type "${appType}"`);
+  return appType;
 }
 
 function rewriteUrl(
@@ -148,7 +191,6 @@ function rewriteUrl(
 
   if (typeof rewrite === "function") {
     const result = rewrite(url, options);
-    console.log(typeof result, result instanceof URL);
     return new URL(result);
   }
 
@@ -169,10 +211,8 @@ function isMatch(
       return false; // Empty string should not match anything
     }
 
-    const urlWithoutProtocol = url.href.replace(/^\w+:(\/\/)?/, "");
-
     if (match.includes("*")) {
-      return matchWildcard(match, urlWithoutProtocol);
+      return matchWildcard(match, url.href);
     }
 
     return urlWithoutProtocol.includes(match);
@@ -187,35 +227,4 @@ function isMatch(
   }
 
   return false;
-}
-
-function matchWildcard(pattern: string, str: string): boolean {
-  try {
-    // First handle escaped asterisks by temporarily replacing them
-    const ESCAPED_ASTERISK_PLACEHOLDER = "\u0000";
-    const patternWithEscapedAsterisks = pattern.replace(
-      /\\\*/g,
-      ESCAPED_ASTERISK_PLACEHOLDER
-    );
-
-    // Then escape all special regex chars except asterisk
-    const escaped = patternWithEscapedAsterisks.replace(
-      /[.+?^${}()|[\]\\]/g,
-      "\\$&"
-    );
-
-    // Replace unescaped asterisks with .* for wildcard matching
-    const regexPattern = escaped.replace(/\*/g, ".*");
-
-    // Finally, restore the escaped asterisks
-    const finalPattern = regexPattern.replace(
-      new RegExp(ESCAPED_ASTERISK_PLACEHOLDER, "g"),
-      "\\*"
-    );
-
-    return new RegExp(finalPattern).test(str);
-  } catch (error) {
-    console.warn("Invalid wildcard pattern:", pattern, error);
-    return false;
-  }
 }

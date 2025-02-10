@@ -1,36 +1,32 @@
-import { z } from 'zod';
-import { generateConfigSchema } from './generateSchema';
+import { z } from "zod";
+import { generateConfigSchema } from "./generateSchema";
 
-
-export const NativeUrlSchema = z.instanceof(URL)
-export const RegexpSchema = z.instanceof(RegExp)
-
+export const NativeUrlSchema = z.instanceof(URL);
+export const RegexpSchema = z.instanceof(RegExp);
 
 const {
-    ProcessInfoSchema,
-    OpenUrlOptionsSchema,
-    UrlPatternSchema,
-    UrlTransformFnSchema,
-    MatcherFnSchema,
-    UrlMatcherSchema,
-    UrlMatcherPatternSchema,
-    BrowserConfigStrictSchema,
-    BrowserConfigSchema,
-    BrowserResolverFnSchema,
-    BrowserPatternSchema,
-    RewriteRuleSchema,
-    HandlerRuleSchema,
-    ConfigOptionsSchema,
-    ConfigSchema,
-    SimpleConfigSchema,
-} = generateConfigSchema(NativeUrlSchema, RegexpSchema)
-
-
-export {
+  ProcessInfoSchema,
+  OpenUrlOptionsSchema,
+  UrlPatternSchema,
+  UrlTransformFnSchema,
+  MatcherFnSchema,
+  UrlMatcherSchema,
+  UrlMatcherPatternSchema,
+  BrowserConfigStrictSchema,
+  BrowserConfigSchema,
+  BrowserResolverFnSchema,
+  BrowserPatternSchema,
+  RewriteRuleSchema,
+  HandlerRuleSchema,
+  ConfigOptionsSchema,
   ConfigSchema,
   SimpleConfigSchema,
-}
+  appTypes,
+} = generateConfigSchema(NativeUrlSchema, RegexpSchema);
 
+export { ConfigSchema, SimpleConfigSchema };
+
+export type AppType = (typeof appTypes)[number];
 
 export type ProcessInfo = z.infer<typeof ProcessInfoSchema>;
 export type OpenUrlOptions = z.infer<typeof OpenUrlOptionsSchema>;
@@ -53,4 +49,3 @@ export type HandlerRule = z.infer<typeof HandlerRuleSchema>;
 export type ConfigOptions = z.infer<typeof ConfigOptionsSchema>;
 export type Config = z.infer<typeof ConfigSchema>;
 export type SimpleConfig = z.infer<typeof SimpleConfigSchema>;
-

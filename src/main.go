@@ -14,13 +14,15 @@ import (
 	"encoding/json"
 	"finicky/browser"
 	"finicky/shorturl"
+	"finicky/version"
 	"fmt"
 	"io"
 	"log"
 	"os"
 	"path/filepath"
 	"runtime"
-	"runtime/pprof"
+	"strconv"
+	"strings"
 	"time"
 
 	"github.com/dop251/goja"
@@ -46,6 +48,13 @@ var file *os.File
 
 var namespace = "finickyConfig"
 
+type GithubRelease struct {
+	TagName    string `json:"tag_name"`
+	Name       string `json:"name"`
+	Prerelease bool   `json:"prerelease"`
+	Draft      bool   `json:"draft"`
+}
+
 func main() {
 	startTime := time.Now()
 	setupLogger()
@@ -69,6 +78,7 @@ func main() {
 	}
 
 	log.Printf("VM setup complete in %v", time.Since(startTime))
+
 	go func() {
 		for {
 			log.Println("Listening for URL...")
@@ -90,7 +100,21 @@ func main() {
 				elapsedTime := time.Since(startTime)
 				log.Printf("Time taken: %v", elapsedTime)
 
-			case <-time.After(5 * time.Second):
+			case <-time.After(15 * time.Second):
+				// Check logRequests option
+				checkForUpdates, err := vm.RunString("finickyConfigAPI.getOption('checkForUpdates', mergedConfig)")
+
+				if err != nil {
+					log.Printf("failed to get checkForUpdates option: %v", err)
+					os.Exit(1)
+				}
+
+				if checkForUpdates.ToBoolean() {
+					version.CheckForUpdatesAsync()
+				}
+				os.Exit(1)
+
+			case <-time.After(15 * time.Second):
 				log.Println("Exiting all processes due to timeout")
 				os.Exit(1)
 			}
@@ -130,7 +154,7 @@ func setupVM() (*goja.Runtime, error) {
 	}
 	vm := goja.New()
 	vm.Set("self", vm.GlobalObject())
-	vm.Set("console", GetConsoleMap())
+	vm.Set("console", GetConsoleMap("js"))
 	log.Println("Evaluating API script...")
 	_, err = vm.RunString(string(apiContent))
 	if err != nil {
@@ -180,13 +204,13 @@ func setupVM() (*goja.Runtime, error) {
 }
 
 //export HandleURL
-func HandleURL(url *C.char, name *C.char, bundleID *C.char, path *C.char, pid C.int) {
+func HandleURL(url *C.char, name *C.char, bundleId *C.char, path *C.char, pid C.int) {
 	var opener ProcessInfo
 
-	if name != nil && bundleID != nil && path != nil {
+	if name != nil && bundleId != nil && path != nil {
 		opener = ProcessInfo{
 			Name:     C.GoString(name),
-			BundleID: C.GoString(bundleID),
+			BundleID: C.GoString(bundleId),
 			Path:     C.GoString(path),
 		}
 	}
@@ -327,6 +351,9 @@ func evaluateURL(vm *goja.Runtime, url string, pid int32, opener *ProcessInfo) e
 	return nil
 }
 
+var memLog *bytes.Buffer
+var multiWriter io.Writer
+
 func setupLogger() {
 	log.SetFlags(log.LstdFlags | log.Lmicroseconds)
 
@@ -395,5 +422,53 @@ func getSystemInfo() map[string]string {
 	return map[string]string{
 		"localizedName": C.GoString(info.localizedName),
 		"name":          C.GoString(info.name),
+	}
+}
+
+func getCacheDir() string {
+	homeDir, err := os.UserHomeDir()
+	if err != nil {
+		log.Printf("Error getting user home directory: %v", err)
+		return ""
+	}
+	cacheDir := filepath.Join(homeDir, "Library", "Caches", "Finicky")
+	if err := os.MkdirAll(cacheDir, 0755); err != nil {
+		log.Printf("Error creating cache directory: %v", err)
+		return ""
+	}
+	return cacheDir
+}
+
+func getLastUpdateCheck() time.Time {
+	cacheDir := getCacheDir()
+	if cacheDir == "" {
+		return time.Time{}
+	}
+
+	cacheFile := filepath.Join(cacheDir, "last_update_check")
+	data, err := os.ReadFile(cacheFile)
+	if err != nil {
+		// If file doesn't exist or can't be read, return zero time
+		return time.Time{}
+	}
+
+	timestamp, err := strconv.ParseInt(strings.TrimSpace(string(data)), 10, 64)
+	if err != nil {
+		return time.Time{}
+	}
+
+	return time.Unix(timestamp, 0)
+}
+
+func setLastUpdateCheck(t time.Time) {
+	cacheDir := getCacheDir()
+	if cacheDir == "" {
+		return
+	}
+
+	cacheFile := filepath.Join(cacheDir, "last_update_check")
+	timestamp := fmt.Sprintf("%d", t.Unix())
+	if err := os.WriteFile(cacheFile, []byte(timestamp), 0644); err != nil {
+		log.Printf("Error saving last update check time: %v", err)
 	}
 }

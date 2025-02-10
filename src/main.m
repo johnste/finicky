@@ -21,7 +21,7 @@
     NSRunningApplication *application = [NSRunningApplication runningApplicationWithProcessIdentifier:pid];
     const char *url = [[[event paramDescriptorForKeyword:keyDirectObject] stringValue] UTF8String];
     const char *name = NULL;
-    const char *bundleID = NULL;
+    const char *bundleId = NULL;
     const char *path = NULL;
 
     if (application) {
@@ -30,13 +30,13 @@
         NSString *appPath = [[application bundleURL] path];
 
         name = [appName UTF8String];
-        bundleID = [appBundleID UTF8String];
+        bundleId = [appBundleID UTF8String];
         path = [appPath UTF8String];
     } else {
         NSLog(@"No running application found with PID: %d", pid);
     }
 
-    HandleURL((char*)url, (char*)name, (char*)bundleID, (char*)path, pid);
+    HandleURL((char*)url, (char*)name, (char*)bundleId, (char*)path, pid);
 }
 
 @end

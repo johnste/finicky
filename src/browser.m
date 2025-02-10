@@ -23,10 +23,10 @@ const char* getDefaultHandlerForURLScheme(const char* scheme) {
             // NSLog(@"Default application URL for scheme '%@': %@", schemeStr, appURL.path);
             // Get the bundle identifier for the application at appURL
             NSBundle *appBundle = [NSBundle bundleWithURL:appURL];
-            NSString *bundleID = [appBundle bundleIdentifier];
-            if (bundleID) {
-                // NSLog(@"Bundle ID for application: %@", bundleID);
-                return strdup([bundleID UTF8String]); // Convert NSString to C string and return a copy
+            NSString *bundleId = [appBundle bundleIdentifier];
+            if (bundleId) {
+                // NSLog(@"Bundle ID for application: %@", bundleId);
+                return strdup([bundleId UTF8String]); // Convert NSString to C string and return a copy
             } else {
                 // NSLog(@"Failed to get Bundle ID for application at URL: %@", appURL.path);
             }

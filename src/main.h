@@ -6,7 +6,7 @@
 #ifndef MAIN_H
 #define MAIN_H
 
-extern void HandleURL(char* url, char* name, char* bundleID, char* path, int pid);
+extern void HandleURL(char* url, char* name, char* bundleId, char* path, int pid);
 
 typedef struct {
     bool shift;
