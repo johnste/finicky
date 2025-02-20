@@ -1,0 +1,42 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+  <dict>
+    <key>CFBundleDevelopmentRegion</key>
+    <string>en</string>
+    <key>CFBundleDisplayName</key>
+    <string>Finicky</string>
+    <key>CFBundleExecutable</key>
+    <string>Finicky</string>
+    <key>CFBundleIdentifier</key>
+    <string>se.johnste.finicky</string>
+    <key>CFBundleInfoDictionaryVersion</key>
+    <string>6.0</string>
+    <key>CFBundleName</key>
+    <string>Finicky</string>
+    <key>CFBundlePackageType</key>
+    <string>APPL</string>
+    <key>CFBundleShortVersionString</key>
+    <string>4.0.0</string>
+    <key>CFBundleVersion</key>
+    <string>4.0.0-alpha</string>
+    <key>CFBundleIconFile</key>
+    <string>finicky.icns</string>
+    <key>LSUIElement</key>
+    <string>1</string>
+    <key>CFBundleURLTypes</key>
+    <array>
+      <dict>
+        <key>CFBundleTypeRole</key>
+        <string>Viewer</string>
+        <key>CFBundleURLName</key>
+        <string>Web site URL</string>
+        <key>CFBundleURLSchemes</key>
+        <array>
+          <string>http</string>
+          <string>https</string>
+        </array>
+      </dict>
+    </array>
+  </dict>
+</plist>
