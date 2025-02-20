@@ -1,0 +1,4 @@
+{
+  "defaultBrowser": "Firefox",  
+  "*regexp*": "Safari"
+}
