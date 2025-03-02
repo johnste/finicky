@@ -3,3 +3,5 @@ config-api/node_modules
 build
 assets/Resources/finicky.d.ts
 .env
+dist
+test
