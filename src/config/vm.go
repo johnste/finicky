@@ -178,7 +178,8 @@ func (vm *VM) getConfigPath(customConfigPath string) (string, error) {
 	} else {
 		configPaths = append(configPaths,
 			"$HOME/.finicky.js",
-			"$HOME/.config/.finicky.js",
+			"$HOME/.config/finicky.js",
+			"$HOME/.config/finicky/finicky.js",
 		)
 	}
 
