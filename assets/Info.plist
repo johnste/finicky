@@ -19,7 +19,7 @@
     <key>CFBundleShortVersionString</key>
     <string>4.0.0</string>
     <key>CFBundleVersion</key>
-    <string>4.0.0-alpha</string>
+    <string>4.0.0-alpha.1</string>
     <key>CFBundleIconFile</key>
     <string>finicky.icns</string>
     <key>LSUIElement</key>
