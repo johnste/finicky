@@ -25,17 +25,14 @@ func New(embeddedFiles embed.FS, customConfigPath string) (*VM, error) {
 		namespace: "finickyConfig",
 	}
 
-
-
 	bundlePath, err := vm.prepareConfig(customConfigPath)
 	defer vm.setupLogging(err != nil)
-
 	if err != nil {
-		return nil, fmt.Errorf("failed to bundle config: %v", err)
+		return nil, err
 	}
 
 	err = vm.setup(embeddedFiles, bundlePath)
-	if  err != nil {
+	if err != nil {
 		return nil, err
 	}
 

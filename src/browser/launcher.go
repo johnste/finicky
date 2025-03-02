@@ -7,6 +7,7 @@ import (
 	"os"
 	"os/exec"
 	"path/filepath"
+	"strings"
 )
 
 //go:embed browsers.json
@@ -29,13 +30,11 @@ type BrowserConfig struct {
 type browserInfo struct {
 	ConfigDirRelative string `json:"config_dir_relative"`
 	ID               string `json:"id"`
+	AppName          string `json:"app_name"`
 	Type             string `json:"type"`
 }
 
 func LaunchBrowser(config BrowserConfig) error {
-	appName := config.Name
-	useBundleId := config.AppType == "bundleId"
-
 	if config.AppType == "none" {
 		slog.Info("AppType is 'none', not launching any browser")
 		return nil
@@ -43,9 +42,12 @@ func LaunchBrowser(config BrowserConfig) error {
 
 	slog.Info("Starting browser", "name", config.Name, "url", config.URL)
 
-	openArgs := []string{"-a", appName}
+	var openArgs []string
+
 	if config.AppType == "bundleId" {
-		openArgs = []string{"-b", appName}
+		openArgs = []string{"-b", config.Name}
+	} else {
+		openArgs = []string{"-a", "\"" + config.Name + "\""}
 	}
 
 	if config.OpenInBackground {
@@ -53,14 +55,13 @@ func LaunchBrowser(config BrowserConfig) error {
 	}
 
 	if len(config.Args) == 0 {
-		if useBundleId {
-			profileArgument, ok := resolveBrowserProfileArgument(appName, config.Profile)
-			if ok {
-				// FIXME: This is a hack to get the profile argument to work – this won't work for Firefox
-				openArgs = append(openArgs, "-n")
-				openArgs = append(openArgs, "--args")
-				openArgs = append(openArgs, profileArgument)
-			}
+
+		profileArgument, ok := resolveBrowserProfileArgument(config.Name, config.Profile)
+		if ok {
+			// FIXME: This is a hack to get the profile argument to work – this won't work for Firefox
+			openArgs = append(openArgs, "-n")
+			openArgs = append(openArgs, "--args")
+			openArgs = append(openArgs, profileArgument)
 		}
 
 		openArgs = append(openArgs, config.URL)
@@ -80,7 +81,7 @@ func LaunchBrowser(config BrowserConfig) error {
 	return cmd.Start()
 }
 
-func resolveBrowserProfileArgument(bundleId string, profile string) (string, bool) {
+func resolveBrowserProfileArgument(identifier string, profile string) (string, bool) {
 	var browsersJson []browserInfo
 	if err := json.Unmarshal(browsersJsonData, &browsersJson); err != nil {
 		slog.Info("Error parsing browsers.json", "error", err)
@@ -90,7 +91,7 @@ func resolveBrowserProfileArgument(bundleId string, profile string) (string, boo
 	// Try to find matching browser by bundle ID
 	var matchedBrowser *browserInfo
 	for _, browser := range browsersJson {
-		if browser.ID == bundleId {
+		if browser.ID == identifier || browser.AppName == identifier {
 			matchedBrowser = &browser
 			break
 		}
@@ -100,7 +101,7 @@ func resolveBrowserProfileArgument(bundleId string, profile string) (string, boo
 		return "", false
 	}
 
-	slog.Info("Browser found in browsers.json", "bundleId", bundleId, "type", matchedBrowser.Type)
+	slog.Info("Browser found in browsers.json", "identifier", identifier, "type", matchedBrowser.Type)
 
 	if profile != ""  {
 		switch matchedBrowser.Type {
@@ -114,10 +115,10 @@ func resolveBrowserProfileArgument(bundleId string, profile string) (string, boo
 			localStatePath := filepath.Join(homeDir, "Library/Application Support", matchedBrowser.ConfigDirRelative, "Local State")
 			profilePath, ok := parseProfiles(localStatePath, profile)
 			if ok {
-				return "--profile-directory=" + profilePath, true
+				return "--profile-directory=\"" + profilePath + "\"", true
 			}
 		default:
-			slog.Info("Browser is not a Chromium browser, skipping profile detection", "bundleId", bundleId)
+			slog.Info("Browser is not a Chromium browser, skipping profile detection", "identifier", identifier)
 		}
 	}
 
@@ -168,21 +169,20 @@ func parseProfiles(localStatePath string, profile string) (string, bool) {
 	}
 
 	// If we didn't find the profile, try to find it by profile folder name
-	slog.Info("Could not find profile in browser profiles, trying to find by profile path", "profile", profile)
+	slog.Debug("Could not find profile in browser profiles, trying to find by profile path", "profile", profile)
 	for profilePath, info := range infoCache {
 		if profilePath == profile {
 			// Try to get the profile name of the profile we want the user to use instead
 			if profileInfo, ok := info.(map[string]interface{}); ok {
 				if name, ok := profileInfo["name"].(string); ok {
-					slog.Info("Found profile using profile path", "path", profilePath, "name", name, "suggestion", "Please use the profile name instead")
+					slog.Warn("Found profile using profile path", "path", profilePath, "name", name, "suggestion", "Please use the profile name instead")
 				}
 			}
 			return profilePath, true
 		}
 	}
 
-	slog.Info("Could not find profile in browser profiles", "profile", profile)
-	slog.Info("Available profiles:")
+	var profileNames []string
 	for _, info := range infoCache {
 		profileInfo, ok := info.(map[string]interface{})
 		if !ok {
@@ -194,8 +194,9 @@ func parseProfiles(localStatePath string, profile string) (string, bool) {
 			continue
 		}
 
-		slog.Info("- Profile", "name", name)
+		profileNames = append(profileNames, name)
 	}
+	slog.Warn("Could not find profile in browser profiles.", "Expected profile", profile, "Available profiles", strings.Join(profileNames, ", "))
 
 	return "", false
 }

@@ -2,41 +2,49 @@
   {
     "config_dir_relative": "BraveSoftware/Brave-Browser",
     "id": "com.brave.Browser",
-    "type": "Chromium"
+    "type": "Chromium",
+    "app_name": "Brave Browser"
   },
   {
     "config_dir_relative": "Google/Chrome",
     "id": "com.google.Chrome",
-    "type": "Chromium"
+    "type": "Chromium",
+    "app_name": "Google Chrome"
   },
   {
     "config_dir_relative": "Google/Chrome Beta",
     "id": "com.google.Chrome.beta",
-    "type": "Chromium"
+    "type": "Chromium",
+    "app_name": "Google Chrome Beta"
   },
   {
     "config_dir_relative": "Google/Chrome Canary",
     "id": "com.google.Chrome.canary",
-    "type": "Chromium"
+    "type": "Chromium",
+    "app_name": "Google Chrome Canary"
   },
   {
     "config_dir_relative": "Chromium",
     "id": "org.chromium.Chromium",
-    "type": "Chromium"
+    "type": "Chromium",
+    "app_name": "Chromium"
   },
   {
     "config_dir_relative": "Microsoft Edge",
     "id": "com.microsoft.edgemac",
-    "type": "Chromium"
+    "type": "Chromium",
+    "app_name": "Microsoft Edge"
   },
   {
     "config_dir_relative": "Vivaldi",
     "id": "com.vivaldi.Vivaldi",
-    "type": "Chromium"
+    "type": "Chromium",
+    "app_name": "Vivaldi"
   },
   {
     "config_dir_relative": "WaveboxApp",
     "id": "com.bookry.wavebox",
-    "type": "Chromium"
+    "type": "Chromium",
+    "app_name": "Wavebox"
   }
 ]
