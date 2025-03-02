@@ -1,4 +1,4 @@
 .DS_Store
 config-api/node_modules
 build
-assets/finicky.d.ts
+assets/Resources/finicky.d.ts

@@ -1,8 +1,8 @@
 // @ts-check
 
 /**
- * @typedef {import('/Applications/Finicky.app/Contents/finicky.d.ts')} Globals
- * @typedef {import('/Applications/Finicky.app/Contents/finicky.d.ts').FinickyConfig} FinickyConfig
+ * @typedef {import('/Applications/Finicky.app/Contents/Resources/finicky.d.ts')} Globals
+ * @typedef {import('/Applications/Finicky.app/Contents/Resources/finicky.d.ts').FinickyConfig} FinickyConfig
  */
 
 const { matchHostnames } = finicky;
