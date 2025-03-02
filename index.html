@@ -3,42 +3,64 @@
   <head>
     <meta charset="utf-8" />
     <meta name="theme-color" content="#ffffff" />
-
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <meta name="description" content="Finicky" />
+    <meta name="description" content="Finicky - Browser control for macOS" />
     <link rel="stylesheet" type="text/css" href="stylesheet.css" />
     <link rel="stylesheet" type="text/css" href="font/hack-subset.css" />
-    <title>Finicky by johnste</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap"
+      rel="stylesheet"
+    />
+    <title>Finicky | Browser Control for macOS</title>
   </head>
 
   <body>
     <div id="container">
       <div class="inner">
         <header>
-          <a id="finicky-" class="anchor" href="#finicky-" aria-hidden="true"
-            ><span class="octicon octicon-link"></span
-          ></a>
-
-          <img src="finicky-logo.svg" alt="Finicky logo" height="100" />
+          <img src="finicky-icon.png" alt="Finicky logo" height="120" />
+          <h1>Finicky</h1>
         </header>
 
         <section>
-          Always open the right browser (or app) for any url.
+          <h2>Control which browser opens links</h2>
+          <p>
+            Route links to specific browsers based on URL patterns and
+            Javascript
+          </p>
         </section>
-        <section>
-          <img src="config.png" alt="Finicky configuration example" />
+
+        <section class="config-example">
+          <h3>Example Config</h3>
+          <p class="file-path">~/.finicky.js</p>
+          <pre><code class="javascript"><span class="line">export default {</span>
+<span class="line">  defaultBrowser: "Google Chrome",</span>
+<span class="line">  handlers: [</span>
+<span class="line">    {</span>
+<span class="line">      // Open apple.com and example.com urls in Safari</span>
+<span class="line">      match: ["apple.com*", "example.com*"],</span>
+<span class="line">      browser: "Safari",</span>
+<span class="line">    },</span>
+<span class="line">    {</span>
+<span class="line">      // Open any url that includes the string "workplace" in Firefox</span>
+<span class="line">      match: "*workplace*",</span>
+<span class="line">      browser: "Firefox",</span>
+<span class="line">    }</span>
+<span class="line">  ],</span>
+<span class="line">};</span></code></pre>
+          <div class="version-hint">For Finicky v4+</div>
         </section>
 
         <footer>
           <a href="https://github.com/johnste/finicky/releases">Download</a>
-
           <a href="https://github.com/johnste/finicky">GitHub</a>
-
-          <a href="https://twitter.com/johnste_">Twitter</a>
+          <a href="https://bsky.app/profile/mejkarsense.se">Bluesky</a>
         </footer>
 
         <section class="code">
-          <label>Stargazers</label><br />
+          <label>Stars</label><br />
           <strong class="star-count">-</strong>
           <hr noshade />
 
@@ -55,11 +77,10 @@
                 <td>-</td>
               </tr>
             </tbody>
-            <tfoot></tfoot>
           </table>
         </section>
       </div>
     </div>
-    <script src="script.js" defer async></script>
+    <script src="script.js" defer></script>
   </body>
 </html>
