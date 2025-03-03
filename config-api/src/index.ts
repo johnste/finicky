@@ -270,6 +270,12 @@ class FinickyUrl extends URL {
     );
     return this._opener;
   }
+
+  get keys() {
+    throw new Error(
+      'Accessing legacy property "keys" that is no longer supported, please use finicky.getModifierKeys() instead.'
+    );
+  }
 }
 
 function rewriteUrl(

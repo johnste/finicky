@@ -18,6 +18,7 @@ func GetModifierKeys() map[string]bool {
 		"control":  bool(keys.control),
 		"capsLock": bool(keys.capsLock),
 		"fn":       bool(keys.fn),
+		"function":	bool(keys.fn),
 	}
 }
 
