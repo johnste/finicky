@@ -3,6 +3,8 @@ package browser
 import (
 	_ "embed"
 	"encoding/json"
+	"fmt"
+	"io"
 	"log/slog"
 	"os"
 	"os/exec"
@@ -78,7 +80,43 @@ func LaunchBrowser(config BrowserConfig) error {
 		slog.Info("Run command", "command", cmd.String())
 	}
 
-	return cmd.Start()
+	stderr, err := cmd.StderrPipe()
+	if err != nil {
+		return err
+	}
+	stdout, err := cmd.StdoutPipe()
+	if err != nil {
+		return err
+	}
+
+	if err := cmd.Start(); err != nil {
+		return err
+	}
+
+	stderrBytes, err := io.ReadAll(stderr)
+	if err != nil {
+		return fmt.Errorf("error reading stderr: %v", err)
+	}
+
+	stdoutBytes, err := io.ReadAll(stdout)
+	if err != nil {
+		return fmt.Errorf("error reading stdout: %v", err)
+	}
+
+	cmdErr := cmd.Wait()
+
+	if len(stderrBytes) > 0 {
+		slog.Error("Command returned error", "error", string(stderrBytes))
+	}
+	if len(stdoutBytes) > 0 {
+		slog.Debug("Command returned output", "output", string(stdoutBytes))
+	}
+
+	if cmdErr != nil {
+		return fmt.Errorf("command failed: %v", cmdErr)
+	}
+
+	return nil
 }
 
 func resolveBrowserProfileArgument(identifier string, profile string) (string, bool) {
