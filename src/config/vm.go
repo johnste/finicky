@@ -108,7 +108,7 @@ func (vm *VM) setup(embeddedFiles embed.FS, bundlePath string) error {
 	if err != nil {
 		return fmt.Errorf("failed to get merged config: %v", err)
 	}
-	slog.Debug("Final config", "config", finalConfig)
+
 	vm.runtime.Set("finalConfig", finalConfig)
 
 	validConfig, err := vm.runtime.RunString("finickyConfigAPI.validateConfig(finalConfig)")
