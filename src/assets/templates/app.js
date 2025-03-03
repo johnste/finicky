@@ -65,6 +65,65 @@ function addMessageToLog({ level, msg, time, error, ...rest }) {
 // Handle existing messages in buffer
 window.messageBuffer.forEach(addMessageToLog);
 
+function copyLogs() {
+  const logContent = document.getElementById("logContent");
+  if (logContent) {
+    const logEntries = Array.from(logContent.children)
+      .map((entry) => {
+        const time = entry.querySelector(".log-time").title;
+        const message = entry.querySelector(".log-message");
+        // Get the log level from the message class
+        const levelClass = Array.from(message.classList).find((cls) =>
+          cls.startsWith("log-level-")
+        );
+        const level = levelClass
+          ? levelClass.replace("log-level-", "").toUpperCase()
+          : "INFO";
+
+        // Get the main message text (direct text content, excluding child elements)
+        let messageText = Array.from(message.childNodes)
+          .filter((node) => node.nodeType === Node.TEXT_NODE)
+          .map((node) => node.textContent.trim())
+          .join(" ");
+
+        // Get error message if it exists
+        const errorEl = message.querySelector(".log-error");
+        if (errorEl) {
+          messageText += " | Error: " + errorEl.textContent.trim();
+        }
+
+        // Get additional fields if they exist
+        const additionalFields = Array.from(
+          message.querySelectorAll(".log-additional")
+        );
+        if (additionalFields.length > 0) {
+          messageText +=
+            " | " +
+            additionalFields
+              .map((field) => field.textContent.trim())
+              .join(" | ");
+        }
+
+        return `[${time}] [${level.padEnd(5)}] ${messageText}`;
+      })
+      .join("\n"); // Single line break between entries
+
+    navigator.clipboard
+      .writeText(logEntries)
+      .then(() => {
+        const copyButton = document.getElementById("copyLog");
+        const originalText = copyButton.textContent;
+        copyButton.textContent = "Copied!";
+        setTimeout(() => {
+          copyButton.textContent = originalText;
+        }, 2000);
+      })
+      .catch((err) => {
+        console.error("Failed to copy logs:", err);
+      });
+  }
+}
+
 window.finicky = {
   sendMessage: function (msg) {
     window.webkit.messageHandlers.finicky.postMessage(JSON.stringify(msg));
@@ -104,6 +163,13 @@ document.getElementById("clearLog").addEventListener("click", function () {
     window.messageBuffer = [];
   }
 });
+
+// Add copy logs functionality
+const copyButton = document.createElement("button");
+copyButton.id = "copyLog";
+copyButton.textContent = "Copy All";
+copyButton.addEventListener("click", copyLogs);
+document.querySelector(".log-header-buttons").appendChild(copyButton);
 
 // Add debug toggle functionality
 const toggleDebugButton = document.getElementById("toggleDebug");
