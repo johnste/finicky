@@ -14,7 +14,12 @@ func GetConsoleMap() map[string]interface{} {
 		return func(call goja.FunctionCall) goja.Value {
 			var args []string
 			for _, arg := range call.Arguments {
-				if arg.ExportType().Kind() == reflect.Map || arg.ExportType().Kind() == reflect.Struct || arg.ExportType().Kind() == reflect.Ptr {
+				if arg.ExportType() == nil {
+					args = append(args, arg.String())
+					continue
+				}
+
+				if arg.ExportType() == nil || arg.ExportType().Kind() == reflect.Map || arg.ExportType().Kind() == reflect.Struct || arg.ExportType().Kind() == reflect.Ptr {
 					jsonString, err := json.MarshalIndent(arg.Export(), "", "  ")
 					if err != nil {
 						args = append(args, arg.String())
