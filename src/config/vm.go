@@ -24,6 +24,7 @@ func New(embeddedFiles embed.FS, customConfigPath string) (*VM, error) {
 		runtime: goja.New(),
 		namespace: "finickyConfig",
 	}
+	vm.runtime.SetFieldNameMapper(goja.TagFieldNameMapper("json", true))
 
 	bundlePath, err := vm.prepareConfig(customConfigPath)
 	defer vm.setupLogging(err != nil)

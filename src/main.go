@@ -31,9 +31,9 @@ import (
 var embeddedFiles embed.FS
 
 type ProcessInfo struct {
-	Name     string
-	BundleID string
-	Path     string
+	Name     string `json:"name"`
+	BundleID string `json:"bundleId"`
+	Path     string `json:"path"`
 }
 
 type URLInfo struct {
