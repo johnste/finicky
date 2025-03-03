@@ -47,7 +47,7 @@ func LaunchBrowser(config BrowserConfig) error {
 	if config.AppType == "bundleId" {
 		openArgs = []string{"-b", config.Name}
 	} else {
-		openArgs = []string{"-a", "\"" + config.Name + "\""}
+		openArgs = []string{"-a", config.Name}
 	}
 
 	if config.OpenInBackground {
