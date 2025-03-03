@@ -221,6 +221,27 @@ void SetFileContentWithLength(const char* path, const char* content, size_t leng
     [messageQueue removeAllObjects];
 }
 
+- (void)webView:(WKWebView *)webView decidePolicyForNavigationAction:(WKNavigationAction *)navigationAction decisionHandler:(void (^)(WKNavigationActionPolicy))decisionHandler {
+    NSURL *url = navigationAction.request.URL;
+
+    // Handle finicky-assets:// URLs internally
+    if ([url.scheme isEqualToString:@"finicky-assets"]) {
+        decisionHandler(WKNavigationActionPolicyAllow);
+        return;
+    }
+
+    // If it's a regular link click (not a page load)
+    if (navigationAction.navigationType == WKNavigationTypeLinkActivated) {
+        // Open the URL in the default browser
+        [[NSWorkspace sharedWorkspace] openURL:url];
+        decisionHandler(WKNavigationActionPolicyCancel);
+        return;
+    }
+
+    // Allow all other navigation
+    decisionHandler(WKNavigationActionPolicyAllow);
+}
+
 // Add new method to handle window close
 - (void)windowWillClose:(NSNotification *)notification {
     extern void WindowDidClose(void);
