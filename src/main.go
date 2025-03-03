@@ -68,8 +68,6 @@ func main() {
 		}
 	}
 
-
-
 	if currentVersion := version.GetCurrentVersion(); currentVersion != "" {
 		commitHash, buildDate := version.GetBuildInfo()
 		slog.Info("Starting Finicky", "version", currentVersion, "buildDate", buildDate, "commitHash", commitHash)
