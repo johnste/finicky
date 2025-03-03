@@ -21,22 +21,22 @@ describe("openUrl", () => {
     const handlerConfig = {
       defaultBrowser: "Firefox",
       handlers: [
-        { match: "open.spotify.com*", open: "Spotify" },
-        { match: ["github.com*", /amazon/], open: "Google Chrome" },
+        { match: "browser.spotify.com*", browser: "Spotify" },
+        { match: ["github.com*", /amazon/], browser: "Google Chrome" },
         {
           match: ["figma.com*", "sketch.com*"],
-          open: { name: "Google Chrome", profile: "Design" },
+          browser: { name: "Google Chrome", profile: "Design" },
         },
         {
           match: (url: URL) => url.pathname.includes("docs"),
-          open: "Google Chrome",
+          browser: "Google Chrome",
         },
       ],
     };
 
     const cases = [
       { url: "https://example.com", expected: "Firefox" },
-      { url: "https://open.spotify.com/track/123", expected: "Spotify" },
+      { url: "https://browser.spotify.com/track/123", expected: "Spotify" },
       { url: "https://github.com/some-repo", expected: "Google Chrome" },
       { url: "https://amazon.com/product", expected: "Google Chrome" },
       {
@@ -53,15 +53,15 @@ describe("openUrl", () => {
     cases.forEach(({ url, expected }) => {
       it(`handles ${url}`, () => {
         const result = openUrl(url, mockProcessInfo, handlerConfig);
-        expect(result).toMatchObject(
+        expect(result.browser).toMatchObject(
           typeof expected === "string" ? { name: expected } : expected
         );
       });
     });
 
     it("works with null opener", () => {
-      const result = openUrl("https://example.com", 1234, null, handlerConfig);
-      expect(result).toMatchObject({ name: "Firefox" });
+      const result = openUrl("https://example.com", null, handlerConfig);
+      expect(result.browser).toMatchObject({ name: "Firefox" });
     });
   });
 
@@ -102,7 +102,10 @@ describe("openUrl", () => {
     cases.forEach(({ input, expectedUrl }) => {
       it(`rewrites ${input}`, () => {
         const result = openUrl(input, mockProcessInfo, rewriteConfig);
-        expect(result).toMatchObject({ name: "Safari", url: expectedUrl });
+        expect(result.browser).toMatchObject({
+          name: "Safari",
+          url: expectedUrl,
+        });
       });
     });
   });
@@ -111,8 +114,8 @@ describe("openUrl", () => {
     const wildcardConfig = {
       defaultBrowser: "Safari",
       handlers: [
-        { match: "*.example.com*", open: "Chrome" },
-        { match: ["*.google.*", "mail.*.com*"], open: "Chrome" },
+        { match: "*.example.com*", browser: "Chrome" },
+        { match: ["*.google.*", "mail.*.com*"], browser: "Chrome" },
       ],
     };
 
@@ -139,7 +142,7 @@ describe("openUrl", () => {
       urls.forEach((url) => {
         it(`${expected} handles ${url}`, () => {
           const result = openUrl(url, mockProcessInfo, wildcardConfig);
-          expect(result).toMatchObject({ name: expected });
+          expect(result.browser).toMatchObject({ name: expected });
         });
       });
     });
@@ -149,9 +152,9 @@ describe("openUrl", () => {
     const edgeCaseConfig = {
       defaultBrowser: "Safari",
       handlers: [
-        { match: "", open: "Chrome" },
-        { match: "https://*", open: "Firefox" },
-        { match: "*?param=value*", open: "Edge" },
+        { match: "", browser: "Chrome" },
+        { match: "https://*", browser: "Firefox" },
+        { match: "*?param=value*", browser: "Edge" },
       ],
     };
 
@@ -164,7 +167,7 @@ describe("openUrl", () => {
     cases.forEach(({ url, expected }) => {
       it(`${expected} handles ${url}`, () => {
         const result = openUrl(url, mockProcessInfo, edgeCaseConfig);
-        expect(result).toMatchObject({ name: expected });
+        expect(result.browser).toMatchObject({ name: expected });
       });
     });
   });
