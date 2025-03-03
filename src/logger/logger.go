@@ -81,7 +81,7 @@ func SetupFile(shouldLog bool) error {
 		return fmt.Errorf("failed to open log file: %v", err)
 	}
 
-	slog.Debug("Log file created", "path", logFile)
+	slog.Info("Log file created", "path", logFile)
 
 	// Write buffered logs to file
 	if _, err := file.Write(memLog.Bytes()); err != nil {
