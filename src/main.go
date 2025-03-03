@@ -80,11 +80,11 @@ func main() {
 	go func() {
 		is_default_browser, err := setDefaultBrowser()
 		if err != nil {
-			slog.Debug("Failed checking if default browser is set", "error", err)
+			slog.Debug("Failed checking if we are the default browser", "error", err)
 		} else if !is_default_browser {
-			slog.Debug("We're not the default browser")
+			slog.Debug("Finicky is not the default browser")
 		} else {
-			slog.Debug("We are the default browser")
+			slog.Debug("Finicky is the default browser")
 		}
 	}()
 
