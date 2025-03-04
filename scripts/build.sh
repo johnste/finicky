@@ -13,6 +13,9 @@ mkdir -p build/Finicky.app/Contents/MacOS
 # Build config API
 cd config-api && npm run build && npm run generate-types && cd ..
 
+export CGO_CFLAGS="-mmacosx-version-min=12.0"
+export CGO_LDFLAGS="-mmacosx-version-min=12.0"
+
 # Build the application
 go build -C src \
     -ldflags "-X 'finicky/version.commitHash=${COMMIT_HASH}' -X 'finicky/version.buildDate=${BUILD_DATE}'" \
