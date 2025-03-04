@@ -69,10 +69,8 @@ public func getBrowserCommand(_ browserOpts: BrowserOpts, url: URL) -> [String] 
         command.append("-g")
     }
 
-    if let profile = browserOpts.profile, let bundleId: String = browserOpts.bundleId {
-        if let profileOption: [String] = getProfileOption(bundleId: bundleId, profile: profile) {
-            commandArgs.append(contentsOf: profileOption)
-        }
+    if let profileOption: [String] = getProfileOption(browserOpts: browserOpts) {
+        commandArgs.append(contentsOf: profileOption)
     }
 
     if browserOpts.args.count > 0 {
@@ -95,9 +93,9 @@ public func getBrowserCommand(_ browserOpts: BrowserOpts, url: URL) -> [String] 
     return command
 }
 
-private func getProfileOption(bundleId: String, profile: String) -> [String]? {
+private func getProfileOption(browserOpts: BrowserOpts) -> [String]? {
     var profileOption: [String]? {
-        switch bundleId.lowercased() {
+        switch browserOpts.bundleId.lowercased() {
         case
             Browser.Brave.rawValue,
             Browser.BraveBeta.rawValue,
@@ -106,22 +104,61 @@ private func getProfileOption(bundleId: String, profile: String) -> [String]? {
             Browser.Edge.rawValue,
             Browser.EdgeBeta.rawValue,
             Browser.Vivaldi.rawValue,
-            Browser.Wavebox.rawValue,
-            Browser.Chromium.rawValue:
+            Browser.Wavebox.rawValue:
             return ["--profile-directory=\(profile)"]
-
-            // Blisk and Opera doesn't support multiple profiles even though they are Chromium based
-            // case Browser.Blisk.rawValue: return ["--profile-directory=\(profile)"]
-            // case Browser.Opera.rawValue: return ["--profile-directory=\(profile)"]
-
-            // Disabling Firefox support due to unreliable performance
-            // Link: https://github.com/johnste/finicky/pull/113#issuecomment-672180597
-            //
-            // case Browser.Firefox.rawValue: return ["-P", profile]
-            // case Browser.FirefoxDeveloperEdition.rawValue: return ["-P", profile]
-
+        case
+            Browser.Chromium.rawValue:
+            return getChromeProfileDir(browserOpts: browserOpts)
         default: return nil
         }
     }
     return profileOption
+}
+
+private func getChromeProfileDir(browserOpts: BrowserOpts) -> [String]? {
+    let fileManager = FileManager.default
+
+    // 1. Check if browserOpts.profile is an existing directory
+    if let profile = browserOpts.profile, !profile.isEmpty, fileManager.fileExists(atPath: profile) && (try? fileManager.attributesOfItem(atPath: profile)[.type] as? FileAttributeType) == .typeDirectory {
+        return ["--profile-directory=\(profile)"]
+    }
+
+    // 2. If browserOpts.appPath is empty, return browserOpts.profile (if it's not empty, it will be handled by the first if)
+    guard let appPath = browserOpts.appPath, !appPath.isEmpty else {
+      if let profile = browserOpts.profile, !profile.isEmpty {
+          return ["--profile-directory=\(profile)"]
+      } else {
+        print("Warning: No app path or valid profile directory provided for Chromium.")
+        return nil
+      }
+    }
+
+    // 3. Loop through directories inside browserOpts.appPath
+    guard let contents = try? fileManager.contentsOfDirectory(atPath: appPath) else {
+        print("Error: Could not read Chromium profile base directory: \(appPath)")
+        return nil
+    }
+
+    for dir in contents where (try? fileManager.attributesOfItem(atPath: URL(fileURLWithPath: appPath).appendingPathComponent(dir).path)[.type] as? FileAttributeType) == .typeDirectory {
+        let preferencesPath = URL(fileURLWithPath: appPath).appendingPathComponent(dir).appendingPathComponent("Preferences").path
+
+        if fileManager.fileExists(atPath: preferencesPath) {
+            do {
+                let preferencesData = try Data(contentsOf: URL(fileURLWithPath: preferencesPath))
+                if let preferences = try JSONSerialization.jsonObject(with: preferencesData) as? [String: Any],
+                   let profile = preferences["profile"] as? [String: Any],
+                   let name = profile["name"] as? String,
+                   let profileName = browserOpts.profileName, // Access profileName from browserOpts
+                   name == profileName {
+                    return ["--profile-directory=\(dir)"] // Return the directory name
+                }
+            } catch {
+                print("Error processing profile directory \(dir): \(error)")
+                // Handle JSON parsing or file reading errors
+            }
+        }
+    }
+
+    print("Warning: No matching profile directory found in \(appPath) for Chromium.")
+    return nil // Profile name not found
 }
