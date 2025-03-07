@@ -90,10 +90,17 @@ func main() {
 		}
 	}()
 
-	var err error
-	vm, err = config.New(embeddedFiles, customConfigPath)
+	namespace := "finickyConfig"
+	configChange := make(chan struct{})
+	cfw, err := config.NewConfigFileWatcher(customConfigPath, namespace, configChange)
+
 	if err != nil {
-		handleFatalError(fmt.Sprintf("Failed to setup VM: %v", err))
+		handleFatalError(fmt.Sprintf("Failed to setup config file watcher: %v", err))
+	}
+
+	vm, err = setupVM(cfw, embeddedFiles, namespace)
+	if err != nil {
+		handleFatalError(err.Error())
 	}
 
 	slog.Debug("VM setup complete", "duration", fmt.Sprintf("%.2fms", float64(time.Since(startTime).Microseconds())/1000))
@@ -111,14 +118,16 @@ func main() {
 
 				slog.Info("URL received", "url", urlInfo.URL)
 
-				var runtime *goja.Runtime
-				if vm != nil {
-					runtime = vm.Runtime()
-				}
+				var browserConfig *browser.BrowserConfig
+				var err error
 
-				browserConfig, err := evaluateURL(runtime, urlInfo.URL, urlInfo.Opener)
-				if err != nil {
-					handleRuntimeError(err)
+				if vm != nil {
+					browserConfig, err = evaluateURL(vm.Runtime(), urlInfo.URL, urlInfo.Opener)
+					if err != nil {
+						handleRuntimeError(err)
+					}
+				} else {
+					slog.Warn("No configuration available, using default configuration")
 				}
 
 				if browserConfig == nil {
@@ -143,6 +152,15 @@ func main() {
 				} else {
 					timeoutChan = nil
 				}
+
+			case <-configChange:
+				startTime := time.Now()
+				var setupErr error
+				vm, setupErr = setupVM(cfw, embeddedFiles, namespace)
+				if setupErr != nil {
+					handleRuntimeError(setupErr)
+				}
+				slog.Debug("VM refresh complete", "duration", fmt.Sprintf("%.2fms", float64(time.Since(startTime).Microseconds())/1000))
 
 			case shouldShowWindow := <-queueWindowOpen:
 				if !showingWindow && shouldShowWindow {
@@ -199,9 +217,6 @@ func evaluateURL(vm *goja.Runtime, url string, opener *ProcessInfo) (*browser.Br
 		url = resolvedURL
 	}
 
-	if vm == nil {
-		return nil, fmt.Errorf("Can't access config")
-	}
 
 	vm.Set("url", resolvedURL)
 	vm.Set("opener", opener)
@@ -313,7 +328,7 @@ func setupVM(cfw *config.ConfigFileWatcher, embeddedFS embed.FS, namespace strin
 
 	bundlePath, err := cfw.BundleConfig()
 	if err != nil {
-		return nil, fmt.Errorf("failed to bundle config: %v", err)
+		return nil, fmt.Errorf("failed to read config: %v", err)
 	}
 
 	if bundlePath != "" {

@@ -58,7 +58,14 @@ func Setup() {
 
 // SetupFile configures file logging if enabled
 func SetupFile(shouldLog bool) error {
+	slog.Debug("Setting up file logging", "shouldLog", shouldLog)
+	if shouldLog {
+		slog.Warn("Logging requests to disk. Logs may include sensitive information. Disable this by setting logRequests: false.")
+	}
+
+
 	if !shouldLog {
+		Setup()
 		return nil
 	}
 

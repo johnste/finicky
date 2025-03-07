@@ -2,66 +2,32 @@ package config
 
 import (
 	"embed"
-	"finicky/logger"
 	"finicky/util"
 	"fmt"
 	"log/slog"
 	"os"
-	"strings"
 
 	"github.com/dop251/goja"
-	"github.com/evanw/esbuild/pkg/api"
 )
 
-// VM represents the JavaScript VM configuration
 type VM struct {
 	runtime *goja.Runtime
 	namespace string
 }
-// New creates and configures a new VM instance
-func New(embeddedFiles embed.FS, customConfigPath string) (*VM, error) {
+
+func New(embeddedFiles embed.FS, namespace string, bundlePath string) (*VM, error) {
 	vm := &VM{
-		runtime: goja.New(),
-		namespace: "finickyConfig",
+		runtime:          goja.New(),
+		namespace:        namespace,
 	}
-	vm.runtime.SetFieldNameMapper(goja.TagFieldNameMapper("json", true))
 
-	bundlePath, err := vm.prepareConfig(customConfigPath)
-	defer vm.setupLogging(err != nil)
+	err := vm.setup(embeddedFiles, bundlePath)
 	if err != nil {
 		return nil, err
 	}
 
-	err = vm.setup(embeddedFiles, bundlePath)
-	if err != nil {
-		return nil, err
-	}
-
-	return vm, err
+	return vm, nil
 }
-
-func (vm *VM) setupLogging(hasError bool) {
-
-	logRequests := vm.runtime.ToValue(hasError)
-
-	if !hasError {
-		var err error
-		logRequests, err = vm.runtime.RunString("finickyConfigAPI.getOption('logRequests', finalConfig)")
-		if err != nil {
-			slog.Warn("Failed to get logRequests option", "error", err)
-			logRequests = vm.runtime.ToValue(true)
-		}
-	}
-
-	if logRequests.ToBoolean() {
-		slog.Warn("Logging requests to disk. Logs may include sensitive information. Disable this by setting logRequests: false.")
-	}
-
-	if err := logger.SetupFile(logRequests.ToBoolean()); err != nil {
-		slog.Warn("Failed to setup file logging", "error", err)
-	}
-}
-
 
 func (vm *VM) setup(embeddedFiles embed.FS, bundlePath string) error {
 	apiContent, err := embeddedFiles.ReadFile("build/finickyConfigAPI.js")
@@ -92,7 +58,6 @@ func (vm *VM) setup(embeddedFiles embed.FS, bundlePath string) error {
 		finicky[key] = userAPI.Get(key)
 	}
 
-	// These will be injected from main.go
 	vm.runtime.Set("finicky", finicky)
 
 	if content != nil {
@@ -126,70 +91,22 @@ func (vm *VM) setup(embeddedFiles embed.FS, bundlePath string) error {
 	return nil
 }
 
-func (vm *VM) prepareConfig(customConfigPath string) (string, error) {
+func (vm *VM) ShouldLogToFile(hasError bool) bool {
 
+	logRequests := vm.runtime.ToValue(hasError)
 
-	configPath, err := vm.getConfigPath(customConfigPath)
-	if err != nil {
-		return "", fmt.Errorf("failed to get config %v", err)
-	}
-
-	if configPath == "" {
-		slog.Info("Found config: <None>")
-	} else {
-		slog.Info("Found config", "path", configPath)
-	}
-
-	if configPath != "" {
-		bundlePath := os.TempDir() + "/finicky_output.js"
-
-		result := api.Build(api.BuildOptions{
-			EntryPoints: []string{configPath},
-			Outfile:     bundlePath,
-			Bundle:      true,
-			Write:       true,
-			LogLevel:    api.LogLevelError,
-			Platform:    api.PlatformNeutral,
-			Target:      api.ES2015,
-			Format:      api.FormatIIFE,
-			GlobalName:  vm.namespace,
-		})
-
-		if len(result.Errors) > 0 {
-			var errorTexts []string
-			for _, err := range result.Errors {
-				errorTexts = append(errorTexts, err.Text)
-			}
-			return "", fmt.Errorf("build errors: %s", strings.Join(errorTexts, ", "))
-		}
-		return bundlePath, nil
-	}
-
-	return "", nil
-}
-
-func (vm *VM) getConfigPath(customConfigPath string) (string, error) {
-	var configPaths []string
-
-	if customConfigPath != "" {
-		configPaths = append(configPaths, customConfigPath)
-	} else {
-		configPaths = append(configPaths,
-			"$HOME/.finicky.js",
-			"$HOME/.config/finicky.js",
-			"$HOME/.config/finicky/finicky.js",
-		)
-	}
-
-	for _, path := range configPaths {
-		expandedPath := os.ExpandEnv(path)
-		if _, err := os.Stat(expandedPath); err == nil {
-			return expandedPath, nil
+	if !hasError {
+		var err error
+		logRequests, err = vm.runtime.RunString("finickyConfigAPI.getOption('logRequests', finalConfig)")
+		if err != nil {
+			slog.Warn("Failed to get logRequests option", "error", err)
+			logRequests = vm.runtime.ToValue(true)
 		}
 	}
 
-	return "", fmt.Errorf("no config file found, please create one at %s", strings.Join(configPaths, ", "))
+	return logRequests.ToBoolean()
 }
+
 
 // Runtime returns the underlying goja.Runtime
 func (vm *VM) Runtime() *goja.Runtime {
