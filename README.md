@@ -42,6 +42,7 @@ You have to build it from source currently.
 
 ## Example configuration
 
+⚠️ This configuration example is for Finicky 4+ (currently in alpha). Refer to [the wiki](https://github.com/johnste/finicky/wiki/Configuration) for Finicky 3 examples.
 ```js
 // ~/.finicky.js
 export default {
