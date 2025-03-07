@@ -36,7 +36,7 @@ type browserInfo struct {
 	Type             string `json:"type"`
 }
 
-func LaunchBrowser(config BrowserConfig) error {
+func LaunchBrowser(config BrowserConfig, dryRun bool) error {
 	if config.AppType == "none" {
 		slog.Info("AppType is 'none', not launching any browser")
 		return nil
@@ -73,7 +73,7 @@ func LaunchBrowser(config BrowserConfig) error {
 
 	cmd := exec.Command("open", openArgs...)
 
-	if os.Getenv("FINICKY_DRY_RUN") == "true" {
+	if dryRun {
 		slog.Info("Would run command (dry run)", "command", cmd.String())
 		return nil
 	} else {

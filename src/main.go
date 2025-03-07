@@ -49,6 +49,7 @@ var vm *config.VM
 var forceWindowOpen int32 = 0
 var queueWindowOpen chan bool = make(chan bool)
 var lastError error
+var dryRun bool = false
 
 func main() {
 
@@ -65,6 +66,9 @@ func main() {
 		}
 		if strings.HasPrefix(arg, "--window") {
 			forceWindowOpen = 1
+		}
+		if strings.HasPrefix(arg, "--dry-run") {
+			dryRun = true
 		}
 	}
 
@@ -128,7 +132,7 @@ func main() {
 					}
 				}
 
-				if err := browser.LaunchBrowser(*browserConfig); err != nil {
+				if err := browser.LaunchBrowser(*browserConfig, dryRun); err != nil {
 					slog.Error("Failed to start browser", "error", err)
 				}
 
