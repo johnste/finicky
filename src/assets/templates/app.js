@@ -11,6 +11,21 @@ addEventListener("error", (event) => {
   });
 });
 
+// Track whether to auto-scroll with new messages
+let shouldAutoScroll = false;
+
+// Add scroll event listener to update auto-scroll preference
+window.addEventListener(
+  "scroll",
+  function () {
+    const windowHeight = window.innerHeight;
+    const documentHeight = document.body.scrollHeight;
+    const scrollPosition = window.scrollY;
+    shouldAutoScroll = windowHeight + scrollPosition >= documentHeight - 50;
+  },
+  { passive: true }
+);
+
 // Function to add a message to the log
 function addMessageToLog({ level, msg, time, error, ...rest }) {
   const logContent = document.getElementById("logContent");
@@ -55,10 +70,15 @@ function addMessageToLog({ level, msg, time, error, ...rest }) {
     }
 
     entry.appendChild(messageEl);
-
     logContent.appendChild(entry);
-    // Auto-scroll to bottom
-    logContent.scrollTop = logContent.scrollHeight;
+
+    // Only auto-scroll if shouldAutoScroll is true
+    if (shouldAutoScroll) {
+      window.scrollTo({
+        top: document.body.scrollHeight,
+        behavior: "smooth",
+      });
+    }
   }
 }
 
