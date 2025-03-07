@@ -301,3 +301,34 @@ func tearDown() {
 	slog.Info("Exiting...")
 	os.Exit(0)
 }
+
+func setupVM(cfw *config.ConfigFileWatcher, embeddedFS embed.FS, namespace string) (*config.VM, error) {
+	shouldLogToFile := true
+
+	defer func() {
+		if err := logger.SetupFile(shouldLogToFile); err != nil {
+			slog.Warn("Failed to setup file logging", "error", err)
+		}
+	}()
+
+	bundlePath, err := cfw.BundleConfig()
+	if err != nil {
+		return nil, fmt.Errorf("failed to bundle config: %v", err)
+	}
+
+	if bundlePath != "" {
+		vm, err := config.New(embeddedFS, namespace, bundlePath)
+		if err != nil {
+			return nil, fmt.Errorf("failed to setup VM: %v", err)
+		}
+
+		// Update logging preference based on VM if available
+		shouldLogToFile = vm.ShouldLogToFile(false)
+		return vm, nil
+	}
+
+	return nil, nil
+}
+
+
+
