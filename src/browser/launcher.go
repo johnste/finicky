@@ -74,10 +74,10 @@ func LaunchBrowser(config BrowserConfig, dryRun bool) error {
 	cmd := exec.Command("open", openArgs...)
 
 	if dryRun {
-		slog.Info("Would run command (dry run)", "command", cmd.String())
+		slog.Debug("Would run command (dry run)", "command", cmd.String())
 		return nil
 	} else {
-		slog.Info("Run command", "command", cmd.String())
+		slog.Debug("Run command", "command", cmd.String())
 	}
 
 	stderr, err := cmd.StderrPipe()
