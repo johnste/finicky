@@ -210,24 +210,32 @@ func checkForUpdates() {
 		return
 	}
 
+	// Check if current version is a prerelease (contains alpha/beta)
+	currentIsPrerelease := strings.Contains(strings.ToLower(currentVersion), "alpha") ||
+		strings.Contains(strings.ToLower(currentVersion), "beta")
+
+	if currentIsPrerelease {
+		slog.Info("Currently using a prerelease version, checking for pending prerelease releases", "version", currentVersion)
+	}
+
 	// Filter out prereleases and drafts
-	var stableReleases []GithubRelease
+	var pendingReleases []GithubRelease
 	for _, release := range releases {
-		if !release.Prerelease && !release.Draft {
-			stableReleases = append(stableReleases, release)
+		if !release.Prerelease && !release.Draft || currentIsPrerelease && release.Prerelease {
+			pendingReleases = append(pendingReleases, release)
 		}
 	}
 
-	if len(stableReleases) == 0 {
+	if len(pendingReleases) == 0 {
 		slog.Info("No stable releases found")
 		return
 	}
 
 	// Get latest version (first in the list)
-	latestRelease := stableReleases[0]
+	latestRelease := pendingReleases[0]
 	latestVersion := strings.TrimPrefix(latestRelease.TagName, "v")
 
-	slog.Info("Latest version available", "version", latestVersion)
+	slog.Debug("Latest version available", "version", latestVersion)
 
 	// Compare versions using semantic versioning
 	if compareSemver(latestVersion, currentVersion) > 0 {
