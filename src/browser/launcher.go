@@ -139,7 +139,7 @@ func resolveBrowserProfileArgument(identifier string, profile string) (string, b
 		return "", false
 	}
 
-	slog.Info("Browser found in browsers.json", "identifier", identifier, "type", matchedBrowser.Type)
+	slog.Debug("Browser found in browsers.json", "identifier", identifier, "type", matchedBrowser.Type)
 
 	if profile != ""  {
 		switch matchedBrowser.Type {

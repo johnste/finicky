@@ -32,6 +32,52 @@ document.addEventListener("DOMContentLoaded", function () {
   }
 });
 
+// Function to convert text with URLs to elements with clickable links
+function convertUrlsToLinks(container, text) {
+  const urlRegex = /(https?:\/\/[^\s]+)/g;
+
+  if (!urlRegex.test(text)) {
+    container.textContent = text;
+    return;
+  }
+
+  // Clear existing content
+  container.textContent = "";
+
+  let lastIndex = 0;
+  let match;
+
+  // Reset the regex to start from the beginning
+  urlRegex.lastIndex = 0;
+
+  // For each match, add the text before it and then the link
+  while ((match = urlRegex.exec(text)) !== null) {
+    // Add text before the match as a text node
+    if (match.index > lastIndex) {
+      container.appendChild(
+        document.createTextNode(text.substring(lastIndex, match.index))
+      );
+    }
+
+    // Add the URL as an anchor
+    const url = match[0];
+    const link = document.createElement("a");
+    link.href = url;
+    link.textContent = url;
+    link.target = "_blank";
+    link.rel = "noopener noreferrer";
+    container.appendChild(link);
+
+    // Update the last index
+    lastIndex = match.index + match[0].length;
+  }
+
+  // Add any remaining text after the last match
+  if (lastIndex < text.length) {
+    container.appendChild(document.createTextNode(text.substring(lastIndex)));
+  }
+}
+
 // Function to add a message to the log
 function addMessageToLog({ level, msg, time, error, ...rest }) {
   const logContent = document.getElementById("logContent");
@@ -58,12 +104,13 @@ function addMessageToLog({ level, msg, time, error, ...rest }) {
     const messageEl = document.createElement("div");
     messageEl.className = `log-message log-level-${level.toLowerCase()}`;
 
-    messageEl.textContent = msg;
+    // Apply URL conversion to the main message
+    convertUrlsToLinks(messageEl, msg);
 
     if (error) {
       const errorEl = document.createElement("div");
       errorEl.className = "log-error";
-      errorEl.textContent = error;
+      convertUrlsToLinks(errorEl, error);
       messageEl.appendChild(errorEl);
     }
 
@@ -71,7 +118,15 @@ function addMessageToLog({ level, msg, time, error, ...rest }) {
     for (const [label, value] of Object.entries(rest)) {
       const additionalEl = document.createElement("div");
       additionalEl.className = "log-additional";
-      additionalEl.textContent = `${label}: ${value}`;
+
+      // Add the label as text
+      additionalEl.appendChild(document.createTextNode(`${label}: `));
+
+      // Create a span for the value and convert any URLs in it
+      const valueSpan = document.createElement("span");
+      convertUrlsToLinks(valueSpan, String(value));
+      additionalEl.appendChild(valueSpan);
+
       messageEl.appendChild(additionalEl);
     }
 

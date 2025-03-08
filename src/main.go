@@ -241,7 +241,13 @@ func evaluateURL(vm *goja.Runtime, url string, opener *ProcessInfo) (*browser.Br
 		return nil, fmt.Errorf("failed to parse browser configuration: %v", err)
 	}
 
-	slog.Debug("Final browser options", "options", fmt.Sprintf("%+v", browserResult.Browser))
+	slog.Debug("Final browser options",
+		"name", browserResult.Browser.Name,
+		"openInBackground", browserResult.Browser.OpenInBackground,
+		"profile", browserResult.Browser.Profile,
+		"args", browserResult.Browser.Args,
+		"appType", browserResult.Browser.AppType,
+	)
 	var resultErr error
 	if browserResult.Error != "" {
 		resultErr = fmt.Errorf("%s", browserResult.Error)

@@ -260,3 +260,9 @@ h1 span {
     content: "🚧 ";
   }
 }
+
+/* Style for links in log messages */
+.log-message a {
+  color: inherit;
+  text-decoration: underline;
+}
