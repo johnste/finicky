@@ -135,7 +135,7 @@ func (cfw *ConfigFileWatcher) babelTransform(configPath string) (error) {
 	}
 	configString := string(configBytes)
 
-	babel.Init(1) // Setup 4 transformers (can be any number > 0)
+	babel.Init(1) // Setup transformers (can be any number > 0)
 	res, err := babel.Transform(strings.NewReader(configString), map[string]interface{}{
 		"plugins": []string{
 			"transform-named-capturing-groups-regex",
