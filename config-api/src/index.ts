@@ -16,6 +16,12 @@ import {
 import * as utilities from "./utilities";
 import { matchWildcard } from "./wildcard";
 import { fromError } from "zod-validation-error";
+import {
+  isLegacyURLObject,
+  LegacyURLObject,
+  legacyURLObjectToString,
+} from "./legacyURLObject";
+import { URLtoLegacyURLObject } from "./legacyURLObject";
 
 export { utilities };
 
@@ -74,7 +80,7 @@ export function openUrl(
     throw new Error("Invalid config");
   }
 
-  let url = createUrlWithProxy(urlString, opener);
+  let url = new FinickyURL(urlString, opener);
 
   const options: OpenUrlOptions = {
     opener: opener,
@@ -227,20 +233,6 @@ function autodetectAppStringType(app: string | null): AppType {
 }
 
 /**
- * Legacy FinickyURL type used for backward compatibility
- */
-export type FinickyURLObject = {
-  username?: string;
-  host: string;
-  protocol?: string;
-  pathname?: string;
-  search?: string;
-  password?: string;
-  port?: number;
-  hash?: string;
-};
-
-/**
  * FinickyURL class that extends URL to maintain backward compatibility
  * with legacy properties while providing deprecation warnings.
  */
@@ -259,11 +251,11 @@ class FinickyURL extends URL {
     return this.href;
   }
 
-  get url(): FinickyURLObject {
+  get url(): LegacyURLObject {
     console.warn(
-      'Accessing legacy property "url" that is no longer supported. Please use the URL object directly instead.'
+      'Accessing legacy property "url" that is no longer supported. Please use the URL object directly instead, which is a standardized interface for handling URLs. https://developer.mozilla.org/en-US/docs/Web/API/URL'
     );
-    return URLtoFinickyURL(this);
+    return URLtoLegacyURLObject(this);
   }
 
   get opener(): ProcessInfo | null {
@@ -285,17 +277,29 @@ function rewriteUrl(
   url: URL | FinickyURL,
   options: OpenUrlOptions
 ): FinickyURL {
+  if (rewrite instanceof FinickyURL) {
+    return rewrite;
+  }
+
   if (typeof rewrite === "string") {
-    return createUrlWithProxy(rewrite, options.opener || null);
+    return new FinickyURL(rewrite, options.opener || null);
   }
 
   if (typeof rewrite === "function") {
     const result = rewrite(url, options);
     return rewriteUrl(result, url, options);
   }
+
   // Convert URL to FinickyURL if it's not already one
-  if (!(url instanceof FinickyURL)) {
+  if (url instanceof URL) {
     return new FinickyURL(url.href, options.opener || null);
+  }
+
+  if (isLegacyURLObject(rewrite)) {
+    return new FinickyURL(
+      legacyURLObjectToString(rewrite),
+      options.opener || null
+    );
   }
 
   return url as FinickyURL;
@@ -327,56 +331,4 @@ function isMatch(
   }
 
   return false;
-}
-
-/**
- * Creates a URL object with backward compatibility properties
- */
-function createUrlWithProxy(
-  url: string | FinickyURLObject,
-  opener: ProcessInfo | null
-): FinickyURL {
-  let urlString: string;
-
-  // Convert non-string URL to a string representation
-  if (typeof url !== "string") {
-    urlString = finicky_URLObjectToString(url);
-  } else {
-    urlString = url;
-  }
-
-  return new FinickyURL(urlString, opener);
-}
-
-/**
- * Converts a FinickyURLObject to a URL string
- * @param urlObj The FinickyURLObject to convert
- * @returns A URL string representation
- */
-export function finicky_URLObjectToString(urlObj: FinickyURLObject): string {
-  return `${urlObj.protocol ? urlObj.protocol.replace(":", "") : "https"}://${
-    urlObj.username
-  }${urlObj.password ? ":" + urlObj.password : ""}${
-    urlObj.username || urlObj.password ? "@" : ""
-  }${urlObj.host}${urlObj.port ? ":" + urlObj.port : ""}${urlObj.pathname}${
-    urlObj.search ? "?" + urlObj.search : ""
-  }${urlObj.hash ? "#" + urlObj.hash : ""}`;
-}
-
-/**
- * Converts a standard URL object to a FinickyURL format
- * @param url The URL object to convert
- * @returns A FinickyURL object
- */
-export function URLtoFinickyURL(url: URL): FinickyURLObject {
-  return {
-    username: url.username,
-    host: url.hostname,
-    protocol: url.protocol.replace(":", ""),
-    pathname: url.pathname,
-    search: url.search.replace("?", ""),
-    password: url.password,
-    port: url.port ? parseInt(url.port) : undefined,
-    hash: url.hash.replace("#", ""),
-  };
 }
