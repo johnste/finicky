@@ -264,21 +264,6 @@ func ShowTheMainWindow(err error) {
 	slog.Debug("Showing window")
 	window.ShowWindow()
 
-	if err != nil {
-		window.SendMessageToWebView("status", "🔴 An error occurred")
-	} else {
-		window.SendMessageToWebView("status", "🟢 Everything should be good")
-	}
-
-	if vm != nil {
-		configInfo, err := vm.Runtime().RunString("finickyConfigAPI.getConfigInfo(finalConfig)")
-		if err == nil {
-			window.SendMessageToWebView("configInfo", configInfo.String())
-		}
-	} else {
-		window.SendMessageToWebView("configInfo", "Configuration was not properly loaded")
-	}
-
 	// Send version information
 	currentVersion := version.GetCurrentVersion()
 	if currentVersion != "" {
@@ -322,14 +307,17 @@ func tearDown() {
 
 func setupVM(cfw *config.ConfigFileWatcher, embeddedFS embed.FS, namespace string) (*config.VM, error) {
 	shouldLogToFile := true
+	var err error
 
 	defer func() {
-		if err := logger.SetupFile(shouldLogToFile); err != nil {
+		err = logger.SetupFile(shouldLogToFile)
+		if err != nil {
 			slog.Warn("Failed to setup file logging", "error", err)
 		}
 	}()
 
-	bundlePath, err := cfw.BundleConfig()
+	var bundlePath string
+	bundlePath, err = cfw.BundleConfig()
 	if err != nil {
 		return nil, fmt.Errorf("failed to read config: %v", err)
 	}
