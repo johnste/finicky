@@ -161,7 +161,7 @@ function resolveBrowserInfo(
 
 function resolveBrowser(
   browser: BrowserPattern,
-  url: URL | FinickyUrl,
+  url: URL | FinickyURL,
   options: OpenUrlOptions
 ): BrowserConfigStrict {
   const config =
@@ -241,10 +241,10 @@ export type FinickyURLObject = {
 };
 
 /**
- * FinickyUrl class that extends URL to maintain backward compatibility
+ * FinickyURL class that extends URL to maintain backward compatibility
  * with legacy properties while providing deprecation warnings.
  */
-class FinickyUrl extends URL {
+class FinickyURL extends URL {
   private _opener: ProcessInfo | null;
 
   constructor(url: string, opener: ProcessInfo | null = null) {
@@ -282,29 +282,28 @@ class FinickyUrl extends URL {
 
 function rewriteUrl(
   rewrite: UrlPattern,
-  url: URL | FinickyUrl,
+  url: URL | FinickyURL,
   options: OpenUrlOptions
-): FinickyUrl {
+): FinickyURL {
   if (typeof rewrite === "string") {
     return createUrlWithProxy(rewrite, options.opener || null);
   }
 
   if (typeof rewrite === "function") {
     const result = rewrite(url, options);
-    return createUrlWithProxy(result, options.opener || null);
+    return rewriteUrl(result, url, options);
+  }
+  // Convert URL to FinickyURL if it's not already one
+  if (!(url instanceof FinickyURL)) {
+    return new FinickyURL(url.href, options.opener || null);
   }
 
-  // Convert URL to FinickyUrl if it's not already one
-  if (!(url instanceof FinickyUrl)) {
-    return new FinickyUrl(url.href, options.opener || null);
-  }
-
-  return url as FinickyUrl;
+  return url as FinickyURL;
 }
 
 function isMatch(
   match: UrlMatcherPattern,
-  url: URL | FinickyUrl,
+  url: URL | FinickyURL,
   options: OpenUrlOptions
 ): boolean {
   if (Array.isArray(match)) {
@@ -336,7 +335,7 @@ function isMatch(
 function createUrlWithProxy(
   url: string | FinickyURLObject,
   opener: ProcessInfo | null
-): FinickyUrl {
+): FinickyURL {
   let urlString: string;
 
   // Convert non-string URL to a string representation
@@ -346,7 +345,7 @@ function createUrlWithProxy(
     urlString = url;
   }
 
-  return new FinickyUrl(urlString, opener);
+  return new FinickyURL(urlString, opener);
 }
 
 /**
