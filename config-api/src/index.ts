@@ -16,13 +16,8 @@ import {
 import * as utilities from "./utilities";
 import { matchWildcard } from "./wildcard";
 import { fromError } from "zod-validation-error";
-import {
-  isLegacyURLObject,
-  LegacyURLObject,
-  legacyURLObjectToString,
-} from "./legacyURLObject";
-import { URLtoLegacyURLObject } from "./legacyURLObject";
-
+import { isLegacyURLObject, legacyURLObjectToString } from "./legacyURLObject";
+import { FinickyURL } from "./FinickyURL";
 export { utilities };
 
 export function validateConfig(config: object): config is Config {
@@ -37,6 +32,7 @@ export function validateConfig(config: object): config is Config {
     ConfigSchema.parse(config);
     return true;
   } catch (ex) {
+    // Don't log parsing errors in test environment as they are expected
     if (process.env.NODE_ENV !== "test") {
       console.error(fromError(ex).toString());
     }
@@ -116,14 +112,6 @@ export function openUrl(
     browser,
     error,
   };
-}
-
-export function getConfigInfo(config: Config): string {
-  const numHandlers = config.handlers?.length || 0;
-  const numRewrites = config.rewrite?.length || 0;
-  return `Config loaded with ${numHandlers} handler${
-    numHandlers === 1 ? "" : "s"
-  } and ${numRewrites} rewrite${numRewrites === 1 ? "" : "s"}`;
 }
 
 function createBrowserConfig(
@@ -230,46 +218,6 @@ function autodetectAppStringType(app: string | null): AppType {
   }
 
   return appType;
-}
-
-/**
- * FinickyURL class that extends URL to maintain backward compatibility
- * with legacy properties while providing deprecation warnings.
- */
-class FinickyURL extends URL {
-  private _opener: ProcessInfo | null;
-
-  constructor(url: string, opener: ProcessInfo | null = null) {
-    super(url);
-    this._opener = opener;
-  }
-
-  get urlString(): string {
-    console.warn(
-      'Accessing legacy property "urlString" that is no longer supported. Please use the URL object\'s href property directly instead.'
-    );
-    return this.href;
-  }
-
-  get url(): LegacyURLObject {
-    console.warn(
-      'Accessing legacy property "url" that is no longer supported. Please use the URL object directly instead, which is a standardized interface for handling URLs. https://developer.mozilla.org/en-US/docs/Web/API/URL'
-    );
-    return URLtoLegacyURLObject(this);
-  }
-
-  get opener(): ProcessInfo | null {
-    console.warn(
-      'Accessing legacy property "opener" that is no longer supported.'
-    );
-    return this._opener;
-  }
-
-  get keys() {
-    throw new Error(
-      'Accessing legacy property "keys" that is no longer supported, please use finicky.getModifierKeys() instead.'
-    );
-  }
 }
 
 function rewriteUrl(
