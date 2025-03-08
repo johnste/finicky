@@ -1,5 +1,3 @@
-import "core-js/features/url";
-import "core-js/features/url-search-params";
 import { ProcessInfo } from "./configSchema";
 import { LegacyURLObject } from "./legacyURLObject";
 import { URLtoLegacyURLObject } from "./legacyURLObject";

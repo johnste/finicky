@@ -2,6 +2,7 @@ package config
 
 import (
 	"fmt"
+	"io"
 	"log/slog"
 	"os"
 	"path/filepath"
@@ -10,6 +11,7 @@ import (
 
 	"github.com/evanw/esbuild/pkg/api"
 	"github.com/fsnotify/fsnotify"
+	babel "github.com/jvatic/goja-babel"
 )
 
 // ConfigFileWatcher handles watching configuration files for changes
@@ -92,6 +94,11 @@ func (cfw *ConfigFileWatcher) BundleConfig() (string, error) {
 		return "", err
 	}
 
+	err = cfw.babelTransform(configPath)
+	if err != nil {
+		return "", err
+	}
+
 	slog.Debug("Bundling config")
 	bundlePath := os.TempDir() + "/finicky_output.js"
 
@@ -117,11 +124,53 @@ func (cfw *ConfigFileWatcher) BundleConfig() (string, error) {
 	return bundlePath, nil
 }
 
+func (cfw *ConfigFileWatcher) babelTransform(configPath string) (error) {
+
+	startTime := time.Now()
+	slog.Debug("Transforming config with babel")
+
+	configBytes, err := os.ReadFile(configPath)
+	if err != nil {
+		return fmt.Errorf("error reading config file: %w", err)
+	}
+	configString := string(configBytes)
+
+	babel.Init(1) // Setup 4 transformers (can be any number > 0)
+	res, err := babel.Transform(strings.NewReader(configString), map[string]interface{}{
+		"plugins": []string{
+			"transform-named-capturing-groups-regex",
+		},
+	})
+	if err != nil {
+		slog.Error("Babel error", "error", err)
+	}
+
+	resBytes, err := io.ReadAll(res)
+	if err != nil {
+		return err
+	}
+	resString := string(resBytes)
+
+	tempFile, err := os.CreateTemp("", "finicky_babel_*.js")
+	if err != nil {
+		return fmt.Errorf("error creating temp file: %w", err)
+	}
+	defer tempFile.Close()
+
+	if _, err := tempFile.WriteString(resString); err != nil {
+		return fmt.Errorf("error writing to temp file: %w", err)
+	}
+
+	configPath = tempFile.Name()
+	slog.Debug("Saved babel output", "path", configPath)
+
+	slog.Debug("Babel transform complete", "duration", fmt.Sprintf("%.2fms", float64(time.Since(startTime).Microseconds())/1000))
+	return nil
+}
+
 func (cfw *ConfigFileWatcher) StartWatching() (error) {
 	for {
 		configPath, err := cfw.GetConfigPath(false)
-
-		slog.Debug("Checking for config file")
 
 		if err != nil {
 			// Watch any potential config paths
