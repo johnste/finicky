@@ -27,13 +27,15 @@ export function validateConfig(config: object): config is Config {
     return false;
   }
 
-  const result = ConfigSchema.safeParse(config);
-
-  if (!result.success && process.env.NODE_ENV !== "test") {
-    console.error(result.error);
+  try {
+    ConfigSchema.parse(config);
+    return true;
+  } catch (ex) {
+    if (process.env.NODE_ENV !== "test") {
+      console.error(fromError(ex).toString());
+    }
+    return false;
   }
-
-  return result.success;
 }
 
 export function getConfiguration(namespace: string): Config {
