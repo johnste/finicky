@@ -17,6 +17,7 @@ import (
 	"finicky/shorturl"
 	"finicky/version"
 	"finicky/window"
+	"flag"
 	"fmt"
 	"log/slog"
 	"os"
@@ -52,25 +53,27 @@ var lastError error
 var dryRun bool = false
 
 func main() {
-
 	startTime := time.Now()
 	logger.Setup()
 	runtime.LockOSThread()
 
-	customConfigPath := ""
-	for _, arg := range os.Args {
-		slog.Debug("Processing argument", "arg", arg)
-		if strings.HasPrefix(arg, "--config=") {
-			customConfigPath = strings.TrimPrefix(arg, "--config=")
-			slog.Debug("Using custom config path", "path", customConfigPath)
-		}
-		if strings.HasPrefix(arg, "--window") {
-			forceWindowOpen = 1
-		}
-		if strings.HasPrefix(arg, "--dry-run") {
-			dryRun = true
-		}
+	// Define command line flags
+	configPathPtr := flag.String("config", "", "Path to custom configuration file")
+	windowPtr := flag.Bool("window", false, "Force window to open")
+	dryRunPtr := flag.Bool("dry-run", false, "Simulate without actually opening browsers")
+	flag.Parse()
+
+	// Use the parsed values
+	customConfigPath := *configPathPtr
+	if customConfigPath != "" {
+		slog.Debug("Using custom config path", "path", customConfigPath)
 	}
+
+	if *windowPtr {
+		forceWindowOpen = 1
+	}
+
+	dryRun = *dryRunPtr
 
 	if currentVersion := version.GetCurrentVersion(); currentVersion != "" {
 		commitHash, buildDate := version.GetBuildInfo()
