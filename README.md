@@ -19,30 +19,22 @@ Finicky is a macOS application that allows you to set up rules that decide which
 
 ## Table of Contents
 
-<!-- To regenerate toc run `npx doctoc README.md --github` -->
-<!-- START doctoc generated TOC please keep comment here to allow auto update -->
-<!-- DON'T EDIT THIS SECTION, INSTEAD RE-RUN doctoc TO UPDATE -->
-
-- [Installation](#installation)
+- [Getting started](#getting-started)
 - [Example configuration](#example-configuration)
 - [Documentation](#documentation)
 - [Configuration tips](#configuration-tips)
 - [Alternatives](#alternatives)
 - [Building Finicky from source](#building-finicky-from-source)
-- [Current status of Finicky development](#current-status-of-finicky-development)
 - [License](#license)
 
-<!-- END doctoc generated TOC please keep comment here to allow auto update -->
+## Getting started
 
-## Installation
+Download from [releases](https://github.com/johnste/finicky/releases)
 
-1. Installation alternatives:
-
-You have to build it from source currently.
+Finicky 3.4.0 is the latest stable release and should work for most use cases. Finicky 4 is under active development and available as prereleases. Note that these releases are actively being developed and can prove to be unstable and may contain bugs.
 
 ## Example configuration
 
-⚠️ This configuration example is for Finicky 4+ (currently in alpha). Refer to [the wiki](https://github.com/johnste/finicky/wiki/Configuration) for Finicky 3 examples.
 ```js
 // ~/.finicky.js
 export default {
@@ -102,13 +94,10 @@ If you are looking for something that lets you pick the browser to activate in a
 
 If you'd like to build Finicky from source:
 
-```sh
-./scripts/build.sh
-```
-
-## Current status of Finicky development
-
-I am currently working on the next version of Finicky, rewritten in Go.
+1. Install Go 1.23.4
+2. Install Node 22
+3. Install dependencies in `config-api` (`npm install`)
+4. Run `./scripts/build.sh` from base folder
 
 ### Questions
 
