@@ -33,6 +33,8 @@ Download from [releases](https://github.com/johnste/finicky/releases)
 
 Finicky 3.4.0 is the latest stable release and should work for most use cases. Finicky 4 is under active development and available as prereleases. Note that these releases are actively being developed and can prove to be unstable and may contain bugs.
 
+Finicky 4+ should work in MacOS 12+
+
 ## Example configuration
 
 ```js
