@@ -254,7 +254,6 @@ h1 span {
 }
 
 .log-level-debug {
-  white-space: pre;
   color: var(--log-debug);
   &::before {
     content: "🚧 ";

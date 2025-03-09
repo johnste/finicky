@@ -167,7 +167,7 @@ func checkForUpdates() {
 	if !lastCheck.IsZero() {
 		timeSinceLastCheck := time.Since(lastCheck)
 		if timeSinceLastCheck < updateCheckInterval {
-			slog.Debug("Skipping update check - last checked", "duration", fmt.Sprintf("%d minutes", int(timeSinceLastCheck.Minutes())))
+			slog.Debug("Skipping update check - last checked", "duration", fmt.Sprintf("%dh %dm ago (check interval: %dh)", int(timeSinceLastCheck.Hours()), int(timeSinceLastCheck.Minutes())%60, int(updateCheckInterval.Hours())))
 			return
 		}
 	}
