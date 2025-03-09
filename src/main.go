@@ -75,12 +75,9 @@ func main() {
 
 	dryRun = *dryRunPtr
 
-	if currentVersion := version.GetCurrentVersion(); currentVersion != "" {
-		commitHash, buildDate := version.GetBuildInfo()
-		slog.Info("Starting Finicky", "version", currentVersion, "buildDate", buildDate, "commitHash", commitHash)
-	} else {
-		slog.Info("Starting Finicky")
-	}
+	currentVersion := version.GetCurrentVersion();
+	commitHash, buildDate := version.GetBuildInfo()
+	slog.Info("Starting Finicky", "version", currentVersion, "buildDate", buildDate, "commitHash", commitHash)
 
 	go func() {
 		is_default_browser, err := setDefaultBrowser()
@@ -272,9 +269,7 @@ func ShowTheMainWindow(err error) {
 
 	// Send version information
 	currentVersion := version.GetCurrentVersion()
-	if currentVersion != "" {
-		window.SendMessageToWebView("version", currentVersion)
-	}
+	window.SendMessageToWebView("version", currentVersion)
 
 	// Send all buffered logs
 	bufferedLogs := logger.GetBufferedLogs()

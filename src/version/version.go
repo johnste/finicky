@@ -138,7 +138,7 @@ func GetCurrentVersion() string {
 			slog.Error("Error getting executable path", "error", err)
 			return ""
 		}
-		// Assuming the standard macOS app bundle structure
+
 		bundlePath = filepath.Join(filepath.Dir(execPath), "..", "Info.plist")
 	}
 
@@ -150,7 +150,14 @@ func GetCurrentVersion() string {
 		return ""
 	}
 
-	return strings.TrimSpace(string(output))
+	version := strings.TrimSpace(string(output))
+
+	if version == "" {
+		slog.Error("Could not determine current version")
+		return "dev"
+	}
+
+	return version
 }
 
 func checkForUpdates() {

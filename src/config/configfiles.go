@@ -20,20 +20,24 @@ type ConfigFileWatcher struct {
 	customConfigPath  string
 	namespace         string
 	configChangeNotify chan struct{}
+
+	// Cache manager
+	cache *ConfigCache
 }
 
 // NewConfigFileWatcher creates a new file watcher for configuration files
 func NewConfigFileWatcher(customConfigPath string, namespace string, configChangeNotify chan struct{}) (*ConfigFileWatcher, error) {
 	watcher, err := fsnotify.NewWatcher()
 	if err != nil {
-		return nil, fmt.Errorf("failed to create file watcher: %v", err)
+		return nil, err
 	}
 
 	cfw := &ConfigFileWatcher{
-		watcher:           watcher,
-		customConfigPath:  customConfigPath,
-		namespace:         namespace,
+		watcher:          watcher,
+		customConfigPath: customConfigPath,
+		namespace:        namespace,
 		configChangeNotify: configChangeNotify,
+		cache:            NewConfigCache(),
 	}
 
 	go cfw.StartWatching()
@@ -94,13 +98,24 @@ func (cfw *ConfigFileWatcher) BundleConfig() (string, error) {
 		return "", err
 	}
 
-	err = cfw.babelTransform(configPath)
+	// Check if we can use cached bundle
+	if bundlePath, cacheHit := cfw.cache.GetCachedBundle(configPath); cacheHit {
+		return bundlePath, nil
+	}
+
+	// Apply babel transformation
+	transformedPath, err := cfw.babelTransform(configPath)
 	if err != nil {
 		return "", err
 	}
 
+	// Use the transformed path for bundling
+	configPath = transformedPath
+
 	slog.Debug("Bundling config")
-	bundlePath := os.TempDir() + "/finicky_output.js"
+
+	// Use a deterministic filename to help with caching
+	bundlePath := GetBundlePath(configPath)
 
 	result := api.Build(api.BuildOptions{
 		EntryPoints: []string{configPath},
@@ -121,17 +136,30 @@ func (cfw *ConfigFileWatcher) BundleConfig() (string, error) {
 		}
 		return "", fmt.Errorf("build errors: %s", strings.Join(errorTexts, ", "))
 	}
+
+	// Update cache
+	originalConfigPath, err := cfw.GetConfigPath(false)
+	if err == nil {
+		cfw.cache.UpdateCache(originalConfigPath, bundlePath)
+	}
+
 	return bundlePath, nil
 }
 
-func (cfw *ConfigFileWatcher) babelTransform(configPath string) (error) {
-
+func (cfw *ConfigFileWatcher) babelTransform(configPath string) (string, error) {
 	startTime := time.Now()
 	slog.Debug("Transforming config with babel")
 
+	// Check if we need to transform (only if it's a .js or .mjs file)
+	ext := filepath.Ext(configPath)
+	if ext != ".js" && ext != ".mjs" {
+		slog.Debug("Skipping babel transform for non-JS file", "path", configPath)
+		return configPath, nil
+	}
+
 	configBytes, err := os.ReadFile(configPath)
 	if err != nil {
-		return fmt.Errorf("error reading config file: %w", err)
+		return "", fmt.Errorf("error reading config file: %w", err)
 	}
 	configString := string(configBytes)
 
@@ -141,31 +169,39 @@ func (cfw *ConfigFileWatcher) babelTransform(configPath string) (error) {
 			"transform-named-capturing-groups-regex",
 		},
 	})
+
 	if err != nil {
-		slog.Error("Babel error", "error", err)
+		return "", err
 	}
 
 	resBytes, err := io.ReadAll(res)
 	if err != nil {
-		return err
+		return "", err
 	}
 	resString := string(resBytes)
 
-	tempFile, err := os.CreateTemp("", "finicky_babel_*.js")
+	// Get a deterministic path for the transformed file
+	transformedPath := GetTransformedPath(configString)
+
+	// Check if transformed file already exists
+	if _, err := os.Stat(transformedPath); err == nil {
+		slog.Debug("Using existing transformed file", "path", transformedPath)
+		return transformedPath, nil
+	}
+
+	// Write to the persistent location
+	err = os.WriteFile(transformedPath, []byte(resString), 0644)
 	if err != nil {
-		return fmt.Errorf("error creating temp file: %w", err)
-	}
-	defer tempFile.Close()
-
-	if _, err := tempFile.WriteString(resString); err != nil {
-		return fmt.Errorf("error writing to temp file: %w", err)
+		return "", fmt.Errorf("error writing to transform file: %w", err)
 	}
 
-	configPath = tempFile.Name()
-	slog.Debug("Saved babel output", "path", configPath)
-
+	slog.Debug("Saved babel output", "path", transformedPath)
 	slog.Debug("Babel transform complete", "duration", fmt.Sprintf("%.2fms", float64(time.Since(startTime).Microseconds())/1000))
-	return nil
+
+	// Clean up old transformed files
+	CleanupOldFiles("transform", transformedPath)
+
+	return transformedPath, nil
 }
 
 func (cfw *ConfigFileWatcher) StartWatching() (error) {
@@ -207,7 +243,6 @@ func (cfw *ConfigFileWatcher) StartWatching() (error) {
 						return fmt.Errorf("watcher closed")
 					}
 
-
 					if event.Has(fsnotify.Create) || event.Has(fsnotify.Write) {
 						// Check if the event path matches any of our config paths
 						eventName := event.Name
@@ -226,16 +261,10 @@ func (cfw *ConfigFileWatcher) StartWatching() (error) {
 
 						detectedCreation = true
 
-						if event.Has(fsnotify.Create) {
-							slog.Debug("Configuration file created", "path", event.Name)
+						err := cfw.handleConfigFileEvent(event)
+						if err != nil {
+							return err
 						}
-						if event.Has(fsnotify.Write) {
-							slog.Debug("Configuration file changed", "path", event.Name)
-						}
-
-						// Add a small delay to avoid rapid reloading
-						time.Sleep(500 * time.Millisecond)
-						cfw.configChangeNotify <- struct{}{}
 
 						for folder := range uniqueFolders {
 							if err := cfw.watcher.Remove(folder); err != nil {
@@ -252,8 +281,6 @@ func (cfw *ConfigFileWatcher) StartWatching() (error) {
 				}
 			}
 
-
-
 		} else {
 			slog.Debug("Watching config file", "path", configPath)
 
@@ -264,17 +291,9 @@ func (cfw *ConfigFileWatcher) StartWatching() (error) {
 				if !ok {
 					return fmt.Errorf("watcher closed")
 				}
-				if event.Has(fsnotify.Write) {
-					slog.Debug("Configuration file changed")
-					// Add a small delay to avoid rapid reloading
-					time.Sleep(500 * time.Millisecond)
-					cfw.configChangeNotify <- struct{}{}
-				}
-
-				if event.Has(fsnotify.Remove) {
-					slog.Debug("Configuration file removed", "path", event.Name)
-					cfw.configChangeNotify <- struct{}{}
-					return fmt.Errorf("configuration file removed")
+				err := cfw.handleConfigFileEvent(event)
+				if err != nil {
+					return err
 				}
 			case err, ok := <-cfw.watcher.Errors:
 				if !ok {
@@ -282,9 +301,35 @@ func (cfw *ConfigFileWatcher) StartWatching() (error) {
 				}
 				slog.Debug("error:", "error", err)
 			}
-
 		}
-
 	}
+	// Unreachable - infinite loop above. Added for completeness only.
+	// return nil
+}
+
+// handleConfigFileEvent processes configuration file events and takes appropriate actions
+// Returns an error if the configuration file was removed
+func (cfw *ConfigFileWatcher) handleConfigFileEvent(event fsnotify.Event) error {
+	if event.Has(fsnotify.Create) {
+		slog.Debug("Configuration file created", "path", event.Name)
+	}
+
+	if event.Has(fsnotify.Write) {
+		slog.Debug("Configuration file changed", "path", event.Name)
+		// Clear the cache when config changes
+		cfw.cache.Clear()
+	}
+
+	if event.Has(fsnotify.Remove) {
+		slog.Debug("Configuration file removed", "path", event.Name)
+		// Clear the cache when config is removed
+		cfw.cache.Clear()
+		cfw.configChangeNotify <- struct{}{}
+		return fmt.Errorf("configuration file removed")
+	}
+
+	// Add a small delay to avoid rapid reloading
+	time.Sleep(500 * time.Millisecond)
+	cfw.configChangeNotify <- struct{}{}
 	return nil
 }
