@@ -81,6 +81,10 @@ describe("openUrl", () => {
           match: (url: URL) => url.href.includes("shortened"),
           url: (url: URL) => url.href + "/expanded",
         },
+        {
+          match: (url: URL) => url.href.includes("use-url-object"),
+          url: (url: URL) => new URL("https://example.com"),
+        },
       ],
     };
 
@@ -96,6 +100,10 @@ describe("openUrl", () => {
       {
         input: "https://my.shortened.url/123",
         expectedUrl: "https://my.shortened.url/123/expanded",
+      },
+      {
+        input: "https://www.use-url-object.com",
+        expectedUrl: "https://example.com/",
       },
     ];
 
