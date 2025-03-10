@@ -239,8 +239,8 @@ function rewriteUrl(
   }
 
   // Convert URL to FinickyURL if it's not already one
-  if (url instanceof URL) {
-    return new FinickyURL(url.href, options.opener || null);
+  if (rewrite instanceof URL) {
+    return new FinickyURL(rewrite.href, options.opener || null);
   }
 
   if (isLegacyURLObject(rewrite)) {
