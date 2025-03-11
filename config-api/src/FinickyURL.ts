@@ -16,14 +16,14 @@ export class FinickyURL extends URL {
 
   get urlString(): string {
     console.warn(
-      'Accessing legacy property "urlString" that is no longer supported. Please use the URL object\'s href property directly instead. See https://developer.mozilla.org/en-US/docs/Web/API/URL for reference.'
+      'Accessing legacy property "urlString" that is no longer supported. This first argument to the function is a URL instance, you should be able to use its href property directly instead. See https://developer.mozilla.org/en-US/docs/Web/API/URL for reference.'
     );
     return this.href;
   }
 
   get url(): LegacyURLObject {
     console.warn(
-      'Accessing legacy property "url" that is no longer supported. Please use the URL object directly instead, which is a standardized interface for handling URLs. https://developer.mozilla.org/en-US/docs/Web/API/URL'
+      'Accessing legacy property "url" that is no longer supported. This first argument to the function is a URL instance, a standard interface for URLs. https://developer.mozilla.org/en-US/docs/Web/API/URL'
     );
     return URLtoLegacyURLObject(this);
   }
