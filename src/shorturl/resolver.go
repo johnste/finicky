@@ -79,7 +79,7 @@ func ResolveURL(originalURL string) (string, error) {
 
 	resp, err := client.Do(req)
 	if err != nil {
-		return originalURL, fmt.Errorf("failed to make request: %v", err)
+		slog.Debug("Failed to make HEAD request", "url", originalURL, "error", err)
 	}
 	defer resp.Body.Close()
 
