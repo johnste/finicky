@@ -158,7 +158,7 @@ func resolveBrowserProfileArgument(identifier string, profile string) (string, b
 			localStatePath := filepath.Join(homeDir, "Library/Application Support", matchedBrowser.ConfigDirRelative, "Local State")
 			profilePath, ok := parseProfiles(localStatePath, profile)
 			if ok {
-				return "--profile-directory=\"" + profilePath + "\"", true
+				return "--profile-directory=" + profilePath, true
 			}
 		default:
 			slog.Info("Browser is not a Chromium browser, skipping profile detection", "identifier", identifier)
