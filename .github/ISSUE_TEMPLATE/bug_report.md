@@ -7,6 +7,8 @@ assignees: ''
 
 ---
 
+⚠️ Please note that only Finicky 4 is being actively developed and maintained, bugs in Finicky 3 and below won't be fixed
+
 **Describe the bug**
 A clear and concise description of what the bug is.
 
