@@ -10,6 +10,8 @@ import (
 	"os/exec"
 	"path/filepath"
 	"strings"
+
+	"al.essio.dev/pkg/shellescape"
 )
 
 //go:embed browsers.json
@@ -73,11 +75,14 @@ func LaunchBrowser(config BrowserConfig, dryRun bool) error {
 
 	cmd := exec.Command("open", openArgs...)
 
+	// Pretty print the command with proper escaping
+	prettyCmd := formatCommand(cmd.Path, cmd.Args)
+
 	if dryRun {
-		slog.Debug("Would run command (dry run)", "command", cmd.String())
+		slog.Debug("Would run command (dry run)", "command", prettyCmd)
 		return nil
 	} else {
-		slog.Debug("Run command", "command", cmd.String())
+		slog.Debug("Run command", "command", prettyCmd)
 	}
 
 	stderr, err := cmd.StderrPipe()
@@ -237,4 +242,18 @@ func parseProfiles(localStatePath string, profile string) (string, bool) {
 	slog.Warn("Could not find profile in browser profiles.", "Expected profile", profile, "Available profiles", strings.Join(profileNames, ", "))
 
 	return "", false
+}
+
+// formatCommand returns a properly shell-escaped string representation of the command
+func formatCommand(path string, args []string) string {
+	if len(args) == 0 {
+		return shellescape.Quote(path)
+	}
+
+	quotedArgs := make([]string, len(args))
+	for i, arg := range args {
+		quotedArgs[i] = shellescape.Quote(arg)
+	}
+
+	return strings.Join(quotedArgs, " ")
 }
