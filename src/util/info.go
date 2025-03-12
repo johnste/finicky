@@ -7,11 +7,12 @@ package util
 #include "info.h"
 */
 import "C"
+import "log/slog"
 
 // GetModifierKeys returns the current state of modifier keys
 func GetModifierKeys() map[string]bool {
 	keys := C.getModifierKeys()
-	return map[string]bool{
+	result := map[string]bool{
 		"shift":    bool(keys.shift),
 		"option":   bool(keys.option),
 		"command":  bool(keys.command),
@@ -20,6 +21,15 @@ func GetModifierKeys() map[string]bool {
 		"fn":       bool(keys.fn),
 		"function":	bool(keys.fn),
 	}
+	args := []any{}
+	for k, v := range result {
+		if k == "function" {
+			continue
+		}
+		args = append(args, k, v)
+	}
+	slog.Debug("Modifier keys state", args...)
+	return result
 }
 
 // GetSystemInfo returns system information
