@@ -17,6 +17,7 @@ extern void QueueWindowDisplay(int launchedByUser);
     @property (nonatomic) BOOL forceOpenWindow;
     - (instancetype)initWithForceOpenWindow:(BOOL)forceOpenWindow;
     - (void)handleGetURLEvent:(NSAppleEventDescriptor *) event withReplyEvent:(NSAppleEventDescriptor *)replyEvent;
+    - (BOOL)application:(NSApplication *)sender openFile:(NSString *)filename;
 @end
 #endif
 

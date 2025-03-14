@@ -34,6 +34,19 @@
                     forEventClass:kInternetEventClass andEventID:kAEGetURL];
 }
 
+- (BOOL)application:(NSApplication *)sender openFile:(NSString *)filename {
+    NSLog(@"Opening file: %@", filename);
+
+    // Convert the file path to a file:// URL
+    NSURL *fileURL = [NSURL fileURLWithPath:filename];
+    NSString *urlString = [fileURL absoluteString];
+
+    // Handle the file URL the same way we handle other URLs
+    HandleURL((char*)[urlString UTF8String], NULL, NULL, NULL);
+
+    return YES;
+}
+
 - (void)handleGetURLEvent:(NSAppleEventDescriptor *)event
         withReplyEvent:(NSAppleEventDescriptor *)replyEvent {
 

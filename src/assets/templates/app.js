@@ -34,7 +34,7 @@ document.addEventListener("DOMContentLoaded", function () {
 
 // Function to convert text with URLs to elements with clickable links
 function convertUrlsToLinks(container, text) {
-  const urlRegex = /(https?:\/\/[^\s]+)/g;
+  const urlRegex = /((https?|file):\/\/[^\s]+)/g;
 
   if (!urlRegex.test(text)) {
     container.textContent = text;

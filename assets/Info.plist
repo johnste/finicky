@@ -40,5 +40,36 @@
     </array>
     <key>LSMinimumSystemVersion</key>
     <string>12.0</string>
+    <key>CFBundleDocumentTypes</key>
+    <array>
+      <dict>
+        <key>CFBundleTypeIconFile</key>
+        <string>finicky</string>
+        <key>CFBundleTypeName</key>
+        <string>HTML Document</string>
+        <key>CFBundleTypeRole</key>
+        <string>Viewer</string>
+        <key>LSTypeIsPackage</key>
+        <integer>0</integer>
+        <key>LSItemContentTypes</key>
+        <array>
+          <string>public.html</string>
+        </array>
+      </dict>
+      <dict>
+        <key>CFBundleTypeIconFile</key>
+        <string>finicky</string>
+        <key>CFBundleTypeName</key>
+        <string>XHTML document</string>
+        <key>CFBundleTypeRole</key>
+        <string>Viewer</string>
+        <key>LSTypeIsPackage</key>
+        <integer>0</integer>
+        <key>LSItemContentTypes</key>
+        <array>
+          <string>public.xhtml</string>
+        </array>
+      </dict>
+    </array>
   </dict>
 </plist>
