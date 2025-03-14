@@ -219,7 +219,16 @@ func evaluateURL(vm *goja.Runtime, url string, opener *ProcessInfo) (*browser.Br
 
 
 	vm.Set("url", resolvedURL)
-	vm.Set("opener", opener)
+
+	if opener != nil {
+		vm.Set("opener", map[string]interface{}{
+			"name":     opener.Name,
+			"bundleId": opener.BundleID,
+			"path":     opener.Path,
+		})
+	} else {
+		vm.Set("opener", nil)
+	}
 
 	openResult, err := vm.RunString("finickyConfigAPI.openUrl(url, opener, finalConfig)")
 	if err != nil {
