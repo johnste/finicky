@@ -154,7 +154,7 @@ function resolveBrowserInfo(
 }
 
 function resolveBrowser(
-  browser: BrowserPattern,
+  browser: BrowserSpecification,
   url: URL | FinickyURL,
   options: OpenUrlOptions
 ): BrowserConfigStrict {
@@ -175,7 +175,7 @@ function resolveBrowser(
   }
 
   try {
-    BrowserPatternSchema.parse(config);
+    BrowserSpecificationSchema.parse(config);
 
     const browserConfig = createBrowserConfig(config);
     const finalConfig = { ...browserConfig, url: url.href };
@@ -221,7 +221,7 @@ function autodetectAppStringType(app: string | null): AppType {
 }
 
 function rewriteUrl(
-  rewrite: UrlPattern,
+  rewrite: UrlTransformSpecification,
   url: URL | FinickyURL,
   options: OpenUrlOptions
 ): FinickyURL {

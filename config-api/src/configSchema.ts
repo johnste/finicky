@@ -1,4 +1,17 @@
-import { z } from "zod";
+import { z, ZodType } from "zod";
+
+/**
+ *  Define a default implementation of the identifier and overrideTypeNode methods for ZodType if it doesn't exist
+ *  It is defined by @duplojs/zod-to-typescript and used to generate the type definitions, but
+ *  it is not available in the zod library itself.
+ */
+ZodType.prototype.identifier ??= function () {
+  return this;
+};
+
+ZodType.prototype.overrideTypeNode ??= function () {
+  return this;
+};
 
 const NativeUrlSchema = z
   .instanceof(URL)
