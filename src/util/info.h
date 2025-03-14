@@ -17,7 +17,14 @@ typedef struct {
     const char* name;
 } SystemInfo;
 
+typedef struct {
+    bool isConnected;
+    bool isCharging;
+    int percentage;
+} PowerInfo;
+
 ModifierKeys getModifierKeys(void);
 SystemInfo getSystemInfo(void);
+PowerInfo getPowerInfo(void);
 
 #endif /* INFO_H */

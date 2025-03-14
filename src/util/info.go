@@ -2,9 +2,10 @@ package util
 
 /*
 #cgo CFLAGS: -x objective-c
-#cgo LDFLAGS: -framework Cocoa -framework CoreServices
+#cgo LDFLAGS: -framework Cocoa -framework CoreServices -framework IOKit
 #include <stdlib.h>
 #include "info.h"
+// PowerInfo struct and getPowerInfo function for power status
 */
 import "C"
 import "log/slog"
@@ -38,5 +39,28 @@ func GetSystemInfo() map[string]string {
 	return map[string]string{
 		"localizedName": C.GoString(info.localizedName),
 		"name":          C.GoString(info.name),
+	}
+}
+
+// GetPowerInfo returns power and battery status information
+func GetPowerInfo() map[string]interface{} {
+	info := C.getPowerInfo()
+
+	percentage := int(info.percentage)
+
+	if percentage == -1 {
+		slog.Debug("Power info", "isCharging", info.isCharging, "isConnected", info.isConnected, "percentage", nil)
+		return map[string]interface{}{
+			"isCharging":   bool(info.isCharging),
+			"isConnected": bool(info.isConnected),
+			"percentage":  nil,
+		}
+	}
+
+	slog.Debug("Power info", "isCharging", info.isCharging, "isConnected", info.isConnected, "percentage", info.percentage)
+	return map[string]interface{}{
+		"isCharging":   bool(info.isCharging),
+		"isConnected": bool(info.isConnected),
+		"percentage":  percentage,
 	}
 }

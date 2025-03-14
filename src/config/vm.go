@@ -87,6 +87,7 @@ func (vm *VM) setup(embeddedFiles embed.FS, bundlePath string) error {
 	// Set system-specific functions
 	vm.SetModifierKeysFunc(util.GetModifierKeys)
 	vm.SetSystemInfoFunc(util.GetSystemInfo)
+	vm.SetPowerInfoFunc(util.GetPowerInfo)
 
 	return nil
 }
@@ -123,4 +124,10 @@ func (vm *VM) SetModifierKeysFunc(fn func() map[string]bool) {
 func (vm *VM) SetSystemInfoFunc(fn func() map[string]string) {
 	finicky := vm.runtime.Get("finicky").ToObject(vm.runtime)
 	finicky.Set("getSystemInfo", fn)
+}
+
+// SetPowerInfoFunc sets the getPowerInfo function in the VM
+func (vm *VM) SetPowerInfoFunc(fn func() map[string]interface{}) {
+	finicky := vm.runtime.Get("finicky").ToObject(vm.runtime)
+	finicky.Set("getPowerInfo", fn)
 }

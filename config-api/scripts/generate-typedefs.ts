@@ -25,6 +25,11 @@ interface FinickyUtils {
         localizedName: string;
         name: string;
     };
+    getPowerInfo: () => {
+        isCharging: boolean;
+        isConnected: boolean;
+        percentage: number | null;
+    };
 }
 
 declare global {
