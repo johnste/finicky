@@ -71,7 +71,8 @@ const BrowserConfigSchema = z
     profile: z.string().optional(),
     args: z.array(z.string()).optional(),
   })
-  .identifier("BrowserConfig");
+  .identifier("BrowserConfig")
+  .describe("A browser or app to open for urls");
 
 export const BrowserConfigStrictSchema = z.object({
   name: z.string(),
@@ -92,34 +93,75 @@ export const BrowserSpecificationSchema = z
   .identifier("BrowserSpecification");
 
 // ===== Rule Schemas =====
-const RewriteRuleSchema = z.object({
-  match: UrlMatcherPatternSchema,
-  url: UrlTransformSpecificationSchema,
-});
+const RewriteRuleSchema = z
+  .object({
+    match: UrlMatcherPatternSchema,
+    url: UrlTransformSpecificationSchema,
+  })
+  .describe(
+    "A rewrite rule contains a matcher and a url. If the matcher matches when opening a url, the url will be rewritten to the returnedurl in the rewrite rule."
+  );
 
-const HandlerRuleSchema = z.object({
-  match: UrlMatcherPatternSchema,
-  browser: BrowserSpecificationSchema,
-});
+const HandlerRuleSchema = z
+  .object({
+    match: UrlMatcherPatternSchema,
+    browser: BrowserSpecificationSchema,
+  })
+  .describe(
+    "A handler contains a matcher and a browser. If the matcher matches when opening a url, the browser in the handler will be opened."
+  );
 
 // ===== Configuration Schemas =====
 const ConfigOptionsSchema = z
   .object({
     urlShorteners: z.array(z.string()).optional(),
-    logRequests: z.boolean().optional(),
-    checkForUpdates: z.boolean().optional(),
+    logRequests: z.boolean().optional().describe("Log to file on disk"),
+    checkForUpdates: z.boolean().optional().describe("Check for updates"),
   })
   .identifier("ConfigOptions");
 
 /**
  * @internal - don't export this schema as a type
  */
-export const ConfigSchema = z.object({
-  defaultBrowser: BrowserSpecificationSchema,
-  options: ConfigOptionsSchema.optional(),
-  rewrite: z.array(RewriteRuleSchema).optional(),
-  handlers: z.array(HandlerRuleSchema).optional(),
-});
+export const ConfigSchema = z
+  .object({
+    defaultBrowser: BrowserSpecificationSchema.describe(
+      "The default browser or app to open for urls where no other handler"
+    ),
+    options: ConfigOptionsSchema.optional(),
+    rewrite: z
+      .array(RewriteRuleSchema)
+      .optional()
+      .describe(
+        "An array of rewriter rules that can change the url being opened"
+      ),
+    handlers: z
+      .array(HandlerRuleSchema)
+      .optional()
+      .describe(
+        "An array of handlers to select which browser or app to open for urls"
+      ),
+  })
+  .describe(
+    `
+  This represents the full \`~/.finicky.js\` configuration object
+
+  Example usage:
+
+  \`\`\`js
+   export default = {
+     defaultBrowser: "Google Chrome",
+     options: {
+       hideIcon: false
+     },
+     handlers: [{
+       match: "example.com*",
+       browser: "Firefox"
+     }]
+   }
+  \`\`\`
+`
+  );
 
 export type UrlTransformSpecification = z.infer<
   typeof UrlTransformSpecificationSchema
