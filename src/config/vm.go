@@ -62,7 +62,7 @@ func (vm *VM) setup(embeddedFiles embed.FS, bundlePath string) error {
 
 	if content != nil {
 		if _, err = vm.runtime.RunString(string(content)); err != nil {
-			return fmt.Errorf("failed to run config script: %v", err)
+			return fmt.Errorf("error while running config script: %v", err)
 		}
 	} else {
 		vm.runtime.Set(vm.namespace, map[string]interface{}{})
