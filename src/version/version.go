@@ -246,7 +246,7 @@ func checkForUpdates() {
 
 	// Compare versions using semantic versioning
 	if compareSemver(latestVersion, currentVersion) > 0 {
-		slog.Info("New version is available", "latestVersion", latestVersion, "currentVersion", currentVersion)
+		slog.Info("New version is available", "latestVersion", latestVersion, "currentVersion", currentVersion, "downloadUrl", "https://github.com/johnste/finicky/releases/tag/" + latestRelease.TagName)
 		// TODO: Implement update notification mechanism
 	} else {
 		slog.Info("You are running the latest version")
