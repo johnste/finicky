@@ -61,8 +61,11 @@ func (cfw *ConfigFileWatcher) GetConfigPaths() []string {
 	} else {
 		configPaths = append(configPaths,
 			"$HOME/.finicky.js",
+			"$HOME/.finicky.ts",
 			"$HOME/.config/finicky.js",
+			"$HOME/.config/finicky.ts",
 			"$HOME/.config/finicky/finicky.js",
+			"$HOME/.config/finicky/finicky.ts",
 		)
 	}
 

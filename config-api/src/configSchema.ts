@@ -113,7 +113,8 @@ const RewriteRuleSchema = z
   })
   .describe(
     "A rewrite rule contains a matcher and a url. If the matcher matches when opening a url, the url will be rewritten to the returnedurl in the rewrite rule."
-  );
+  )
+  .identifier("UrlRewriteRule");
 
 const HandlerRuleSchema = z
   .object({
@@ -122,7 +123,8 @@ const HandlerRuleSchema = z
   })
   .describe(
     "A handler contains a matcher and a browser. If the matcher matches when opening a url, the browser in the handler will be opened."
-  );
+  )
+  .identifier("BrowserHandler");
 
 // ===== Configuration Schemas =====
 const ConfigOptionsSchema = z
@@ -165,7 +167,7 @@ export const ConfigSchema = z
    export default = {
      defaultBrowser: "Google Chrome",
      options: {
-       hideIcon: false
+       logRequests: false
      },
      handlers: [{
        match: "example.com*",
