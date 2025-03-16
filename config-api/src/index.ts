@@ -114,7 +114,7 @@ export function openUrl(
   };
 }
 
-function createBrowserConfig(
+export function createBrowserConfig(
   browser: string | BrowserConfig | null
 ): Omit<BrowserConfigStrict, "url"> {
   const defaults = {
@@ -144,7 +144,7 @@ function createBrowserConfig(
   return { ...defaults, ...browser };
 }
 
-function resolveBrowserInfo(
+export function resolveBrowserInfo(
   browser: string
 ): Pick<BrowserConfigStrict, "name" | "appType" | "profile"> {
   const [name, profile] = browser.split(":");
@@ -153,7 +153,7 @@ function resolveBrowserInfo(
   return { name, appType, profile: profile || "" };
 }
 
-function resolveBrowser(
+export function resolveBrowser(
   browser: BrowserSpecification,
   url: URL | FinickyURL,
   options: OpenUrlOptions
@@ -196,7 +196,7 @@ function resolveBrowser(
   }
 }
 
-function autodetectAppStringType(app: string | null): AppType {
+export function autodetectAppStringType(app: string | null): AppType {
   let appType: AppType = "appName";
 
   if (app === null) {
@@ -220,7 +220,7 @@ function autodetectAppStringType(app: string | null): AppType {
   return appType;
 }
 
-function rewriteUrl(
+export function rewriteUrl(
   rewrite: UrlTransformSpecification,
   url: URL | FinickyURL,
   options: OpenUrlOptions
@@ -253,7 +253,7 @@ function rewriteUrl(
   return url as FinickyURL;
 }
 
-function isMatch(
+export function isMatch(
   match: UrlMatcherPattern,
   url: URL | FinickyURL,
   options: OpenUrlOptions
