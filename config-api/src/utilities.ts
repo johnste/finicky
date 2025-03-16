@@ -36,3 +36,21 @@ export function matchDomains(matchers: Matcher | Matcher[]) {
   );
   return matchHostnames(matchers);
 }
+
+export function getBattery() {
+  console.error(
+    "finicky.getBattery is unavailable. Use finicky.getPowerInfo instead. Returning dummy values."
+  );
+  return {
+    isCharging: false,
+    isPluggedIn: false,
+    chargePercentage: 0,
+  };
+}
+
+export function notify() {
+  console.error(
+    "finicky.notify is unavailable. Use console.log, console.warn or console.error instead."
+  );
+  return undefined;
+}
