@@ -1,5 +1,5 @@
 {
-  "source": ["./build/Finicky.app"],
+  "source": ["./apps/finicky/build/Finicky.app"],
   "bundle_id": "se.johnste.finicky",
   "apple_id": {
     "username": "john@johnste.se"

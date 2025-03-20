@@ -30,7 +30,7 @@ func New(embeddedFiles embed.FS, namespace string, bundlePath string) (*VM, erro
 }
 
 func (vm *VM) setup(embeddedFiles embed.FS, bundlePath string) error {
-	apiContent, err := embeddedFiles.ReadFile("build/finickyConfigAPI.js")
+	apiContent, err := embeddedFiles.ReadFile("assets/finickyConfigAPI.js")
 	if err != nil {
 		return fmt.Errorf("failed to read bundled file: %v", err)
 	}

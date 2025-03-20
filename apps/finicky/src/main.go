@@ -28,7 +28,7 @@ import (
 	"github.com/dop251/goja"
 )
 
-//go:embed build/finickyConfigAPI.js
+//go:embed assets/finickyConfigAPI.js
 var embeddedFiles embed.FS
 
 type ProcessInfo struct {

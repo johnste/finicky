@@ -1,7 +1,7 @@
 {
   "scripts": {
     "check-types": "tsc --noEmit",
-    "build": "esbuild --global-name=finickyConfigAPI --bundle src/index.ts --outfile=../src/build/finickyConfigAPI.js --target=es2015 --format=iife --log-level=error --external:typescript --external:@types/* --tree-shaking=true",
+    "build": "esbuild --global-name=finickyConfigAPI --bundle src/index.ts --outfile=dist/finickyConfigAPI.js --target=es2015 --format=iife --log-level=error --external:typescript --external:@types/* --tree-shaking=true",
     "generate-types": "node --experimental-strip-types ./scripts/generate-typedefs.ts",
     "test": "vitest"
   },
