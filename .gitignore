@@ -1,7 +1,6 @@
 .DS_Store
 node_modules
 build
-finicky.d.ts
 .env
 dist
-test
+example-config

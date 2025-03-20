@@ -39,4 +39,4 @@ declare global {
 export ${tsType}
 `;
 
-fs.writeFileSync("../assets/Resources/finicky.d.ts", output, "utf-8");
+fs.writeFileSync("./dist/finicky.d.ts", output, "utf-8");

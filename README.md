@@ -98,8 +98,8 @@ If you'd like to build Finicky from source:
 
 1. Install Go 1.23.4
 2. Install Node 22
-3. Install dependencies in `config-api` (`npm install`)
-4. Run `./scripts/build.sh` from base folder
+3. Run `./scripts/install.sh` from base folder to install dependencies
+4. Run `./scripts/build.sh` from base folder to build Finicky
 
 ### Questions
 
