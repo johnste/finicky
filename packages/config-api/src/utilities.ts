@@ -1,6 +1,6 @@
 type Matcher = string | RegExp;
 
-export function matchHostnames(matchers: Matcher | Matcher[]) {
+export function matchHostnames(matchers: Matcher | Array<Matcher>) {
   matchers = Array.isArray(matchers) ? matchers : [matchers];
 
   matchers.forEach((matcher) => {
@@ -18,7 +18,7 @@ export function matchHostnames(matchers: Matcher | Matcher[]) {
       return false;
     }
 
-    return (matchers as Matcher[]).some((matcher) => {
+    return (matchers as Array<Matcher>).some((matcher) => {
       if (matcher instanceof RegExp) {
         return matcher.test(hostname);
       } else if (typeof matcher === "string") {
@@ -30,7 +30,7 @@ export function matchHostnames(matchers: Matcher | Matcher[]) {
   };
 }
 
-export function matchDomains(matchers: Matcher | Matcher[]) {
+export function matchDomains(matchers: Matcher | Array<Matcher>) {
   console.warn(
     "finicky.matchDomains is deprecated. Use finicky.matchHostnames instead."
   );
