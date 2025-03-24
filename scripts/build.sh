@@ -18,8 +18,7 @@ set -e
 # Build finicky-ui
 (
     cd packages/finicky-ui
-    mkdir -p dist/templates
-    cp -r templates/* dist/templates
+    npm run build
 
     # Copy finicky-ui dist to finicky
     cd ../../
@@ -28,7 +27,7 @@ set -e
     mkdir -p apps/finicky/src/assets/templates
 
     # Copy templates from dist to finicky app
-    cp -r packages/finicky-ui/dist/templates/* apps/finicky/src/assets/templates
+    cp -r packages/finicky-ui/dist/* apps/finicky/src/assets/templates
 )
 
 # Build the application
