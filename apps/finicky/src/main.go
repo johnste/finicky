@@ -77,7 +77,8 @@ func main() {
 
 	currentVersion := version.GetCurrentVersion();
 	commitHash, buildDate := version.GetBuildInfo()
-	slog.Info("Starting Finicky", "version", currentVersion, "buildDate", buildDate, "commitHash", commitHash)
+	slog.Info("Starting Finicky", "version", currentVersion)
+	slog.Debug("Build info", "buildDate", buildDate, "commitHash", commitHash)
 
 	go func() {
 		is_default_browser, err := setDefaultBrowser()
@@ -226,8 +227,10 @@ func evaluateURL(vm *goja.Runtime, url string, opener *ProcessInfo) (*browser.Br
 			"bundleId": opener.BundleID,
 			"path":     opener.Path,
 		})
+		slog.Debug("Setting opener", "name", opener.Name, "bundleId", opener.BundleID, "path", opener.Path)
 	} else {
 		vm.Set("opener", nil)
+		slog.Debug("No opener detected")
 	}
 
 	openResult, err := vm.RunString("finickyConfigAPI.openUrl(url, opener, finalConfig)")
