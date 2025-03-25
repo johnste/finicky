@@ -65,7 +65,7 @@ func SetupFile(shouldLog bool) error {
 
 
 	if !shouldLog {
-		Setup()
+		// FIXME: We should recreate the logger if the file logging options has been changed while the app is running
 		return nil
 	}
 
