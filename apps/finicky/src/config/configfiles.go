@@ -130,6 +130,10 @@ func (cfw *ConfigFileWatcher) BundleConfig() (string, error) {
 		Target:      api.ES2015,
 		Format:      api.FormatIIFE,
 		GlobalName:  cfw.namespace,
+		Loader: map[string]api.Loader{
+			".ts.symlink": api.LoaderTS,
+			".js.symlink": api.LoaderJS,
+		},
 	})
 
 	if len(result.Errors) > 0 {
