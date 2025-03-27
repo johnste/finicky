@@ -75,6 +75,7 @@ void SetFileContentWithLength(const char* path, const char* content, size_t leng
     [window setTitle:@"Finicky"];
     [window center];
     [window setReleasedWhenClosed:NO];
+    [window setBackgroundColor:[NSColor colorWithCalibratedWhite:0.1 alpha:1.0]];
 
     // Configure WKWebView
     WKWebViewConfiguration *config = [[WKWebViewConfiguration alloc] init];
@@ -85,6 +86,8 @@ void SetFileContentWithLength(const char* path, const char* content, size_t leng
     webView = [[WKWebView alloc] initWithFrame:window.contentView.bounds configuration:config];
     webView.autoresizingMask = NSViewWidthSizable | NSViewHeightSizable;
     webView.navigationDelegate = self;
+    webView.wantsLayer = YES;
+    webView.layer.backgroundColor = [NSColor colorWithCalibratedWhite:0.1 alpha:1.0].CGColor;
 
     [webView.configuration.preferences setValue:@YES forKey:@"developerExtrasEnabled"];
 
