@@ -1,28 +1,28 @@
 <script lang="ts">
-  import type { LogEntry } from '../types';
-  import { formatLogEntry } from '../utils/text';
+  import type { LogEntry } from "../types";
+  import { formatLogEntry } from "../utils/text";
 
   export let messageBuffer: LogEntry[] = [];
   export let showDebug = true;
 
   let logContent: HTMLElement;
-
 </script>
 
-<ol
-  class="log-content"
-  bind:this={logContent}
->
+<ol class="log-content" bind:this={logContent}>
   {#each messageBuffer as entry (entry.time)}
-    {#if showDebug || entry.level.toLowerCase() !== 'debug'}
+    {#if showDebug || entry.level.toLowerCase() !== "debug"}
       <li class="log-entry">
         <span class="log-time" title={entry.time}>
           {new Date(entry.time).toLocaleTimeString()}
         </span>
+        <span class="log-level-icon log-level-{entry.level.toLowerCase()}"
+        ></span>
         <div class="log-message log-level-{entry.level.toLowerCase()}">
           {#each formatLogEntry(entry) as part}
-            {#if part.type === 'url'}
-              <a href={part.content} target="_blank" rel="noopener noreferrer">{part.content}</a>
+            {#if part.type === "url"}
+              <a href={part.content} target="_blank" rel="noopener noreferrer"
+                >{part.content}</a
+              >
             {:else}
               {part.content}
             {/if}
@@ -39,11 +39,12 @@
     margin: 0;
     padding: 12px;
     overflow-y: auto;
-    font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+    font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas,
+      monospace;
     line-height: 1.4;
     color: var(--text-primary);
     flex: 1;
-    min-height: 0;
+    overflow: auto;
   }
 
   .log-entry {
@@ -51,12 +52,18 @@
     justify-content: flex-start;
     gap: 1em;
     margin-bottom: 4px;
+    align-items: flex-start;
   }
 
   .log-time {
     color: var(--text-secondary);
     white-space: nowrap;
     font-size: 0.9em;
+  }
+
+  .log-level-icon {
+    width: 1.5em;
+    text-align: center;
   }
 
   .log-message {
@@ -67,26 +74,26 @@
 
   .log-level-error {
     color: var(--log-error);
-
-    &::before {
-      content: "❌ ";
-    }
   }
 
   .log-level-warn {
     color: var(--log-warning);
-
-    &::before {
-      content: "⚠️ ";
-    }
   }
 
   .log-level-debug {
     color: var(--log-debug);
+  }
 
-    &::before {
-      content: "🔍 ";
-    }
+  .log-level-icon.log-level-error::before {
+    content: "❌";
+  }
+
+  .log-level-icon.log-level-warn::before {
+    content: "⚠️";
+  }
+
+  .log-level-icon.log-level-debug::before {
+    content: "🔍";
   }
 
   :global(.log-message a) {

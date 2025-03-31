@@ -15,6 +15,13 @@ type VM struct {
 	namespace string
 }
 
+// ConfigState represents the current state of the configuration
+type ConfigState struct {
+	Handlers       int16  `json:"handlers"`
+	Rewrites       int16  `json:"rewrites"`
+	DefaultBrowser string `json:"defaultBrowser"`
+}
+
 func New(embeddedFiles embed.FS, namespace string, bundlePath string) (*VM, error) {
 	vm := &VM{
 		runtime:          goja.New(),
@@ -108,6 +115,27 @@ func (vm *VM) ShouldLogToFile(hasError bool) bool {
 	return logRequests.ToBoolean()
 }
 
+func (vm *VM) GetConfigState() *ConfigState {
+	state, err := vm.runtime.RunString("finickyConfigAPI.getConfigState(finalConfig)")
+	if err != nil {
+		slog.Error("Failed to get config state", "error", err)
+		return nil
+	}
+
+	// Convert the JavaScript object to a Go struct
+	stateObj := state.ToObject(vm.runtime)
+
+	// Extract values from the JavaScript object
+	handlers := stateObj.Get("handlers").ToInteger()
+	rewrites := stateObj.Get("rewrites").ToInteger()
+	defaultBrowser := stateObj.Get("defaultBrowser").String()
+
+	return &ConfigState{
+		Handlers:       int16(handlers),
+		Rewrites:       int16(rewrites),
+		DefaultBrowser: defaultBrowser,
+	}
+}
 
 // Runtime returns the underlying goja.Runtime
 func (vm *VM) Runtime() *goja.Runtime {

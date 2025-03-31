@@ -1,46 +1,49 @@
 <script lang="ts">
-  import type { LogEntry } from '../types';
-  import LogContent from './LogContent.svelte';
+  import type { LogEntry } from "../types";
+  import LogContent from "./LogContent.svelte";
 
   export let messageBuffer: LogEntry[] = [];
 
-  let showDebug = true;
-  let copyButtonText = 'Copy Logs';
+  let showDebug = false;
+  let copyButtonText = "Copy Logs";
   let isCopied = false;
 
   // Copy logs to clipboard
   async function copyLogs() {
     const logEntries = messageBuffer
-      .filter(entry => showDebug || entry.level.toLowerCase() !== 'debug')
-      .map(entry => {
+      .filter((entry) => showDebug || entry.level.toLowerCase() !== "debug")
+      .map((entry) => {
         const time = new Date(entry.time).toISOString();
         const baseMessage = `[${time}] [${entry.level.padEnd(5)}] ${entry.msg}`;
 
         // Get all extra fields (excluding level, msg, time, error)
         const extraFields = Object.entries(entry)
-          .filter(([key]: [string, any]) => !['level', 'msg', 'time', 'error'].includes(key))
+          .filter(
+            ([key]: [string, any]) =>
+              !["level", "msg", "time", "error"].includes(key)
+          )
           .map(([key, value]: [string, any]) => `${key}: ${value}`)
-          .join(' | ');
+          .join(" | ");
 
         // Combine base message with extra fields and error if present
         const parts = [baseMessage];
         if (extraFields) parts.push(extraFields);
         if (entry.error) parts.push(`Error: ${entry.error}`);
 
-        return parts.join(' | ');
+        return parts.join(" | ");
       })
-      .join('\n');
+      .join("\n");
 
     try {
       await navigator.clipboard.writeText(logEntries);
-      copyButtonText = 'Copied!';
+      copyButtonText = "Copied!";
       isCopied = true;
       setTimeout(() => {
-        copyButtonText = 'Copy Logs';
+        copyButtonText = "Copy Logs";
         isCopied = false;
       }, 2000);
     } catch (err) {
-      console.error('Failed to copy logs:', err);
+      console.error("Failed to copy logs:", err);
     }
   }
 
@@ -53,6 +56,11 @@
   function toggleDebug() {
     showDebug = !showDebug;
   }
+
+  // Toggle debug mode
+  function toggleDebugMode(isEnabled: boolean) {
+    showDebug = isEnabled;
+  }
 </script>
 
 <div class="log-window">
@@ -60,14 +68,16 @@
     <h2>Logs</h2>
     <div class="log-header-buttons">
       <button class:active={showDebug} on:click={toggleDebug}>
-        {showDebug ? 'Hide Debug' : 'Show Debug'}
+        {showDebug ? "Hide Debug" : "Show Debug"}
       </button>
       <button on:click={clearLogs}>Clear</button>
-      <button class:copied={isCopied} on:click={copyLogs}>{copyButtonText}</button>
+      <button class:copied={isCopied} on:click={copyLogs}
+        >{copyButtonText}</button
+      >
     </div>
   </div>
 
-  <LogContent {messageBuffer} {showDebug}/>
+  <LogContent {messageBuffer} {showDebug} />
 </div>
 
 <style>
@@ -78,7 +88,6 @@
     overflow: hidden;
     display: flex;
     flex-direction: column;
-    height: 100%;
   }
 
   .log-header {
@@ -98,6 +107,7 @@
     .log-header-buttons {
       display: flex;
       gap: 8px;
+      align-items: center;
     }
 
     button {

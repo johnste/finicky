@@ -21,3 +21,9 @@ declare global {
     };
   }
 }
+
+export interface UpdateInfo {
+  version: string;
+  hasUpdate: boolean;
+  updateCheckEnabled: boolean;
+}

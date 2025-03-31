@@ -82,10 +82,10 @@ func CloseWindow() {
 	C.CloseWindow()
 }
 
-func SendMessageToWebView(messageType string, message string) {
+func SendMessageToWebView(messageType string, message interface{}) {
 	jsonMsg := struct {
-		Type    string `json:"type"`
-		Message string `json:"message"`
+		Type    string      `json:"type"`
+		Message interface{} `json:"message"`
 	}{
 		Type:    messageType,
 		Message: message,
@@ -96,8 +96,7 @@ func SendMessageToWebView(messageType string, message string) {
 		return
 	}
 
-	message = string(jsonBytes)
-	cMessage := C.CString(message)
+	cMessage := C.CString(string(jsonBytes))
 	defer C.free(unsafe.Pointer(cMessage))
 	C.SendMessageToWebView(cMessage)
 }

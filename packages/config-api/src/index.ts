@@ -67,6 +67,17 @@ export function getOption(
     : undefined;
 }
 
+export function getConfigState(config: Config) {
+  return {
+    handlers: config.handlers?.length || 0,
+    rewrites: config.rewrite?.length || 0,
+    defaultBrowser:
+      resolveBrowser(config.defaultBrowser, new URL("https://example.com"), {
+        opener: null,
+      })?.name || "None",
+  };
+}
+
 export function openUrl(
   urlString: string,
   opener: ProcessInfo | null,

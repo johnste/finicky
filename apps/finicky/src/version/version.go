@@ -25,6 +25,11 @@ type GithubRelease struct {
 	Draft      bool   `json:"draft"`
 }
 
+type UpdateCheckInfo struct {
+	Timestamp   int64  `json:"timestamp"`
+	LastRelease string `json:"lastRelease"`
+}
+
 var (
 	// These will be set via ldflags during build
 	commitHash = "dev"
@@ -95,37 +100,46 @@ func getCacheDir() string {
 	return cacheDir
 }
 
-func getLastUpdateCheck() time.Time {
+func getLastUpdateCheck() UpdateCheckInfo {
 	cacheDir := getCacheDir()
 	if cacheDir == "" {
-		return time.Time{}
+		return UpdateCheckInfo{}
 	}
 
 	cacheFile := filepath.Join(cacheDir, "last_update_check")
 	data, err := os.ReadFile(cacheFile)
 	if err != nil {
-		// If file doesn't exist or can't be read, return zero time
-		return time.Time{}
+		// If file doesn't exist or can't be read, return zero value
+		return UpdateCheckInfo{}
 	}
 
-	timestamp, err := strconv.ParseInt(strings.TrimSpace(string(data)), 10, 64)
-	if err != nil {
-		return time.Time{}
+	var info UpdateCheckInfo
+	if err := json.Unmarshal(data, &info); err != nil {
+		// Try to handle old format for backward compatibility
+		if timestamp, err := strconv.ParseInt(strings.TrimSpace(string(data)), 10, 64); err == nil {
+			return UpdateCheckInfo{Timestamp: timestamp}
+		}
+		return UpdateCheckInfo{}
 	}
 
-	return time.Unix(timestamp, 0)
+	return info
 }
 
-func setLastUpdateCheck(t time.Time) {
+func setLastUpdateCheck(info UpdateCheckInfo) {
 	cacheDir := getCacheDir()
 	if cacheDir == "" {
 		return
 	}
 
+	data, err := json.Marshal(info)
+	if err != nil {
+		slog.Error("Error marshaling update check info", "error", err)
+		return
+	}
+
 	cacheFile := filepath.Join(cacheDir, "last_update_check")
-	timestamp := fmt.Sprintf("%d", t.Unix())
-	if err := os.WriteFile(cacheFile, []byte(timestamp), 0644); err != nil {
-		slog.Error("Error saving last update check time", "error", err)
+	if err := os.WriteFile(cacheFile, data, 0644); err != nil {
+		slog.Error("Error saving last update check info", "error", err)
 	}
 }
 
@@ -160,25 +174,26 @@ func GetCurrentVersion() string {
 	return version
 }
 
-func checkForUpdates() {
-	slog.Debug("Checking update schedule...")
-
-	lastCheck := getLastUpdateCheck()
-	if !lastCheck.IsZero() {
-		timeSinceLastCheck := time.Since(lastCheck)
-		if timeSinceLastCheck < updateCheckInterval {
-			slog.Debug("Skipping update check - last checked", "duration", fmt.Sprintf("%dh %dm ago (check interval: %dh)", int(timeSinceLastCheck.Hours()), int(timeSinceLastCheck.Minutes())%60, int(updateCheckInterval.Hours())))
-			return
-		}
-	}
-
-	slog.Info("Checking for updates...")
+func checkForUpdates() (hasUpdate bool, version string) {
 	currentVersion := GetCurrentVersion()
 	if currentVersion == "" {
 		slog.Info("Could not determine current version")
 		return
 	}
 	slog.Info("Current version", "version", currentVersion)
+
+	slog.Debug("Checking update schedule...")
+
+	lastCheck := getLastUpdateCheck()
+	if lastCheck.Timestamp > 0 {
+		timeSinceLastCheck := time.Since(time.Unix(lastCheck.Timestamp, 0))
+		if timeSinceLastCheck < updateCheckInterval {
+			slog.Debug("Skipping update check - last checked", "duration", fmt.Sprintf("%dh %dm ago (check interval: %dh)", int(timeSinceLastCheck.Hours()), int(timeSinceLastCheck.Minutes())%60, int(updateCheckInterval.Hours())))
+			return compareSemver(lastCheck.LastRelease, currentVersion) > 0, lastCheck.LastRelease
+		}
+	}
+
+	slog.Info("Checking for updates...")
 
 	// Create HTTP client with timeout
 	client := &http.Client{
@@ -244,37 +259,45 @@ func checkForUpdates() {
 
 	slog.Debug("Latest version available", "version", latestVersion)
 
+	// Update the last check time
+	setLastUpdateCheck(UpdateCheckInfo{
+		Timestamp:   time.Now().Unix(),
+		LastRelease: latestRelease.TagName,
+	})
+
+
 	// Compare versions using semantic versioning
 	if compareSemver(latestVersion, currentVersion) > 0 {
-		slog.Info("New version is available", "latestVersion", latestVersion, "currentVersion", currentVersion, "downloadUrl", "https://github.com/johnste/finicky/releases/tag/" + latestRelease.TagName)
+		slog.Info("New version is available", "latestVersion", latestVersion, "currentVersion", currentVersion, "downloadUrl", "https://github.com/johnste/finicky/releases/tag/"+latestRelease.TagName)
 		// TODO: Implement update notification mechanism
+		return true, latestVersion
 	} else {
 		slog.Info("You are running the latest version")
+		return false, ""
 	}
 
-	// Update the last check time
-	setLastUpdateCheck(time.Now())
 }
 
-// CheckForUpdatesFromConfig checks if updates should be performed based on VM configuration
-func CheckForUpdatesFromConfig(vm *goja.Runtime) error {
+// CheckForUpdatesIfEnabled checks if updates should be performed based on VM configuration
+func CheckForUpdatesIfEnabled(vm *goja.Runtime) (hasUpdate bool, version string, updateCheckEnabled bool, err error) {
 
 	if vm == nil {
 		// Check for updates if we don't have a VM
-		checkForUpdates()
-		return nil
+		hasUpdate, version = checkForUpdates()
+		return hasUpdate, version, true, nil
 	}
 
 	// Check checkForUpdates option
 	shouldCheckForUpdates, err := vm.RunString("finickyConfigAPI.getOption('checkForUpdates', finalConfig)")
 	if err != nil {
-		return fmt.Errorf("failed to get checkForUpdates option: %v", err)
+		return false, "", true, fmt.Errorf("failed to get checkForUpdates option: %v", err)
 	}
 
 	if shouldCheckForUpdates.ToBoolean() {
-		checkForUpdates()
+		hasUpdate, version := checkForUpdates()
+		return hasUpdate, version, true, nil
 	} else {
 		slog.Debug("Skipping update check")
 	}
-	return nil
+	return false, "", false, nil
 }

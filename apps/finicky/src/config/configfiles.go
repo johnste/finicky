@@ -94,34 +94,31 @@ func (cfw *ConfigFileWatcher) GetConfigPath(log bool) (string, error) {
 	return "", fmt.Errorf("no config file found in any of these locations: %s", strings.Join(configPaths, ", "))
 }
 
-func (cfw *ConfigFileWatcher) BundleConfig() (string, error) {
+func (cfw *ConfigFileWatcher) BundleConfig() (string, string, error) {
 	configPath, err := cfw.GetConfigPath(true)
 
 	if (configPath == "" || err != nil) {
-		return "", err
+		return "", "", err
 	}
 
 	// Check if we can use cached bundle
 	if bundlePath, cacheHit := cfw.cache.GetCachedBundle(configPath); cacheHit {
-		return bundlePath, nil
+		return bundlePath, configPath, nil
 	}
 
 	// Apply babel transformation
 	transformedPath, err := cfw.babelTransform(configPath)
 	if err != nil {
-		return "", err
+		return "", configPath, err
 	}
-
-	// Use the transformed path for bundling
-	configPath = transformedPath
 
 	slog.Debug("Bundling config")
 
 	// Use a deterministic filename to help with caching
-	bundlePath := GetBundlePath(configPath)
+	bundlePath := GetBundlePath(transformedPath)
 
 	result := api.Build(api.BuildOptions{
-		EntryPoints: []string{configPath},
+		EntryPoints: []string{transformedPath},
 		Outfile:     bundlePath,
 		Bundle:      true,
 		Write:       true,
@@ -141,7 +138,7 @@ func (cfw *ConfigFileWatcher) BundleConfig() (string, error) {
 		for _, err := range result.Errors {
 			errorTexts = append(errorTexts, err.Text)
 		}
-		return "", fmt.Errorf("build errors: %s", strings.Join(errorTexts, ", "))
+		return "", configPath, fmt.Errorf("build errors: %s", strings.Join(errorTexts, ", "))
 	}
 
 	// Update cache
@@ -150,7 +147,7 @@ func (cfw *ConfigFileWatcher) BundleConfig() (string, error) {
 		cfw.cache.UpdateCache(originalConfigPath, bundlePath)
 	}
 
-	return bundlePath, nil
+	return bundlePath, configPath, nil
 }
 
 func (cfw *ConfigFileWatcher) babelTransform(configPath string) (string, error) {

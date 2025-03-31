@@ -37,9 +37,22 @@ type ProcessInfo struct {
 	Path     string `json:"path"`
 }
 
+type UpdateInfo struct {
+	HasUpdate bool
+	Version   string
+	UpdateCheckEnabled bool
+}
+
 type URLInfo struct {
 	URL    string
 	Opener *ProcessInfo
+}
+
+type ConfigInfo struct {
+	Handlers int16
+	Rewrites int16
+	DefaultBrowser string
+	ConfigPath string
 }
 
 // FIXME: Clean up app global stae
@@ -51,6 +64,9 @@ var forceWindowOpen int32 = 0
 var queueWindowOpen chan bool = make(chan bool)
 var lastError error
 var dryRun bool = false
+var updateInfo UpdateInfo
+var configInfo *ConfigInfo
+var currentConfigState *config.ConfigState
 
 func main() {
 	startTime := time.Now()
@@ -162,6 +178,24 @@ func main() {
 					handleRuntimeError(setupErr)
 				}
 				slog.Debug("VM refresh complete", "duration", fmt.Sprintf("%.2fms", float64(time.Since(startTime).Microseconds())/1000))
+				if configInfo != nil {
+					if setupErr == nil {
+						window.SendMessageToWebView("config", map[string]interface{}{
+							"handlers": configInfo.Handlers,
+							"rewrites": configInfo.Rewrites,
+							"defaultBrowser": configInfo.DefaultBrowser,
+							"configPath": configInfo.ConfigPath,
+						})
+					} else {
+						window.SendMessageToWebView("config", map[string]interface{}{
+							"handlers": 0,
+							"rewrites": 0,
+							"defaultBrowser": "",
+							"configPath": configInfo.ConfigPath,
+						})
+					}
+
+				}
 
 			case shouldShowWindow := <-queueWindowOpen:
 				if !showingWindow && shouldShowWindow {
@@ -282,6 +316,20 @@ func ShowTheMainWindow(err error) {
 	// Send version information
 	currentVersion := version.GetCurrentVersion()
 	window.SendMessageToWebView("version", currentVersion)
+	window.SendMessageToWebView("updateInfo", map[string]interface{}{
+		"version": updateInfo.Version,
+		"hasUpdate": updateInfo.HasUpdate,
+		"updateCheckEnabled": updateInfo.UpdateCheckEnabled,
+	})
+
+	if configInfo != nil {
+		window.SendMessageToWebView("config", map[string]interface{}{
+			"handlers": configInfo.Handlers,
+			"rewrites": configInfo.Rewrites,
+			"defaultBrowser": configInfo.DefaultBrowser,
+			"configPath": configInfo.ConfigPath,
+		})
+	}
 
 	// Send all buffered logs
 	bufferedLogs := logger.GetBufferedLogs()
@@ -307,8 +355,20 @@ func checkForUpdates() {
 		runtime = vm.Runtime()
 	}
 
-	if err := version.CheckForUpdatesFromConfig(runtime); err != nil {
+	hasUpdate, version, updateCheckEnabled, err := version.CheckForUpdatesIfEnabled(runtime)
+	if err != nil {
 		slog.Error("Error checking for updates", "error", err)
+	}
+
+	updateInfo = UpdateInfo{
+		HasUpdate: hasUpdate,
+		Version:   version,
+		UpdateCheckEnabled: updateCheckEnabled,
+	}
+
+	if hasUpdate {
+		slog.Info("New version is available", "version", version)
+
 	}
 }
 
@@ -329,20 +389,32 @@ func setupVM(cfw *config.ConfigFileWatcher, embeddedFS embed.FS, namespace strin
 		}
 	}()
 
-	var bundlePath string
-	bundlePath, err = cfw.BundleConfig()
+	currentBundlePath, configPath, err := cfw.BundleConfig()
+
 	if err != nil {
 		return nil, fmt.Errorf("failed to read config: %v", err)
 	}
 
-	if bundlePath != "" {
-		vm, err := config.New(embeddedFS, namespace, bundlePath)
+	if currentBundlePath != "" {
+		vm, err := config.New(embeddedFS, namespace, currentBundlePath)
 		if err != nil {
 			return nil, fmt.Errorf("failed to setup VM: %v", err)
 		}
 
 		// Update logging preference based on VM if available
 		shouldLogToFile = vm.ShouldLogToFile(false)
+
+		currentConfigState = vm.GetConfigState()
+
+		if currentConfigState != nil {
+			configInfo = &ConfigInfo{
+				Handlers:       currentConfigState.Handlers,
+				Rewrites:      currentConfigState.Rewrites,
+				DefaultBrowser: currentConfigState.DefaultBrowser,
+				ConfigPath:     configPath,
+			}
+		}
+
 		return vm, nil
 	}
 
