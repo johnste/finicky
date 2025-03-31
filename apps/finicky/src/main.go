@@ -411,7 +411,7 @@ func setupVM(cfw *config.ConfigFileWatcher, embeddedFS embed.FS, namespace strin
 				Handlers:       currentConfigState.Handlers,
 				Rewrites:      currentConfigState.Rewrites,
 				DefaultBrowser: currentConfigState.DefaultBrowser,
-				ConfigPath:     configPath,
+				ConfigPath:     strings.Replace(configPath, os.Getenv("HOME"), "~", 1),
 			}
 		}
 

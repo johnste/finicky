@@ -8,6 +8,7 @@ import (
 	"log/slog"
 	"os"
 	"path/filepath"
+	"strings"
 	"time"
 )
 
@@ -88,7 +89,7 @@ func SetupFile(shouldLog bool) error {
 		return fmt.Errorf("failed to open log file: %v", err)
 	}
 
-	slog.Info("Log file created", "path", logFile)
+	slog.Info("Log file created", "path", strings.Replace(logFile, os.Getenv("HOME"), "~", 1))
 
 	// Write buffered logs to file
 	if _, err := file.Write(memLog.Bytes()); err != nil {

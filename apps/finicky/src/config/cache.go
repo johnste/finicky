@@ -60,7 +60,7 @@ func (cc *ConfigCache) GetCachedBundle(configPath string) (string, bool) {
 		if err == nil && !fileInfo.ModTime().After(cc.cachedModTime) {
 			// Verify bundled file still exists
 			if _, err := os.Stat(cc.cachedBundlePath); err == nil {
-				slog.Debug("Using cached bundled config", "path", cc.cachedBundlePath, "version", cc.appVersion)
+				slog.Debug("Using cached bundled config", "path", strings.Replace(cc.cachedBundlePath, os.Getenv("HOME"), "~", 1), "version", cc.appVersion)
 				return cc.cachedBundlePath, true
 			} else {
 				slog.Debug("Cached bundle file no longer exists, rebundling")
@@ -137,8 +137,8 @@ func (cc *ConfigCache) loadCache() {
 		cc.cachedBundlePath = cacheData.BundlePath
 		cc.cachedModTime = cacheData.ModTime
 		slog.Debug("Loaded config cache",
-			"configPath", cacheData.ConfigPath,
-			"bundlePath", cacheData.BundlePath,
+			"configPath", strings.Replace(cacheData.ConfigPath, os.Getenv("HOME"), "~", 1),
+			"bundlePath",  strings.Replace(cacheData.BundlePath, os.Getenv("HOME"), "~", 1),
 			"version", cacheData.AppVersion)
 	}
 }

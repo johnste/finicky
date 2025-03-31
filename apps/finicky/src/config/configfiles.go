@@ -83,7 +83,7 @@ func (cfw *ConfigFileWatcher) GetConfigPath(log bool) (string, error) {
 	for _, path := range configPaths {
 		if _, err := os.Stat(path); err == nil {
 			if log {
-				slog.Info("Using config file", "path", path)
+				slog.Info("Using config file", "path", strings.Replace(path, os.Getenv("HOME"), "~", 1))
 			}
 			return path, nil
 		}
@@ -286,7 +286,7 @@ func (cfw *ConfigFileWatcher) StartWatching() (error) {
 			}
 
 		} else {
-			slog.Debug("Watching config file", "path", configPath)
+			slog.Debug("Watching config file", "path", strings.Replace(configPath, os.Getenv("HOME"), "~", 1))
 
 			cfw.watcher.Add(configPath)
 
