@@ -51,17 +51,11 @@
             download.
           </p>
           <p>
-            <a
-              href="https://github.com/johnste/finicky/releases/latest"
-              target="_blank"
-            >
+            <a href={updateInfo.releaseUrl} target="_blank">
               View release notes
             </a>
             <br />
-            <a
-              href="https://github.com/johnste/finicky/releases"
-              target="_blank"
-            >
+            <a href={updateInfo.downloadUrl} target="_blank">
               Download the latest version
             </a>
           </p>

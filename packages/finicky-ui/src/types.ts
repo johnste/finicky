@@ -26,4 +26,6 @@ export interface UpdateInfo {
   version: string;
   hasUpdate: boolean;
   updateCheckEnabled: boolean;
+  downloadUrl: string;
+  releaseUrl: string;
 }

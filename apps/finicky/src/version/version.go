@@ -15,11 +15,13 @@ import (
 	"github.com/dop251/goja"
 )
 
-const updateCheckInterval = 0 * time.Hour
+const updateCheckInterval = 24 * time.Hour
 
 type ReleaseInfo struct {
 	HasUpdate	bool	`json:"hasUpdate"`
 	LatestVersion	string	`json:"latestVersion"`
+	DownloadUrl	string	`json:"downloadUrl"`
+	ReleaseUrl	string	`json:"releaseUrl"`
 }
 
 type UpdateCheckInfo struct {
@@ -153,7 +155,7 @@ func checkForUpdates() (releaseInfo *ReleaseInfo) {
 	}
 
 	// Create request
-	apiUrl := fmt.Sprintf("%s/update-check?version=%s&currentVersion=%s", apiHost, currentVersion, currentVersion)
+	apiUrl := fmt.Sprintf("%s/update-check?version=v0.3.1-alpha&currentVersion=%s", apiHost, currentVersion)
 	req, err := http.NewRequest("GET", apiUrl, nil)
 	if err != nil {
 		slog.Error("Error creating request", "error", err)
@@ -183,8 +185,6 @@ func checkForUpdates() (releaseInfo *ReleaseInfo) {
 		slog.Error("Error parsing release info", "error", err, "response", string(body))
 		return nil
 	}
-
-	slog.Debug("Latest version available", "version", releaseInfo)
 
 	// Update the last check time
 	setLastUpdateCheck(UpdateCheckInfo{

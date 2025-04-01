@@ -316,19 +316,21 @@ func ShowTheMainWindow(err error) {
 	currentVersion := version.GetCurrentVersion()
 	window.SendMessageToWebView("version", currentVersion)
 
-
-	slog.Debug("Update info", "updateInfo", updateInfo, "releaseInfo", updateInfo.ReleaseInfo)
 	if updateInfo.ReleaseInfo != nil {
 		window.SendMessageToWebView("updateInfo", map[string]interface{}{
 			"version": updateInfo.ReleaseInfo.LatestVersion,
 			"hasUpdate": updateInfo.ReleaseInfo.HasUpdate,
 			"updateCheckEnabled": updateInfo.UpdateCheckEnabled,
+			"downloadUrl": updateInfo.ReleaseInfo.DownloadUrl,
+			"releaseUrl": updateInfo.ReleaseInfo.ReleaseUrl,
 		})
 	} else {
 		window.SendMessageToWebView("updateInfo", map[string]interface{}{
 			"version": "",
 			"hasUpdate": false,
 			"updateCheckEnabled": updateInfo.UpdateCheckEnabled,
+			"downloadUrl": "",
+			"releaseUrl": "",
 		})
 	}
 
