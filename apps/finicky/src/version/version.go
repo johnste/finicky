@@ -180,7 +180,7 @@ func checkForUpdates() (hasUpdate bool, version string) {
 		slog.Info("Could not determine current version")
 		return
 	}
-	slog.Info("Current version", "version", currentVersion)
+
 
 	slog.Debug("Checking update schedule...")
 

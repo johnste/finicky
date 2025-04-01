@@ -19,10 +19,7 @@
 
   // Configuration state
   let hasConfig = false;
-  let handlerCount = 0;
-  let rewriteCount = 0;
-  let defaultBrowser = "";
-  let configPath = "";
+  let config: { configPath: string } = { configPath: "" };
   // Initialize message buffer
   let messageBuffer: LogEntry[] = [];
   let updateInfo: UpdateInfo | null = null;
@@ -46,11 +43,7 @@
       case "config":
         hasConfig = true;
         if (parsedMsg.message) {
-          const config = parsedMsg.message;
-          handlerCount = config.handlers || 0;
-          rewriteCount = config.rewrites || 0;
-          defaultBrowser = config.defaultBrowser || "";
-          configPath = config.configPath || "";
+          config = parsedMsg.message;
         }
         break;
 
@@ -99,11 +92,8 @@
         <Route path="/">
           <StartPage
             {hasConfig}
-            {handlerCount}
-            {rewriteCount}
-            {defaultBrowser}
             {updateInfo}
-            {configPath}
+            configPath={config.configPath}
             {numErrors}
           />
         </Route>

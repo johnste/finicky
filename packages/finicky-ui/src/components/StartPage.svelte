@@ -4,10 +4,7 @@
 
   export let hasConfig: boolean;
   export let numErrors: number;
-  export let handlerCount: number;
-  export let rewriteCount: number;
   export let configPath: string;
-  export let defaultBrowser: string;
   export let updateInfo: UpdateInfo | null;
 </script>
 
@@ -15,11 +12,8 @@
   <div class="status-section">
     {#if hasConfig}
       <div class="status-card success">
-        <h3>Configuration Status</h3>
+        <h3>Loaded Configuration</h3>
         <ul>
-          <li>Handlers: {handlerCount}</li>
-          <li>Rewrites: {rewriteCount}</li>
-          <li>Default Browser: {defaultBrowser || "Not set"}</li>
           <li>Config Path: {configPath || "Not set"}</li>
         </ul>
       </div>
@@ -106,7 +100,7 @@
     padding: 20px;
     border-radius: 12px;
     text-align: left;
-    background: var(--bg-secondary);
+    background: var(--log-bg);
     box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
     transition:
       transform 0.2s ease,
@@ -147,7 +141,7 @@
   }
 
   .success {
-    background: linear-gradient(to right, rgba(76, 175, 80, 0.05), transparent);
+    border: 1px solid #4caf50;
   }
 
   .success h3::before {
@@ -155,7 +149,7 @@
   }
 
   .warning {
-    background: linear-gradient(to right, rgba(255, 193, 7, 0.05), transparent);
+    border: 1px solid #ffc107;
   }
 
   .warning h3::before {
@@ -163,7 +157,7 @@
   }
 
   .error {
-    background: linear-gradient(to right, rgba(244, 67, 54, 0.05), transparent);
+    border: 1px solid #f44336;
   }
 
   .error h3::before {
