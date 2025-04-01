@@ -38,8 +38,7 @@ type ProcessInfo struct {
 }
 
 type UpdateInfo struct {
-	HasUpdate bool
-	Version   string
+	ReleaseInfo *version.ReleaseInfo
 	UpdateCheckEnabled bool
 }
 
@@ -316,11 +315,22 @@ func ShowTheMainWindow(err error) {
 	// Send version information
 	currentVersion := version.GetCurrentVersion()
 	window.SendMessageToWebView("version", currentVersion)
-	window.SendMessageToWebView("updateInfo", map[string]interface{}{
-		"version": updateInfo.Version,
-		"hasUpdate": updateInfo.HasUpdate,
-		"updateCheckEnabled": updateInfo.UpdateCheckEnabled,
-	})
+
+
+	slog.Debug("Update info", "updateInfo", updateInfo, "releaseInfo", updateInfo.ReleaseInfo)
+	if updateInfo.ReleaseInfo != nil {
+		window.SendMessageToWebView("updateInfo", map[string]interface{}{
+			"version": updateInfo.ReleaseInfo.LatestVersion,
+			"hasUpdate": updateInfo.ReleaseInfo.HasUpdate,
+			"updateCheckEnabled": updateInfo.UpdateCheckEnabled,
+		})
+	} else {
+		window.SendMessageToWebView("updateInfo", map[string]interface{}{
+			"version": "",
+			"hasUpdate": false,
+			"updateCheckEnabled": updateInfo.UpdateCheckEnabled,
+		})
+	}
 
 	if configInfo != nil {
 		window.SendMessageToWebView("config", map[string]interface{}{
@@ -355,20 +365,18 @@ func checkForUpdates() {
 		runtime = vm.Runtime()
 	}
 
-	hasUpdate, version, updateCheckEnabled, err := version.CheckForUpdatesIfEnabled(runtime)
+	releaseInfo, updateCheckEnabled, err := version.CheckForUpdatesIfEnabled(runtime)
 	if err != nil {
 		slog.Error("Error checking for updates", "error", err)
 	}
 
 	updateInfo = UpdateInfo{
-		HasUpdate: hasUpdate,
-		Version:   version,
+		ReleaseInfo: releaseInfo,
 		UpdateCheckEnabled: updateCheckEnabled,
 	}
 
-	if hasUpdate {
-		slog.Info("New version is available", "version", version)
-
+	if updateInfo.ReleaseInfo != nil && updateInfo.ReleaseInfo.HasUpdate {
+		slog.Info("New version is available", "version", updateInfo.ReleaseInfo.LatestVersion)
 	}
 }
 

@@ -35,6 +35,7 @@ set -e
     # Get build information
     COMMIT_HASH=$(git rev-parse --short HEAD)
     BUILD_DATE=$(date -u '+%Y-%m-%d %H:%M:%S UTC')
+    API_HOST=$(cat .env | grep API_HOST | cut -d '=' -f 2)
 
     export CGO_CFLAGS="-mmacosx-version-min=12.0"
     export CGO_LDFLAGS="-mmacosx-version-min=12.0"
@@ -43,7 +44,10 @@ set -e
     mkdir -p build/Finicky.app/Contents/MacOS
     mkdir -p build/Finicky.app/Contents/Resources
     go build -C src \
-        -ldflags "-X 'finicky/version.commitHash=${COMMIT_HASH}' -X 'finicky/version.buildDate=${BUILD_DATE}'" \
+        -ldflags \
+        "-X 'finicky/version.commitHash=${COMMIT_HASH}' \
+        -X 'finicky/version.buildDate=${BUILD_DATE}' \
+        -X 'finicky/version.apiHost=${API_HOST}'" \
         -o ../build/Finicky.app/Contents/MacOS/Finicky
 )
 

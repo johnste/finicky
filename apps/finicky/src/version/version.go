@@ -9,81 +9,34 @@ import (
 	"os"
 	"os/exec"
 	"path/filepath"
-	"strconv"
 	"strings"
 	"time"
 
 	"github.com/dop251/goja"
 )
 
-const updateCheckInterval = 24 * time.Hour
+const updateCheckInterval = 0 * time.Hour
 
-type GithubRelease struct {
-	TagName    string `json:"tag_name"`
-	Name       string `json:"name"`
-	Prerelease bool   `json:"prerelease"`
-	Draft      bool   `json:"draft"`
+type ReleaseInfo struct {
+	HasUpdate	bool	`json:"hasUpdate"`
+	LatestVersion	string	`json:"latestVersion"`
 }
 
 type UpdateCheckInfo struct {
 	Timestamp   int64  `json:"timestamp"`
-	LastRelease string `json:"lastRelease"`
+	ReleaseInfo ReleaseInfo `json:"releaseInfo"`
 }
 
 var (
 	// These will be set via ldflags during build
 	commitHash = "dev"
 	buildDate = "unknown"
+	apiHost = ""
 )
 
 // GetBuildInfo returns the commit hash and build date
 func GetBuildInfo() (string, string) {
 	return commitHash, buildDate
-}
-
-// compareSemver compares two semantic version strings.
-// Returns:
-//   -1 if v1 < v2
-//    0 if v1 == v2
-//    1 if v1 > v2
-func compareSemver(v1, v2 string) int {
-	// Split version strings into components
-	v1Parts := strings.Split(strings.TrimPrefix(v1, "v"), ".")
-	v2Parts := strings.Split(strings.TrimPrefix(v2, "v"), ".")
-
-	// Compare each component
-	for i := 0; i < len(v1Parts) && i < len(v2Parts); i++ {
-		n1, err1 := strconv.Atoi(v1Parts[i])
-		n2, err2 := strconv.Atoi(v2Parts[i])
-
-		// If either part isn't a valid number, do string comparison
-		if err1 != nil || err2 != nil {
-			if v1Parts[i] < v2Parts[i] {
-				return -1
-			}
-			if v1Parts[i] > v2Parts[i] {
-				return 1
-			}
-			continue
-		}
-
-		if n1 < n2 {
-			return -1
-		}
-		if n1 > n2 {
-			return 1
-		}
-	}
-
-	// If all components so far are equal, longer version is considered greater
-	if len(v1Parts) < len(v2Parts) {
-		return -1
-	}
-	if len(v1Parts) > len(v2Parts) {
-		return 1
-	}
-
-	return 0
 }
 
 func getCacheDir() string {
@@ -100,29 +53,24 @@ func getCacheDir() string {
 	return cacheDir
 }
 
-func getLastUpdateCheck() UpdateCheckInfo {
+func getLastUpdateCheck() *UpdateCheckInfo {
 	cacheDir := getCacheDir()
 	if cacheDir == "" {
-		return UpdateCheckInfo{}
+		return nil
 	}
 
 	cacheFile := filepath.Join(cacheDir, "last_update_check")
 	data, err := os.ReadFile(cacheFile)
 	if err != nil {
-		// If file doesn't exist or can't be read, return zero value
-		return UpdateCheckInfo{}
+		return nil
 	}
 
 	var info UpdateCheckInfo
 	if err := json.Unmarshal(data, &info); err != nil {
-		// Try to handle old format for backward compatibility
-		if timestamp, err := strconv.ParseInt(strings.TrimSpace(string(data)), 10, 64); err == nil {
-			return UpdateCheckInfo{Timestamp: timestamp}
-		}
-		return UpdateCheckInfo{}
+		return nil
 	}
 
-	return info
+	return &info
 }
 
 func setLastUpdateCheck(info UpdateCheckInfo) {
@@ -174,22 +122,21 @@ func GetCurrentVersion() string {
 	return version
 }
 
-func checkForUpdates() (hasUpdate bool, version string) {
+func checkForUpdates() (releaseInfo *ReleaseInfo) {
 	currentVersion := GetCurrentVersion()
 	if currentVersion == "" {
 		slog.Info("Could not determine current version")
-		return
+		return nil
 	}
-
 
 	slog.Debug("Checking update schedule...")
 
-	lastCheck := getLastUpdateCheck()
-	if lastCheck.Timestamp > 0 {
-		timeSinceLastCheck := time.Since(time.Unix(lastCheck.Timestamp, 0))
+	updateCheckInfo := getLastUpdateCheck()
+	if updateCheckInfo != nil && updateCheckInfo.Timestamp > 0 {
+		timeSinceLastCheck := time.Since(time.Unix(updateCheckInfo.Timestamp, 0))
 		if timeSinceLastCheck < updateCheckInterval {
 			slog.Debug("Skipping update check - last checked", "duration", fmt.Sprintf("%dh %dm ago (check interval: %dh)", int(timeSinceLastCheck.Hours()), int(timeSinceLastCheck.Minutes())%60, int(updateCheckInterval.Hours())))
-			return compareSemver(lastCheck.LastRelease, currentVersion) > 0, lastCheck.LastRelease
+			return &updateCheckInfo.ReleaseInfo
 		}
 	}
 
@@ -200,11 +147,17 @@ func checkForUpdates() (hasUpdate bool, version string) {
 		Timeout: 3 * time.Second,
 	}
 
+	if apiHost == "" {
+		slog.Warn("apiHost is not set, won't check for updates")
+		return nil
+	}
+
 	// Create request
-	req, err := http.NewRequest("GET", "https://api.github.com/repos/johnste/finicky/releases", nil)
+	apiUrl := fmt.Sprintf("%s/update-check?version=%s&currentVersion=%s", apiHost, currentVersion, currentVersion)
+	req, err := http.NewRequest("GET", apiUrl, nil)
 	if err != nil {
 		slog.Error("Error creating request", "error", err)
-		return
+		return nil
 	}
 
 	// Set User-Agent header
@@ -214,7 +167,7 @@ func checkForUpdates() (hasUpdate bool, version string) {
 	resp, err := client.Do(req)
 	if err != nil {
 		slog.Error("Error making request", "error", err)
-		return
+		return nil
 	}
 	defer resp.Body.Close()
 
@@ -222,82 +175,46 @@ func checkForUpdates() (hasUpdate bool, version string) {
 	body, err := io.ReadAll(resp.Body)
 	if err != nil {
 		slog.Error("Error reading response", "error", err)
-		return
+		return nil
 	}
 
 	// Parse releases
-	var releases []GithubRelease
-	if err := json.Unmarshal(body, &releases); err != nil {
-		slog.Error("Error parsing releases", "error", err, "response", string(body))
-		return
+	if err := json.Unmarshal(body, &releaseInfo); err != nil {
+		slog.Error("Error parsing release info", "error", err, "response", string(body))
+		return nil
 	}
 
-	// Check if current version is a prerelease (contains alpha/beta)
-	currentIsPrerelease := strings.Contains(strings.ToLower(currentVersion), "alpha") ||
-		strings.Contains(strings.ToLower(currentVersion), "beta")
-
-	if currentIsPrerelease {
-		slog.Info("Currently using a prerelease version, checking for pending prerelease releases", "version", currentVersion)
-	}
-
-	// Filter out prereleases and drafts
-	var pendingReleases []GithubRelease
-	for _, release := range releases {
-		if !release.Prerelease && !release.Draft || currentIsPrerelease && release.Prerelease {
-			pendingReleases = append(pendingReleases, release)
-		}
-	}
-
-	if len(pendingReleases) == 0 {
-		slog.Info("No stable releases found")
-		return
-	}
-
-	// Get latest version (first in the list)
-	latestRelease := pendingReleases[0]
-	latestVersion := strings.TrimPrefix(latestRelease.TagName, "v")
-
-	slog.Debug("Latest version available", "version", latestVersion)
+	slog.Debug("Latest version available", "version", releaseInfo)
 
 	// Update the last check time
 	setLastUpdateCheck(UpdateCheckInfo{
 		Timestamp:   time.Now().Unix(),
-		LastRelease: latestRelease.TagName,
+		ReleaseInfo: *releaseInfo,
 	})
 
-
-	// Compare versions using semantic versioning
-	if compareSemver(latestVersion, currentVersion) > 0 {
-		slog.Info("New version is available", "latestVersion", latestVersion, "currentVersion", currentVersion, "downloadUrl", "https://github.com/johnste/finicky/releases/tag/"+latestRelease.TagName)
-		// TODO: Implement update notification mechanism
-		return true, latestVersion
-	} else {
-		slog.Info("You are running the latest version")
-		return false, ""
-	}
-
+	return releaseInfo
 }
 
 // CheckForUpdatesIfEnabled checks if updates should be performed based on VM configuration
-func CheckForUpdatesIfEnabled(vm *goja.Runtime) (hasUpdate bool, version string, updateCheckEnabled bool, err error) {
+func CheckForUpdatesIfEnabled(vm *goja.Runtime) (releaseInfo *ReleaseInfo, updateCheckEnabled bool, err error) {
 
 	if vm == nil {
 		// Check for updates if we don't have a VM
-		hasUpdate, version = checkForUpdates()
-		return hasUpdate, version, true, nil
+		releaseInfo := checkForUpdates()
+		return releaseInfo, true, nil
 	}
 
 	// Check checkForUpdates option
 	shouldCheckForUpdates, err := vm.RunString("finickyConfigAPI.getOption('checkForUpdates', finalConfig)")
 	if err != nil {
-		return false, "", true, fmt.Errorf("failed to get checkForUpdates option: %v", err)
+		return nil, true, fmt.Errorf("failed to get checkForUpdates option: %v", err)
 	}
 
 	if shouldCheckForUpdates.ToBoolean() {
-		hasUpdate, version := checkForUpdates()
-		return hasUpdate, version, true, nil
+		releaseInfo := checkForUpdates()
+		return releaseInfo, true, nil
 	} else {
 		slog.Debug("Skipping update check")
 	}
-	return false, "", false, nil
+	return nil, false, nil
 }
