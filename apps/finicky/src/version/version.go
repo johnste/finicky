@@ -155,7 +155,7 @@ func checkForUpdates() (releaseInfo *ReleaseInfo) {
 	}
 
 	// Create request
-	apiUrl := fmt.Sprintf("%s/update-check?version=v0.3.1-alpha&currentVersion=%s", apiHost, currentVersion)
+	apiUrl := fmt.Sprintf("%s/update-check?version=%s", apiHost, currentVersion)
 	req, err := http.NewRequest("GET", apiUrl, nil)
 	if err != nil {
 		slog.Error("Error creating request", "error", err)
