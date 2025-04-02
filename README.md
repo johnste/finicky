@@ -78,7 +78,7 @@ See the [documentation](#documentation) for all the features Finicky supports.
 
 ## Documentation
 
-Finicky has extensive support for matching, rewriting and starting browsers or other application that handle urls. See the wiki for the [full configuration documentation](https://github.com/johnste/finicky/wiki/Configuration) explaining all available, APIs and options as well as detail information on how to match on urls.
+Finicky has extensive support for matching, rewriting and starting browsers or other application that handle urls. See the wiki for the [full configuration documentation](https://github.com/johnste/finicky/wiki/Configuration-(v3)) explaining all available, APIs and options as well as detail information on how to match on urls.
 
 ⚠️ Please note that Finicky 4 will affect the interface slightly, details to come ⚠️
 
