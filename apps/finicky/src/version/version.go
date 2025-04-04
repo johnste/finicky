@@ -61,7 +61,7 @@ func getLastUpdateCheck() *UpdateCheckInfo {
 		return nil
 	}
 
-	cacheFile := filepath.Join(cacheDir, "last_update_check")
+	cacheFile := filepath.Join(cacheDir, "last_update_check.json")
 	data, err := os.ReadFile(cacheFile)
 	if err != nil {
 		return nil
@@ -87,7 +87,7 @@ func setLastUpdateCheck(info UpdateCheckInfo) {
 		return
 	}
 
-	cacheFile := filepath.Join(cacheDir, "last_update_check")
+	cacheFile := filepath.Join(cacheDir, "last_update_check.json")
 	if err := os.WriteFile(cacheFile, data, 0644); err != nil {
 		slog.Error("Error saving last update check info", "error", err)
 	}
