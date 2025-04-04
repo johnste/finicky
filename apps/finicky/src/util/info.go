@@ -73,7 +73,7 @@ func IsAppRunning(identifier string) bool {
 	cIdentifier := C.CString(identifier)
 	defer C.free(unsafe.Pointer(cIdentifier))
 
-	isRunning := C.isAppRunning(cIdentifier) != 0
+	isRunning := bool(C.isAppRunning(cIdentifier))
 	slog.Debug("App running info", "identifier", identifier, "isRunning", isRunning)
 	return isRunning
 }
