@@ -298,23 +298,6 @@ func ShowTheMainWindow(err error) {
 	currentVersion := version.GetCurrentVersion()
 	window.SendMessageToWebView("version", currentVersion)
 
-	if updateInfo.ReleaseInfo != nil {
-		window.SendMessageToWebView("updateInfo", map[string]interface{}{
-			"version": updateInfo.ReleaseInfo.LatestVersion,
-			"hasUpdate": updateInfo.ReleaseInfo.HasUpdate,
-			"updateCheckEnabled": updateInfo.UpdateCheckEnabled,
-			"downloadUrl": updateInfo.ReleaseInfo.DownloadUrl,
-			"releaseUrl": updateInfo.ReleaseInfo.ReleaseUrl,
-		})
-	} else {
-		window.SendMessageToWebView("updateInfo", map[string]interface{}{
-			"version": "",
-			"hasUpdate": false,
-			"updateCheckEnabled": updateInfo.UpdateCheckEnabled,
-			"downloadUrl": "",
-			"releaseUrl": "",
-		})
-	}
 
 	// Send all buffered logs
 	bufferedLogs := logger.GetBufferedLogs()
@@ -352,6 +335,24 @@ func checkForUpdates() {
 
 	if updateInfo.ReleaseInfo != nil && updateInfo.ReleaseInfo.HasUpdate {
 		slog.Info("New version is available", "version", updateInfo.ReleaseInfo.LatestVersion)
+	}
+
+	if updateInfo.ReleaseInfo != nil {
+		window.SendMessageToWebView("updateInfo", map[string]interface{}{
+			"version": updateInfo.ReleaseInfo.LatestVersion,
+			"hasUpdate": updateInfo.ReleaseInfo.HasUpdate,
+			"updateCheckEnabled": updateInfo.UpdateCheckEnabled,
+			"downloadUrl": updateInfo.ReleaseInfo.DownloadUrl,
+			"releaseUrl": updateInfo.ReleaseInfo.ReleaseUrl,
+		})
+	} else {
+		window.SendMessageToWebView("updateInfo", map[string]interface{}{
+			"version": "",
+			"hasUpdate": false,
+			"updateCheckEnabled": updateInfo.UpdateCheckEnabled,
+			"downloadUrl": "",
+			"releaseUrl": "",
+		})
 	}
 }
 
