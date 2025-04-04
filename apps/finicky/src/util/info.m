@@ -90,3 +90,27 @@ PowerInfo getPowerInfo() {
 
     return info;
 }
+
+_Bool isAppRunning(const char* identifier) {
+    if (!identifier) {
+        return 0;
+    }
+
+    NSString *identifierStr = [NSString stringWithUTF8String:identifier];
+    NSArray *runningApps = [[NSWorkspace sharedWorkspace] runningApplications];
+
+    for (NSRunningApplication *app in runningApps) {
+        // Check bundle ID
+        if ([[app bundleIdentifier] isEqualToString:identifierStr]) {
+            return 1;
+        }
+
+        // Check app name
+        NSString *appName = [app localizedName];
+        if ([appName isEqualToString:identifierStr]) {
+            return 1;
+        }
+    }
+
+    return 0;
+}

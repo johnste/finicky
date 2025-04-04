@@ -30,6 +30,7 @@ interface FinickyUtils {
         isConnected: boolean;
         percentage: number | null;
     };
+    isAppRunning: (identifier: string) => boolean;
 }
 
 declare global {
