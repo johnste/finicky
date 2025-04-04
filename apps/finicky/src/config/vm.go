@@ -95,6 +95,7 @@ func (vm *VM) setup(embeddedFiles embed.FS, bundlePath string) error {
 	vm.SetModifierKeysFunc(util.GetModifierKeys)
 	vm.SetSystemInfoFunc(util.GetSystemInfo)
 	vm.SetPowerInfoFunc(util.GetPowerInfo)
+	vm.SetIsAppRunningFunc(util.IsAppRunning)
 
 	return nil
 }
@@ -158,4 +159,10 @@ func (vm *VM) SetSystemInfoFunc(fn func() map[string]string) {
 func (vm *VM) SetPowerInfoFunc(fn func() map[string]interface{}) {
 	finicky := vm.runtime.Get("finicky").ToObject(vm.runtime)
 	finicky.Set("getPowerInfo", fn)
+}
+
+// SetIsAppRunningFunc sets the isAppRunning function in the VM
+func (vm *VM) SetIsAppRunningFunc(fn func(string) bool) {
+	finicky := vm.runtime.Get("finicky").ToObject(vm.runtime)
+	finicky.Set("isAppRunning", fn)
 }

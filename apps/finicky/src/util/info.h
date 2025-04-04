@@ -26,5 +26,6 @@ typedef struct {
 ModifierKeys getModifierKeys(void);
 SystemInfo getSystemInfo(void);
 PowerInfo getPowerInfo(void);
+_Bool isAppRunning(const char* identifier);
 
 #endif /* INFO_H */

@@ -8,7 +8,10 @@ package util
 // PowerInfo struct and getPowerInfo function for power status
 */
 import "C"
-import "log/slog"
+import (
+	"log/slog"
+	"unsafe"
+)
 
 // GetModifierKeys returns the current state of modifier keys
 func GetModifierKeys() map[string]bool {
@@ -63,4 +66,14 @@ func GetPowerInfo() map[string]interface{} {
 		"isConnected": bool(info.isConnected),
 		"percentage":  percentage,
 	}
+}
+
+// IsAppRunning checks if an app with the given identifier (bundle ID or app name) is running
+func IsAppRunning(identifier string) bool {
+	cIdentifier := C.CString(identifier)
+	defer C.free(unsafe.Pointer(cIdentifier))
+
+	isRunning := C.isAppRunning(cIdentifier) != 0
+	slog.Debug("App running info", "identifier", identifier, "isRunning", isRunning)
+	return isRunning
 }
