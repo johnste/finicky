@@ -79,7 +79,7 @@
 <style>
   .welcome {
     text-align: center;
-    padding: 48px 0;
+    padding: 24px 0;
   }
 
   .status-section {
