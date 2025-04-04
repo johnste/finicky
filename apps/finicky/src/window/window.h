@@ -18,5 +18,6 @@ void SetFileContent(const char* path, const char* content);
 void SetFileContentWithLength(const char* path, const char* content, size_t length);
 
 extern void WindowDidClose(void);
+extern void WindowIsReady(void);
 
 #endif /* WINDOW_H */

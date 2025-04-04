@@ -177,24 +177,6 @@ func main() {
 					handleRuntimeError(setupErr)
 				}
 				slog.Debug("VM refresh complete", "duration", fmt.Sprintf("%.2fms", float64(time.Since(startTime).Microseconds())/1000))
-				if configInfo != nil {
-					if setupErr == nil {
-						window.SendMessageToWebView("config", map[string]interface{}{
-							"handlers": configInfo.Handlers,
-							"rewrites": configInfo.Rewrites,
-							"defaultBrowser": configInfo.DefaultBrowser,
-							"configPath": configInfo.ConfigPath,
-						})
-					} else {
-						window.SendMessageToWebView("config", map[string]interface{}{
-							"handlers": 0,
-							"rewrites": 0,
-							"defaultBrowser": "",
-							"configPath": configInfo.ConfigPath,
-						})
-					}
-
-				}
 
 			case shouldShowWindow := <-queueWindowOpen:
 				if !showingWindow && shouldShowWindow {
@@ -334,15 +316,6 @@ func ShowTheMainWindow(err error) {
 		})
 	}
 
-	if configInfo != nil {
-		window.SendMessageToWebView("config", map[string]interface{}{
-			"handlers": configInfo.Handlers,
-			"rewrites": configInfo.Rewrites,
-			"defaultBrowser": configInfo.DefaultBrowser,
-			"configPath": configInfo.ConfigPath,
-		})
-	}
-
 	// Send all buffered logs
 	bufferedLogs := logger.GetBufferedLogs()
 	for _, line := range strings.Split(bufferedLogs, "\n") {
@@ -423,6 +396,20 @@ func setupVM(cfw *config.ConfigFileWatcher, embeddedFS embed.FS, namespace strin
 				DefaultBrowser: currentConfigState.DefaultBrowser,
 				ConfigPath:     strings.Replace(configPath, os.Getenv("HOME"), "~", 1),
 			}
+
+			window.SendMessageToWebView("config", map[string]interface{}{
+				"handlers": configInfo.Handlers,
+				"rewrites": configInfo.Rewrites,
+				"defaultBrowser": configInfo.DefaultBrowser,
+				"configPath": configInfo.ConfigPath,
+			})
+		} else {
+			window.SendMessageToWebView("config", map[string]interface{}{
+				"handlers": 0,
+				"rewrites": 0,
+				"defaultBrowser": "",
+				"configPath": configInfo.ConfigPath,
+			})
 		}
 
 		return vm, nil

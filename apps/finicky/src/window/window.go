@@ -17,8 +17,57 @@ import (
 	"net/http"
 	"path/filepath"
 	"strings"
+	"sync"
 	"unsafe"
 )
+
+var (
+	messageQueue []string
+	queueMutex   sync.Mutex
+	windowReady  bool
+)
+
+//export WindowIsReady
+func WindowIsReady() {
+	queueMutex.Lock()
+	windowReady = true
+	// Process any queued messages
+	for _, message := range messageQueue {
+		sendMessageToWebViewInternal(message)
+	}
+	messageQueue = nil
+	queueMutex.Unlock()
+}
+
+func sendMessageToWebViewInternal(message string) {
+	cMessage := C.CString(message)
+	defer C.free(unsafe.Pointer(cMessage))
+	C.SendMessageToWebView(cMessage)
+}
+
+func SendMessageToWebView(messageType string, message interface{}) {
+	jsonMsg := struct {
+		Type    string      `json:"type"`
+		Message interface{} `json:"message"`
+	}{
+		Type:    messageType,
+		Message: message,
+	}
+	jsonBytes, err := json.Marshal(jsonMsg)
+	if err != nil {
+		slog.Error("Error marshaling message", "error", err)
+		return
+	}
+
+	queueMutex.Lock()
+	defer queueMutex.Unlock()
+
+	if windowReady {
+		sendMessageToWebViewInternal(string(jsonBytes))
+	} else {
+		messageQueue = append(messageQueue, string(jsonBytes))
+	}
+}
 
 func init() {
 	// Load HTML content
@@ -80,25 +129,6 @@ func ShowWindow() {
 
 func CloseWindow() {
 	C.CloseWindow()
-}
-
-func SendMessageToWebView(messageType string, message interface{}) {
-	jsonMsg := struct {
-		Type    string      `json:"type"`
-		Message interface{} `json:"message"`
-	}{
-		Type:    messageType,
-		Message: message,
-	}
-	jsonBytes, err := json.Marshal(jsonMsg)
-	if err != nil {
-		slog.Error("Error marshaling message", "error", err)
-		return
-	}
-
-	cMessage := C.CString(string(jsonBytes))
-	defer C.free(unsafe.Pointer(cMessage))
-	C.SendMessageToWebView(cMessage)
 }
 
 func SendBuildInfo() {

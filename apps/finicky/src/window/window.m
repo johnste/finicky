@@ -41,14 +41,12 @@ void SetFileContentWithLength(const char* path, const char* content, size_t leng
 @implementation WindowController {
     NSWindow* window;
     WKWebView* webView;
-    NSMutableArray* messageQueue;
 }
 
 - (id)init {
     self = [super init];
     NSLog(@"Initialize window controller");
     if (self) {
-        messageQueue = [[NSMutableArray alloc] init];
         // Always setup window on main thread
         if ([NSThread isMainThread]) {
             [self setupWindow];
@@ -140,16 +138,12 @@ void SetFileContentWithLength(const char* path, const char* content, size_t leng
     NSString *js = [NSString stringWithFormat:@"finicky.receiveMessage(\"%@\")", escapedMessage];
 
     if ([NSThread isMainThread]) {
-        if (webView.loading) {
-            [messageQueue addObject:message];
-        } else {
+        if (webView && !webView.loading) {
             [webView evaluateJavaScript:js completionHandler:nil];
         }
     } else {
         dispatch_async(dispatch_get_main_queue(), ^{
-            if (webView.loading) {
-                [messageQueue addObject:message];
-            } else {
+            if (webView && !webView.loading) {
                 [webView evaluateJavaScript:js completionHandler:nil];
             }
         });
@@ -217,11 +211,9 @@ void SetFileContentWithLength(const char* path, const char* content, size_t leng
 #pragma mark - WKNavigationDelegate
 
 - (void)webView:(WKWebView *)webView didFinishNavigation:(WKNavigation *)navigation {
-    // Process any queued messages
-    for (NSString *message in messageQueue) {
-        [self sendMessageToWebView:message];
-    }
-    [messageQueue removeAllObjects];
+    // Notify Go that the window is ready to receive messages
+    extern void WindowIsReady(void);
+    WindowIsReady();
 }
 
 - (void)webView:(WKWebView *)webView decidePolicyForNavigationAction:(WKNavigationAction *)navigationAction decisionHandler:(void (^)(WKNavigationActionPolicy))decisionHandler {
