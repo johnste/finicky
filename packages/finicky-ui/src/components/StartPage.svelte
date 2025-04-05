@@ -159,11 +159,7 @@
   }
 
   .info {
-    background: linear-gradient(
-      to right,
-      rgba(33, 150, 243, 0.05),
-      transparent
-    );
+    border: 1px solid #2196f3;
   }
 
   .info h3::before {
