@@ -1,13 +1,11 @@
-<div align="center"><img
-    height="100"
-    width="100"
-    alt="finicky icon"
-    src="https://raw.githubusercontent.com/johnste/finicky/gh-pages/finicky-icon.png"
-  />
-  <h1>Finicky</h1>
+<div align="center"><picture>
+  <source media="(prefers-color-scheme: dark)" srcset="https://github.com/user-attachments/assets/ab66e6cc-25d1-4f5f-9c98-c742ecb2261f">
+  <img alt="Finicky Logo" height="110" src="https://github.com/user-attachments/assets/067d7619-a2be-49dd-8a4f-5e9a46fa632a">
+</picture>
+<br/><br/>
+ <strong>Always open the right browser</strong><br>
+    <br/>
 
-<strong>Always open the right browser 🇺🇦</strong><br>
-[![GitHub release](https://badgen.net/github/release/johnste/finicky/stable?color=purple)](https://GitHub.com/johnste/finicky/releases/)
 
 </div>
 
@@ -16,6 +14,10 @@ Finicky is a macOS application that allows you to set up rules that decide which
 - Decide what urls to open in what browser or app
 - Edit urls before opening them
 - Complete control over configuration using JavaScript
+
+
+
+[![GitHub release](https://badgen.net/github/release/johnste/finicky/stable?color=grey)](https://GitHub.com/johnste/finicky/releases/) [![GitHub prerelease](https://badgen.net/github/release/johnste/finicky?color=purple)](https://GitHub.com/johnste/finicky/releases/) ![MIT License](https://badgen.net/github/license/johnste/finicky) ![Finicky v4 release](https://badgen.net/github/milestones/johnste/finicky/6?color=pink)
 
 ## Table of Contents
 
