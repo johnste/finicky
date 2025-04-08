@@ -17,7 +17,7 @@ Finicky is a macOS application that allows you to set up rules that decide which
 
 
 
-[![GitHub release](https://badgen.net/github/release/johnste/finicky/stable?color=grey)](https://GitHub.com/johnste/finicky/releases/) [![GitHub prerelease](https://badgen.net/github/release/johnste/finicky?color=purple)](https://GitHub.com/johnste/finicky/releases/) ![MIT License](https://badgen.net/github/license/johnste/finicky) ![Finicky v4 release](https://badgen.net/github/milestones/johnste/finicky/6?color=pink)
+[![GitHub prerelease](https://badgen.net/github/release/johnste/finicky?color=purple)](https://GitHub.com/johnste/finicky/releases/) ![MIT License](https://badgen.net/github/license/johnste/finicky) ![Finicky v4 release](https://badgen.net/github/milestones/johnste/finicky/6?color=pink)
 
 ## Table of Contents
 
@@ -33,15 +33,17 @@ Finicky is a macOS application that allows you to set up rules that decide which
 
 Download from [releases](https://github.com/johnste/finicky/releases)
 
-Finicky 3.4.0 is the latest stable release and should work for most use cases. Finicky 4 is under active development and available as prereleases. Note that these releases are actively being developed and can prove to be unstable and may contain bugs.
+Finicky 4+ is in beta, and should work for most cases. The documentation needs to be updated, but most Finicky v3 configurations should work. Supports MacOS 12+.
 
-Finicky 4+ should work in MacOS 12+
+Finicky 3.4.0 is the latest stable release, but it is a few years old and unsupported.
+
+
 
 ## Example configuration
 
 ```js
 // ~/.finicky.js
-export default {
+export default { 
   defaultBrowser: "Google Chrome",
   rewrite: [
     {
