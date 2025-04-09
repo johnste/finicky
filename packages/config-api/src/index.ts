@@ -47,7 +47,7 @@ export function getConfiguration(namespace: string): Config {
       return namespaceObj.default;
     } else {
       console.warn(
-        "No default export found for configuration namespace, assuming legacy config"
+        "No default export found for configuration namespace, using legacy configuration. Please update your configuration to use `export default { ... }` instead of `module.exports = { ... }` syntax. https://github.com/johnste/finicky/wiki/Use-Modern-ECMAScript-Module-Syntax"
       );
       return namespaceObj;
     }
