@@ -6,28 +6,25 @@
  <strong>Always open the right browser</strong><br>
     <br/>
 
-
 </div>
 
-Finicky is a macOS application that allows you to set up rules that decide which browser is opened for every link or url. With Finicky as your default browser, you can tell it to open Facebook or Reddit in one browser, and Trello or LinkedIn in another.
+Finicky is a macOS application that allows you to set up rules that decide which browser is opened for every url. With Finicky as your default browser, you can tell it to open Bluesky or Reddit in one browser, and LinkedIn or Google Meet in another.
 
-- Decide what urls to open in what browser or app
-- Edit urls before opening them
-- Complete control over configuration using JavaScript
-
-
+- Route any URL to your preferred browser with powerful matching rules
+- Automatically edit URLs before opening them (e.g., force HTTPS, remove tracking parameters)
+- Write rules in JavaScript or TypeScript for complete control
+- Create complex routing logic with regular expressions and custom functions
+- Handle multiple browsers and apps with a single configuration
+- Keep your workflow organized by separating work and personal browsing
 
 [![GitHub prerelease](https://badgen.net/github/release/johnste/finicky?color=purple)](https://GitHub.com/johnste/finicky/releases/) ![MIT License](https://badgen.net/github/license/johnste/finicky) ![Finicky v4 release](https://badgen.net/github/milestones/johnste/finicky/6?color=pink)
 
 ## Table of Contents
 
 - [Getting started](#getting-started)
-- [Example configuration](#example-configuration)
-- [Documentation](#documentation)
-- [Configuration tips](#configuration-tips)
-- [Alternatives](#alternatives)
+- [Starter configuration](#starter-configuration)
+- [Configuration](#documentation)
 - [Building Finicky from source](#building-finicky-from-source)
-- [License](#license)
 
 ## Getting started
 
@@ -35,22 +32,23 @@ Download from [releases](https://github.com/johnste/finicky/releases)
 
 Finicky 4+ is in beta, and should work for most cases. The documentation needs to be updated, but most Finicky v3 configurations should work. Supports MacOS 12+.
 
-Finicky 3.4.0 is the latest stable release, but it is a few years old and unsupported.
+## Starter configuration
 
-
-
-## Example configuration
+Here's a short example configuration that can help you get started
 
 ```js
 // ~/.finicky.js
-export default { 
+export default {
   defaultBrowser: "Google Chrome",
+  {
+    checkForUpdate: true
+  },
   rewrite: [
     {
-      // Redirect all urls to use https
-      match: (url) => url.protocol === "http:",
+      // Redirect all x.com urls to use xcancel.com
+      match: "x.com/*",
       url: (url) => {
-        url.protocol = "https:";
+        url.host = "xcancel.com";
         return url;
       },
     },
@@ -63,14 +61,14 @@ export default {
     },
     {
       // Open any url that includes the string "workplace" in Firefox
-      match: /workplace/,
+      match: "bsky.app/*",
       browser: "Firefox",
     },
     {
       // Open google.com and *.google.com urls in Google Chrome
       match: [
-        "google.com*", // match google.com urls
-        "*.google.com*", // match google.com subdomains
+        "google.com/*", // match google.com urls
+        "*.google.com*", // also match google.com subdomains
       ],
       browser: "Google Chrome",
     },
@@ -78,23 +76,14 @@ export default {
 };
 ```
 
-See the [documentation](#documentation) for all the features Finicky supports.
+See the [configuration](#configuration) for all the features Finicky supports.
 
-## Documentation
+## Configuration
 
-Finicky has extensive support for matching, rewriting and starting browsers or other application that handle urls. See the wiki for the [full configuration documentation](https://github.com/johnste/finicky/wiki/Configuration-(v3)) explaining all available, APIs and options as well as detail information on how to match on urls.
+Finicky has extensive support for matching, rewriting and starting browsers or other application that handle urls. See the wiki for the [full configuration documentation](<https://github.com/johnste/finicky/wiki/Configuration-(v4)>) explaining available, APIs and options as well as detail information on how to match on urls.
 
-⚠️ Please note that Finicky 4 will affect the interface slightly, details to come ⚠️
-
-## Configuration tips
-
-See the wiki page for other [configuration tips](https://github.com/johnste/finicky/wiki/Configuration-ideas) by users of Finicky.
-
-⚠️ Please note that Finicky 4 will affect the interface slightly, details to come ⚠️
-
-## Alternatives
-
-If you are looking for something that lets you pick the browser to activate in a graphical interface, check out [Browserosaurus](https://browserosaurus.com/) by Will Stone, an open source browser prompter for macOS. It works really well together with Finicky!
+- The wiki has some good [configuration ideas](https://github.com/johnste/finicky/wiki/Configuration-ideas).
+- Visit [discussions](https://github.com/johnste/finicky/discussions) to discuss supporting specific apps.
 
 ## Building Finicky from source
 
@@ -104,6 +93,10 @@ If you'd like to build Finicky from source:
 2. Install Node 22
 3. Run `./scripts/install.sh` from base folder to install dependencies
 4. Run `./scripts/build.sh` from base folder to build Finicky
+
+### Works well with
+
+If you are looking for something that lets you pick the browser to activate in a graphical interface, check out [Browserosaurus](https://browserosaurus.com/) by Will Stone, an open source browser prompter for macOS. It works really well together with Finicky!
 
 ### Questions
 
