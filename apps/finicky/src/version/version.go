@@ -205,7 +205,7 @@ func CheckForUpdatesIfEnabled(vm *goja.Runtime) (releaseInfo *ReleaseInfo, updat
 	}
 
 	// Check checkForUpdates option
-	shouldCheckForUpdates, err := vm.RunString("finickyConfigAPI.getOption('checkForUpdates', finalConfig)")
+	shouldCheckForUpdates, err := vm.RunString("finickyConfigAPI.getOption('checkForUpdates', finalConfig, true)")
 	if err != nil {
 		return nil, true, fmt.Errorf("failed to get checkForUpdates option: %v", err)
 	}
