@@ -87,12 +87,7 @@ Finicky has extensive support for matching, rewriting and starting browsers or o
 
 ## Building Finicky from source
 
-If you'd like to build Finicky from source:
-
-1. Install Go 1.23.4
-2. Install Node 22
-3. Run `./scripts/install.sh` from base folder to install dependencies
-4. Run `./scripts/build.sh` from base folder to build Finicky
+See [Building Finicky from source](https://github.com/johnste/finicky/wiki/Building-Finicky-from-source)
 
 ### Works well with
 

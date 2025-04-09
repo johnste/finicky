@@ -10,7 +10,7 @@ const handler: BrowserHandler = {
   browser: "Firefox",
 };
 
-const config: FinickyConfig = {
+export default {
   defaultBrowser: "Google Chrome",
   handlers: [
     handler,
@@ -22,6 +22,4 @@ const config: FinickyConfig = {
       browser: "Firefox",
     },
   ],
-};
-
-export default config;
+} satisfies FinickyConfig;
