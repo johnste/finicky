@@ -21,18 +21,16 @@ Finicky is a macOS application that allows you to set up rules that decide which
 
 ## Table of Contents
 
-- [Getting started](#getting-started)
-- [Starter configuration](#starter-configuration)
+- [Install](#install)
+- [Basic configuration](#basic-configuration)
 - [Configuration](#documentation)
 - [Building Finicky from source](#building-finicky-from-source)
 
-## Getting started
+## Install
 
 Download from [releases](https://github.com/johnste/finicky/releases)
 
-Finicky 4+ is in beta, and should work for most cases. The documentation needs to be updated, but most Finicky v3 configurations should work. Supports MacOS 12+.
-
-## Starter configuration
+## Basic configuration
 
 Here's a short example configuration that can help you get started
 
@@ -40,9 +38,6 @@ Here's a short example configuration that can help you get started
 // ~/.finicky.js
 export default {
   defaultBrowser: "Google Chrome",
-  {
-    checkForUpdate: true
-  },
   rewrite: [
     {
       // Redirect all x.com urls to use xcancel.com
@@ -54,11 +49,6 @@ export default {
     },
   ],
   handlers: [
-    {
-      // Open apple.com and example.com urls in Safari
-      match: ["apple.com*", "example.com*"],
-      browser: "Safari",
-    },
     {
       // Open any url that includes the string "workplace" in Firefox
       match: "bsky.app/*",
