@@ -112,7 +112,3 @@ func Close() {
 	}
 }
 
-// GetBufferedLogs returns all logs stored in memory
-func GetBufferedLogs() string {
-	return memLog.String()
-}
