@@ -9,7 +9,7 @@
 </script>
 
 <ol class="log-content" bind:this={logContent}>
-  {#each messageBuffer as entry (entry.time)}
+  {#each messageBuffer as entry}
     {#if showDebug || entry.level.toLowerCase() !== "debug"}
       <li class="log-entry">
         <span class="log-time" title={entry.time}>

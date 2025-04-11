@@ -298,15 +298,6 @@ func ShowTheMainWindow(err error) {
 	currentVersion := version.GetCurrentVersion()
 	window.SendMessageToWebView("version", currentVersion)
 
-
-	// Send all buffered logs
-	bufferedLogs := logger.GetBufferedLogs()
-	for _, line := range strings.Split(bufferedLogs, "\n") {
-		if line != "" {
-			window.SendMessageToWebView("log", line)
-		}
-	}
-
 	<-windowClosed
 	slog.Info("Window closed, exiting")
 	tearDown()
