@@ -19,7 +19,7 @@ var browsersJsonData []byte
 
 type BrowserResult struct {
 	Browser BrowserConfig `json:"browser"`
-	Error string `json:"error"`
+	Error   string        `json:"error"`
 }
 
 type BrowserConfig struct {
@@ -33,9 +33,9 @@ type BrowserConfig struct {
 
 type browserInfo struct {
 	ConfigDirRelative string `json:"config_dir_relative"`
-	ID               string `json:"id"`
-	AppName          string `json:"app_name"`
-	Type             string `json:"type"`
+	ID                string `json:"id"`
+	AppName           string `json:"app_name"`
+	Type              string `json:"type"`
 }
 
 func LaunchBrowser(config BrowserConfig, dryRun bool) error {
@@ -146,7 +146,7 @@ func resolveBrowserProfileArgument(identifier string, profile string) (string, b
 
 	slog.Debug("Browser found in browsers.json", "identifier", identifier, "type", matchedBrowser.Type)
 
-	if profile != ""  {
+	if profile != "" {
 		switch matchedBrowser.Type {
 		case "Chromium":
 			homeDir, err := os.UserHomeDir()

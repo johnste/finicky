@@ -38,7 +38,7 @@ type ProcessInfo struct {
 }
 
 type UpdateInfo struct {
-	ReleaseInfo *version.ReleaseInfo
+	ReleaseInfo        *version.ReleaseInfo
 	UpdateCheckEnabled bool
 }
 
@@ -48,16 +48,17 @@ type URLInfo struct {
 }
 
 type ConfigInfo struct {
-	Handlers int16
-	Rewrites int16
+	Handlers       int16
+	Rewrites       int16
 	DefaultBrowser string
-	ConfigPath string
+	ConfigPath     string
 }
 
 // FIXME: Clean up app global stae
 var urlListener chan URLInfo = make(chan URLInfo)
 var windowClosed chan struct{} = make(chan struct{})
 var vm *config.VM
+
 // FIXME: find a better data type for this
 var forceWindowOpen int32 = 0
 var queueWindowOpen chan bool = make(chan bool)
@@ -90,7 +91,7 @@ func main() {
 
 	dryRun = *dryRunPtr
 
-	currentVersion := version.GetCurrentVersion();
+	currentVersion := version.GetCurrentVersion()
 	commitHash, buildDate := version.GetBuildInfo()
 	slog.Info("Starting Finicky", "version", currentVersion)
 	slog.Debug("Build info", "buildDate", buildDate, "commitHash", commitHash)
@@ -148,12 +149,12 @@ func main() {
 
 				if browserConfig == nil {
 					browserConfig = &browser.BrowserConfig{
-						Name:            "com.apple.Safari",
-						AppType:         "bundleId",
+						Name:             "com.apple.Safari",
+						AppType:          "bundleId",
 						OpenInBackground: false,
-						Profile:         "",
-						Args:            []string{},
-						URL:             urlInfo.URL,
+						Profile:          "",
+						Args:             []string{},
+						URL:              urlInfo.URL,
 					}
 				}
 
@@ -232,7 +233,6 @@ func evaluateURL(vm *goja.Runtime, url string, opener *ProcessInfo) (*browser.Br
 	} else {
 		url = resolvedURL
 	}
-
 
 	vm.Set("url", resolvedURL)
 
@@ -320,7 +320,7 @@ func checkForUpdates() {
 	}
 
 	updateInfo = UpdateInfo{
-		ReleaseInfo: releaseInfo,
+		ReleaseInfo:        releaseInfo,
 		UpdateCheckEnabled: updateCheckEnabled,
 	}
 
@@ -330,19 +330,19 @@ func checkForUpdates() {
 
 	if updateInfo.ReleaseInfo != nil {
 		window.SendMessageToWebView("updateInfo", map[string]interface{}{
-			"version": updateInfo.ReleaseInfo.LatestVersion,
-			"hasUpdate": updateInfo.ReleaseInfo.HasUpdate,
+			"version":            updateInfo.ReleaseInfo.LatestVersion,
+			"hasUpdate":          updateInfo.ReleaseInfo.HasUpdate,
 			"updateCheckEnabled": updateInfo.UpdateCheckEnabled,
-			"downloadUrl": updateInfo.ReleaseInfo.DownloadUrl,
-			"releaseUrl": updateInfo.ReleaseInfo.ReleaseUrl,
+			"downloadUrl":        updateInfo.ReleaseInfo.DownloadUrl,
+			"releaseUrl":         updateInfo.ReleaseInfo.ReleaseUrl,
 		})
 	} else {
 		window.SendMessageToWebView("updateInfo", map[string]interface{}{
-			"version": "",
-			"hasUpdate": false,
+			"version":            "",
+			"hasUpdate":          false,
 			"updateCheckEnabled": updateInfo.UpdateCheckEnabled,
-			"downloadUrl": "",
-			"releaseUrl": "",
+			"downloadUrl":        "",
+			"releaseUrl":         "",
 		})
 	}
 }
@@ -384,23 +384,23 @@ func setupVM(cfw *config.ConfigFileWatcher, embeddedFS embed.FS, namespace strin
 		if currentConfigState != nil {
 			configInfo = &ConfigInfo{
 				Handlers:       currentConfigState.Handlers,
-				Rewrites:      currentConfigState.Rewrites,
+				Rewrites:       currentConfigState.Rewrites,
 				DefaultBrowser: currentConfigState.DefaultBrowser,
 				ConfigPath:     strings.Replace(configPath, os.Getenv("HOME"), "~", 1),
 			}
 
 			window.SendMessageToWebView("config", map[string]interface{}{
-				"handlers": configInfo.Handlers,
-				"rewrites": configInfo.Rewrites,
+				"handlers":       configInfo.Handlers,
+				"rewrites":       configInfo.Rewrites,
 				"defaultBrowser": configInfo.DefaultBrowser,
-				"configPath": configInfo.ConfigPath,
+				"configPath":     configInfo.ConfigPath,
 			})
 		} else {
 			window.SendMessageToWebView("config", map[string]interface{}{
-				"handlers": 0,
-				"rewrites": 0,
+				"handlers":       0,
+				"rewrites":       0,
 				"defaultBrowser": "",
-				"configPath": configInfo.ConfigPath,
+				"configPath":     configInfo.ConfigPath,
 			})
 		}
 
@@ -409,6 +409,3 @@ func setupVM(cfw *config.ConfigFileWatcher, embeddedFS embed.FS, namespace strin
 
 	return nil, nil
 }
-
-
-
