@@ -11,7 +11,7 @@ import (
 )
 
 type VM struct {
-	runtime *goja.Runtime
+	runtime   *goja.Runtime
 	namespace string
 }
 
@@ -24,8 +24,8 @@ type ConfigState struct {
 
 func New(embeddedFiles embed.FS, namespace string, bundlePath string) (*VM, error) {
 	vm := &VM{
-		runtime:          goja.New(),
-		namespace:        namespace,
+		runtime:   goja.New(),
+		namespace: namespace,
 	}
 
 	err := vm.setup(embeddedFiles, bundlePath)

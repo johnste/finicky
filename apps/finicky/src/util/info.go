@@ -23,7 +23,7 @@ func GetModifierKeys() map[string]bool {
 		"control":  bool(keys.control),
 		"capsLock": bool(keys.capsLock),
 		"fn":       bool(keys.fn),
-		"function":	bool(keys.fn),
+		"function": bool(keys.fn),
 	}
 	args := []any{}
 	for k, v := range result {
@@ -54,7 +54,7 @@ func GetPowerInfo() map[string]interface{} {
 	if percentage == -1 {
 		slog.Debug("Power info", "isCharging", info.isCharging, "isConnected", info.isConnected, "percentage", nil)
 		return map[string]interface{}{
-			"isCharging":   bool(info.isCharging),
+			"isCharging":  bool(info.isCharging),
 			"isConnected": bool(info.isConnected),
 			"percentage":  nil,
 		}
@@ -62,7 +62,7 @@ func GetPowerInfo() map[string]interface{} {
 
 	slog.Debug("Power info", "isCharging", info.isCharging, "isConnected", info.isConnected, "percentage", info.percentage)
 	return map[string]interface{}{
-		"isCharging":   bool(info.isCharging),
+		"isCharging":  bool(info.isCharging),
 		"isConnected": bool(info.isConnected),
 		"percentage":  percentage,
 	}

@@ -64,7 +64,6 @@ func SetupFile(shouldLog bool) error {
 		slog.Warn("Logging requests to disk. Logs may include sensitive information. Disable this by setting logRequests: false.")
 	}
 
-
 	if !shouldLog {
 		// FIXME: We should recreate the logger if the file logging options has been changed while the app is running
 		return nil
@@ -111,4 +110,3 @@ func Close() {
 		file.Close()
 	}
 }
-

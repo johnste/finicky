@@ -18,22 +18,22 @@ import (
 const updateCheckInterval = 24 * time.Hour
 
 type ReleaseInfo struct {
-	HasUpdate	bool	`json:"hasUpdate"`
-	LatestVersion	string	`json:"latestVersion"`
-	DownloadUrl	string	`json:"downloadUrl"`
-	ReleaseUrl	string	`json:"releaseUrl"`
+	HasUpdate     bool   `json:"hasUpdate"`
+	LatestVersion string `json:"latestVersion"`
+	DownloadUrl   string `json:"downloadUrl"`
+	ReleaseUrl    string `json:"releaseUrl"`
 }
 
 type UpdateCheckInfo struct {
-	Timestamp   int64  `json:"timestamp"`
+	Timestamp   int64       `json:"timestamp"`
 	ReleaseInfo ReleaseInfo `json:"releaseInfo"`
 }
 
 var (
 	// These will be set via ldflags during build
 	commitHash = "dev"
-	buildDate = "unknown"
-	apiHost = ""
+	buildDate  = "unknown"
+	apiHost    = ""
 )
 
 // GetBuildInfo returns the commit hash and build date

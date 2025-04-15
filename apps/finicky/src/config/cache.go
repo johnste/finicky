@@ -16,10 +16,10 @@ import (
 
 // CacheData represents the structure for caching bundled configuration files
 type CacheData struct {
-	ConfigPath  string    `json:"configPath"`
-	BundlePath  string    `json:"bundlePath"`
-	ModTime     time.Time `json:"modTime"`
-	AppVersion  string    `json:"appVersion"` // Store app version with cache data
+	ConfigPath string    `json:"configPath"`
+	BundlePath string    `json:"bundlePath"`
+	ModTime    time.Time `json:"modTime"`
+	AppVersion string    `json:"appVersion"` // Store app version with cache data
 }
 
 // ConfigCache manages persistent caching of bundled configurations
@@ -138,7 +138,7 @@ func (cc *ConfigCache) loadCache() {
 		cc.cachedModTime = cacheData.ModTime
 		slog.Debug("Loaded config cache",
 			"configPath", strings.Replace(cacheData.ConfigPath, os.Getenv("HOME"), "~", 1),
-			"bundlePath",  strings.Replace(cacheData.BundlePath, os.Getenv("HOME"), "~", 1),
+			"bundlePath", strings.Replace(cacheData.BundlePath, os.Getenv("HOME"), "~", 1),
 			"version", cacheData.AppVersion)
 	}
 }
@@ -158,10 +158,10 @@ func (cc *ConfigCache) saveCache() {
 
 	// Create cache data structure
 	cacheData := CacheData{
-		ConfigPath:  cc.cachedConfigPath,
-		BundlePath:  cc.cachedBundlePath,
-		ModTime:     cc.cachedModTime,
-		AppVersion:  cc.appVersion, // Include app version in the cache data
+		ConfigPath: cc.cachedConfigPath,
+		BundlePath: cc.cachedBundlePath,
+		ModTime:    cc.cachedModTime,
+		AppVersion: cc.appVersion, // Include app version in the cache data
 	}
 
 	// Marshal to JSON

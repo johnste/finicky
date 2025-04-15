@@ -16,9 +16,9 @@ import (
 
 // ConfigFileWatcher handles watching configuration files for changes
 type ConfigFileWatcher struct {
-	watcher           *fsnotify.Watcher
-	customConfigPath  string
-	namespace         string
+	watcher            *fsnotify.Watcher
+	customConfigPath   string
+	namespace          string
 	configChangeNotify chan struct{}
 
 	// Cache manager
@@ -33,11 +33,11 @@ func NewConfigFileWatcher(customConfigPath string, namespace string, configChang
 	}
 
 	cfw := &ConfigFileWatcher{
-		watcher:          watcher,
-		customConfigPath: customConfigPath,
-		namespace:        namespace,
+		watcher:            watcher,
+		customConfigPath:   customConfigPath,
+		namespace:          namespace,
 		configChangeNotify: configChangeNotify,
-		cache:            NewConfigCache(),
+		cache:              NewConfigCache(),
 	}
 
 	go cfw.StartWatching()
@@ -97,7 +97,7 @@ func (cfw *ConfigFileWatcher) GetConfigPath(log bool) (string, error) {
 func (cfw *ConfigFileWatcher) BundleConfig() (string, string, error) {
 	configPath, err := cfw.GetConfigPath(true)
 
-	if (configPath == "" || err != nil) {
+	if configPath == "" || err != nil {
 		return "", "", err
 	}
 
@@ -208,7 +208,7 @@ func (cfw *ConfigFileWatcher) babelTransform(configPath string) (string, error) 
 	return transformedPath, nil
 }
 
-func (cfw *ConfigFileWatcher) StartWatching() (error) {
+func (cfw *ConfigFileWatcher) StartWatching() error {
 	for {
 		configPath, err := cfw.GetConfigPath(false)
 
