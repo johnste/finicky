@@ -2,6 +2,7 @@
 #include "util/info.h"
 #import <Cocoa/Cocoa.h>
 #import <stdlib.h>
+#import <unistd.h>
 
 @implementation BrowseAppDelegate
 
@@ -9,6 +10,7 @@
     self = [super init];
     if (self) {
         _forceOpenWindow = forceOpenWindow;
+        _receivedURL = false;
     }
     return self;
 }
@@ -16,14 +18,16 @@
 - (void)applicationDidFinishLaunching:(NSNotification *)notification {
     NSDictionary *dict = [notification userInfo];
 
-    // Use either the forced value or check if launched by user
+    BOOL openInBackground = ![NSApp isActive];
     BOOL openWindow = self.forceOpenWindow;
+
     if (!openWindow) {
-        NSNumber *launchedByUser = [dict objectForKey:@"NSApplicationLaunchIsDefaultLaunchKey"];
-        openWindow = [launchedByUser boolValue];
+        // Even if we aren't forcing the window to open, we still want to open it if didn't receive a URL
+        openWindow = !self.receivedURL;
     }
 
-    QueueWindowDisplay(openWindow);
+    NSLog(@"Madeleine openWindow: %d openInBackground: %d", openWindow, openInBackground);
+    QueueWindowDisplay(openWindow, openInBackground);
 }
 
 - (void)applicationWillFinishLaunching:(NSNotification *)aNotification
@@ -58,6 +62,10 @@
     const char *bundleId = NULL;
     const char *path = NULL;
 
+    // If we recieve a url, we default to not showing the app in the dock
+    [NSApp setActivationPolicy:NSApplicationActivationPolicyAccessory];
+    self.receivedURL = true;
+
     if (application) {
         NSString *appName = [application localizedName];
         NSString *appBundleID = [application bundleIdentifier];
@@ -78,7 +86,7 @@ void RunApp(int forceOpenWindow) {
     @autoreleasepool {
         // Initialize on the main thread directly, not async
         [NSApplication sharedApplication];
-        [NSApp setActivationPolicy:NSApplicationActivationPolicyAccessory];
+        [NSApp setActivationPolicy:NSApplicationActivationPolicyRegular];
 
         BrowseAppDelegate *app = [[BrowseAppDelegate alloc] initWithForceOpenWindow:forceOpenWindow];
         [NSApp setDelegate:app];

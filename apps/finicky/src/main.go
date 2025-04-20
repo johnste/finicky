@@ -67,6 +67,7 @@ var dryRun bool = false
 var updateInfo UpdateInfo
 var configInfo *ConfigInfo
 var currentConfigState *config.ConfigState
+var openInBackgroundByDefault bool = false
 
 func main() {
 	startTime := time.Now()
@@ -139,7 +140,7 @@ func main() {
 				var err error
 
 				if vm != nil {
-					browserConfig, err = evaluateURL(vm.Runtime(), urlInfo.URL, urlInfo.Opener)
+					browserConfig, err = evaluateURL(vm.Runtime(), urlInfo.URL, urlInfo.Opener, openInBackgroundByDefault)
 					if err != nil {
 						handleRuntimeError(err)
 					}
@@ -151,14 +152,14 @@ func main() {
 					browserConfig = &browser.BrowserConfig{
 						Name:             "com.apple.Safari",
 						AppType:          "bundleId",
-						OpenInBackground: false,
+						OpenInBackground: nil,
 						Profile:          "",
 						Args:             []string{},
 						URL:              urlInfo.URL,
 					}
 				}
 
-				if err := browser.LaunchBrowser(*browserConfig, dryRun); err != nil {
+				if err := browser.LaunchBrowser(*browserConfig, dryRun, openInBackgroundByDefault); err != nil {
 					slog.Error("Failed to start browser", "error", err)
 				}
 
@@ -203,7 +204,7 @@ func main() {
 func handleRuntimeError(err error) {
 	slog.Error("Failed evaluating url", "error", err)
 	lastError = err
-	go QueueWindowDisplay(1)
+	go QueueWindowDisplay(1, 0)
 }
 
 //export HandleURL
@@ -224,7 +225,7 @@ func HandleURL(url *C.char, name *C.char, bundleId *C.char, path *C.char) {
 	}
 }
 
-func evaluateURL(vm *goja.Runtime, url string, opener *ProcessInfo) (*browser.BrowserConfig, error) {
+func evaluateURL(vm *goja.Runtime, url string, opener *ProcessInfo, openInBackgroundByDefault bool) (*browser.BrowserConfig, error) {
 	resolvedURL, err := shorturl.ResolveURL(url)
 	if err != nil {
 		// Continue with original URL if resolution fails
@@ -286,7 +287,8 @@ func handleFatalError(errorMessage string) {
 }
 
 //export QueueWindowDisplay
-func QueueWindowDisplay(openWindow int32) {
+func QueueWindowDisplay(openWindow int32, isActive int32) {
+	openInBackgroundByDefault = isActive != 0
 	queueWindowOpen <- openWindow != 0
 }
 

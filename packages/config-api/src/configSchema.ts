@@ -90,7 +90,7 @@ const BrowserConfigSchema = z
 export const BrowserConfigStrictSchema = z.object({
   name: z.string(),
   appType: z.enum(appTypes),
-  openInBackground: z.boolean(),
+  openInBackground: z.boolean().optional(),
   profile: z.string(),
   args: z.array(z.string()),
   url: z.string(),

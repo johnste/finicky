@@ -25,7 +25,7 @@ type BrowserResult struct {
 type BrowserConfig struct {
 	Name             string   `json:"name"`
 	AppType          string   `json:"appType"`
-	OpenInBackground bool     `json:"openInBackground"`
+	OpenInBackground *bool    `json:"openInBackground"`
 	Profile          string   `json:"profile"`
 	Args             []string `json:"args"`
 	URL              string   `json:"url"`
@@ -38,7 +38,7 @@ type browserInfo struct {
 	Type              string `json:"type"`
 }
 
-func LaunchBrowser(config BrowserConfig, dryRun bool) error {
+func LaunchBrowser(config BrowserConfig, dryRun bool, openInBackgroundByDefault bool) error {
 	if config.AppType == "none" {
 		slog.Info("AppType is 'none', not launching any browser")
 		return nil
@@ -54,7 +54,14 @@ func LaunchBrowser(config BrowserConfig, dryRun bool) error {
 		openArgs = []string{"-a", config.Name}
 	}
 
-	if config.OpenInBackground {
+
+	var openInBackground bool = openInBackgroundByDefault
+
+	if config.OpenInBackground != nil {
+		openInBackground = *config.OpenInBackground
+	}
+
+	if openInBackground {
 		openArgs = append(openArgs, "-g")
 	}
 
