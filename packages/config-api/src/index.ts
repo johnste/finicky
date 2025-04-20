@@ -130,7 +130,7 @@ export function createBrowserConfig(
 ): Omit<BrowserConfigStrict, "url"> {
   const defaults = {
     appType: "appName" as const,
-    openInBackground: false,
+    openInBackground: undefined,
     profile: "",
     args: [],
   };
