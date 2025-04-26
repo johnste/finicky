@@ -27,7 +27,8 @@ Finicky is a macOS application that allows you to set up rules that decide which
 
 ## Install
 
-Download from [releases](https://github.com/johnste/finicky/releases)
+- Download from [releases](https://github.com/johnste/finicky/releases)
+- Or install via homebrew: `brew install --cask finicky`
 
 ## Basic configuration
 
