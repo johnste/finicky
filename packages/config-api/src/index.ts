@@ -58,13 +58,13 @@ export function getConfiguration(namespace: string): Config {
   );
 }
 
-export function getOption<T>(
+export function getOption<T, K extends keyof Config["options"]>(
   option: keyof Config["options"],
   config: Config,
   defaultValue: T
-): unknown {
+): T | K {
   return config.options && option in config.options
-    ? config.options[option]
+    ? (config.options[option] as K)
     : defaultValue;
 }
 
