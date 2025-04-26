@@ -58,13 +58,14 @@ export function getConfiguration(namespace: string): Config {
   );
 }
 
-export function getOption(
+export function getOption<T, K extends keyof Config["options"]>(
   option: keyof Config["options"],
-  config: Config
-): unknown {
+  config: Config,
+  defaultValue: T
+): T | K {
   return config.options && option in config.options
-    ? config.options[option]
-    : undefined;
+    ? (config.options[option] as K)
+    : defaultValue;
 }
 
 export function getConfigState(config: Config) {
