@@ -71,5 +71,9 @@
         </array>
       </dict>
     </array>
+    <key>NSUserActivityTypes</key>
+    <array>
+      <string>NSUserActivityTypeBrowsingWeb</string>
+    </array>
   </dict>
 </plist>
