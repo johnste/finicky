@@ -80,6 +80,29 @@
 
     HandleURL((char*)url, (char*)name, (char*)bundleId, (char*)path);
 }
+
+- (BOOL)application:(NSApplication *)application willContinueUserActivityWithType:(NSString *)userActivityType {
+    return [userActivityType isEqualToString:NSUserActivityTypeBrowsingWeb];
+}
+
+- (BOOL)application:(NSApplication *)application continueUserActivity:(NSUserActivity *)userActivity restorationHandler:(void (^)(NSArray<id<NSUserActivityRestoring>> * _Nullable))restorationHandler {
+    if (![userActivity.activityType isEqualToString:NSUserActivityTypeBrowsingWeb]) {
+        return NO;
+    }
+
+    NSURL *url = userActivity.webpageURL;
+    if (!url) {
+        return NO;
+    }
+
+    HandleURL((char*)[[url absoluteString] UTF8String], NULL, NULL, NULL);
+    return YES;
+}
+
+- (void)application:(NSApplication *)application didFailToContinueUserActivityWithType:(NSString *)userActivityType error:(NSError *)error {
+    // Handle failure if needed
+}
+
 @end
 
 void RunApp(int forceOpenWindow) {
