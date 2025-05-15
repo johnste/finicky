@@ -12,6 +12,9 @@ const handler: BrowserHandler = {
 
 export default {
   defaultBrowser: "Google Chrome",
+  options: {
+    checkForUpdates: false,
+  },
   handlers: [
     handler,
     {
