@@ -50,7 +50,7 @@ export default {
   ],
   handlers: [
     {
-      // Open any url that includes the string "workplace" in Firefox
+      // Open all bsky.app urls in Firefox
       match: "bsky.app/*",
       browser: "Firefox",
     },
