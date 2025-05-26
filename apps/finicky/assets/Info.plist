@@ -35,6 +35,7 @@
         <array>
           <string>http</string>
           <string>https</string>
+          <string>finicky</string>
         </array>
       </dict>
     </array>

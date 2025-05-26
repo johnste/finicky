@@ -17,8 +17,11 @@ var bundleId = "se.johnste.finicky"
 func isDefaultBrowser() (bool, error) {
 	bundleIdHTTP, _ := getDefaultHandlerForURLScheme("http")
 	bundleIdHTTPS, _ := getDefaultHandlerForURLScheme("https")
+	bundleIdFinicky, _ := getDefaultHandlerForURLScheme("finicky")
 
-	if bundleIdHTTP == bundleIdHTTPS && bundleIdHTTP == bundleId {
+	if bundleIdHTTP == bundleIdHTTPS &&
+		bundleIdHTTP == bundleId &&
+		bundleIdHTTP == bundleIdFinicky {
 		return true, nil
 	}
 	return false, nil
@@ -35,7 +38,7 @@ func setDefaultBrowser() (bool, error) {
 
 	setDefaultHandlerForURLScheme(bundleId, "http")
 	setDefaultHandlerForURLScheme(bundleId, "https")
-
+	setDefaultHandlerForURLScheme(bundleId, "finicky")
 	return true, nil
 }
 
