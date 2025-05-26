@@ -81,12 +81,17 @@ func ResolveURL(originalURL string) (string, error) {
 	if err != nil {
 		slog.Debug("Failed to make HEAD request", "url", originalURL, "error", err)
 	}
-	defer resp.Body.Close()
 
-	// If we got a successful response, return the final URL
-	if resp.StatusCode == http.StatusOK {
-		slog.Debug("Got a successful response", "url", resp.Request.URL.String())
-		return resp.Request.URL.String(), nil
+	if resp != nil {
+		// If we got a successful response, return the final URL
+		if resp.StatusCode == http.StatusOK {
+			slog.Debug("Got a successful response", "url", resp.Request.URL.String())
+			return resp.Request.URL.String(), nil
+		}
+
+		if resp.Body != nil {
+			resp.Body.Close()
+		}
 	}
 
 	// If HEAD request failed, try GET as fallback
@@ -100,13 +105,19 @@ func ResolveURL(originalURL string) (string, error) {
 	if err != nil {
 		return originalURL, fmt.Errorf("failed to make GET request: %v", err)
 	}
-	defer resp.Body.Close()
 
-	if resp.StatusCode == http.StatusOK {
-		slog.Debug("Got a successful response", "url", resp.Request.URL.String())
-		return resp.Request.URL.String(), nil
+	if resp != nil {
+		if resp.StatusCode == http.StatusOK {
+			slog.Debug("Got a successful response", "url", resp.Request.URL.String())
+			return resp.Request.URL.String(), nil
+		}
+
+		if resp.Body != nil {
+			resp.Body.Close()
+		}
 	}
 
 	// If both HEAD and GET failed, return original URL
-	return originalURL, fmt.Errorf("failed to resolve URL: status code %d", resp.StatusCode)
+	return originalURL, fmt.Errorf("failed to resolve URL: no response received")
+
 }
