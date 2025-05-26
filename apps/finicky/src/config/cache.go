@@ -274,7 +274,7 @@ func getFinickyCacheDir() string {
 		cacheDir = os.TempDir()
 	}
 
-	finickyCacheDir := filepath.Join(cacheDir, "finicky")
+	finickyCacheDir := filepath.Join(cacheDir, "Finicky")
 	err = os.MkdirAll(finickyCacheDir, 0755)
 	if err != nil {
 		slog.Debug("Could not create finicky cache directory", "error", err)

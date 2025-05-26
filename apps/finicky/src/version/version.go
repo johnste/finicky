@@ -42,12 +42,12 @@ func GetBuildInfo() (string, string) {
 }
 
 func getCacheDir() string {
-	homeDir, err := os.UserHomeDir()
+	cacheDir, err := os.UserCacheDir()
 	if err != nil {
-		slog.Error("Error getting user home directory", "error", err)
+		slog.Error("Error getting user cache directory", "error", err)
 		return ""
 	}
-	cacheDir := filepath.Join(homeDir, "Library", "Caches", "Finicky")
+	cacheDir = filepath.Join(cacheDir, "Finicky")
 	if err := os.MkdirAll(cacheDir, 0755); err != nil {
 		slog.Error("Error creating cache directory", "error", err)
 		return ""
