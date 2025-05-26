@@ -10,6 +10,7 @@ import "C"
 
 import (
 	"embed"
+	"encoding/base64"
 	"encoding/json"
 	"finicky/browser"
 	"finicky/config"
@@ -134,13 +135,15 @@ func main() {
 			case urlInfo := <-urlListener:
 				startTime := time.Now()
 
-				slog.Info("URL received", "url", urlInfo.URL)
+				url := urlInfo.URL
+
+				slog.Info("URL received", "url", url)
 
 				var browserConfig *browser.BrowserConfig
 				var err error
 
 				if vm != nil {
-					browserConfig, err = evaluateURL(vm.Runtime(), urlInfo.URL, urlInfo.Opener, openInBackgroundByDefault)
+					browserConfig, err = evaluateURL(vm.Runtime(), url, urlInfo.Opener, openInBackgroundByDefault)
 					if err != nil {
 						handleRuntimeError(err)
 					}
@@ -155,7 +158,7 @@ func main() {
 						OpenInBackground: nil,
 						Profile:          "",
 						Args:             []string{},
-						URL:              urlInfo.URL,
+						URL:              url,
 					}
 				}
 
@@ -219,8 +222,21 @@ func HandleURL(url *C.char, name *C.char, bundleId *C.char, path *C.char) {
 		}
 	}
 
+	urlString := C.GoString(url)
+
+	// Handle finicky:// protocol URLs by extracting and decoding the embedded URL
+	if strings.HasPrefix(urlString, "finicky://open/") {
+		encodedURL := strings.TrimPrefix(urlString, "finicky://open/")
+		if decodedBytes, err := base64.StdEncoding.DecodeString(encodedURL); err == nil {
+			urlString = string(decodedBytes)
+			slog.Debug("Decoded finicky protocol URL", "original", C.GoString(url), "decoded", urlString)
+		} else {
+			slog.Warn("Failed to decode finicky protocol URL", "error", err, "url", C.GoString(url))
+		}
+	}
+
 	urlListener <- URLInfo{
-		URL:    C.GoString(url),
+		URL:    urlString,
 		Opener: &opener,
 	}
 }
