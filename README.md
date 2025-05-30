@@ -77,6 +77,13 @@ Finicky has extensive support for matching, rewriting and starting browsers or o
 
 # Other
 
+### Browser extensions
+
+Finicky has browser extensions for Chrome and Firefox. They add an "open with Finicky" on links, and alt-clicking links opens them in Finicky directly.
+
+- [Firefox Add-ons](https://addons.mozilla.org/en-US/firefox/addon/finicky/)
+- [Chrome Web Store](https://chromewebstore.google.com/detail/finicky/kcnjhpdfmjcbohngnmobipdllkhnpdbk)
+
 ### Building Finicky from source
 
 See [Building Finicky from source](https://github.com/johnste/finicky/wiki/Building-Finicky-from-source)

@@ -1,0 +1,23 @@
+{
+  "name": "Finicky Browser Addon",
+  "description": "The Official Finicky Browser Addon. Requires Finicky 4.1+ (macOS only)",
+  "version": "0.2.0",
+  "manifest_version": 2,
+  "homepage_url": "https://github.com/johnste/finicky",
+  "background": {
+    "scripts": ["background.js"]
+  },
+  "content_scripts": [
+    {
+      "matches": ["<all_urls>"],
+      "js": ["contentScript.js"]
+    }
+  ],
+  "icons": {
+    "16": "icon16.png",
+    "48": "icon48.png",
+   "128": "icon128.png",
+   "256": "icon256.png"
+  },
+  "permissions": ["contextMenus", "<all_urls>"]
+}
