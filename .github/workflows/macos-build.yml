@@ -170,6 +170,8 @@ jobs:
 
       - name: Update gon config for CI
         run: |
+          # Create the directory structure expected by the existing gon config
+          mkdir -p apps/finicky/build
           # Copy the universal binary to the expected location for the existing gon config
           cp -r universal/Finicky.app apps/finicky/build/Finicky.app
 
