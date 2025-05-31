@@ -1,0 +1,126 @@
+# This workflow builds the Finicky macOS app for both Silicon (ARM64) and Intel (x86_64) architectures
+name: macOS Build
+
+on:
+    push:
+      branches: [main]
+    pull_request:
+      branches: [main]
+    workflow_dispatch:
+
+jobs:
+  build-macos:
+    runs-on: macos-latest
+    
+    strategy:
+      matrix:
+        architecture: [arm64, amd64]
+        include:
+          - architecture: arm64
+            display_name: "Apple Silicon (ARM64)"
+          - architecture: amd64
+            display_name: "Intel (x86_64)"
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+          cache-dependency-path: |
+            packages/config-api/package-lock.json
+            packages/finicky-ui/package-lock.json
+
+      - name: Set up Go
+        uses: actions/setup-go@v4
+        with:
+          go-version: '1.21'
+          
+      - name: Install dependencies
+        run: |
+          # Make install script executable and run it
+          chmod +x scripts/install.sh
+          ./scripts/install.sh
+
+      - name: Build for ${{ matrix.display_name }}
+        env:
+          GOOS: darwin
+          GOARCH: ${{ matrix.architecture }}
+          API_HOST: ${{ vars.API_HOST || '' }}
+          BUILD_TARGET_ARCH: ${{ matrix.architecture }}
+        run: |
+          # Create a temporary .env file with the API_HOST variable
+          echo "API_HOST=${{ vars.API_HOST || '' }}" > .env
+          
+          # Make build script executable and run it
+          chmod +x scripts/build.sh
+          ./scripts/build.sh
+
+      - name: Create archive
+        run: |
+          cd apps/finicky/build
+          tar -czf Finicky-${{ matrix.architecture }}.tar.gz Finicky-${{ matrix.architecture }}.app
+
+      - name: Upload build artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: Finicky-${{ matrix.architecture }}
+          path: apps/finicky/build/Finicky-${{ matrix.architecture }}.tar.gz
+          retention-days: 30
+
+  create-universal-binary:
+    runs-on: macos-latest
+    needs: build-macos
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        
+      - name: Download ARM64 artifact
+        uses: actions/download-artifact@v4
+        with:
+          name: Finicky-arm64
+          path: ./artifacts/arm64
+          
+      - name: Download AMD64 artifact  
+        uses: actions/download-artifact@v4
+        with:
+          name: Finicky-amd64
+          path: ./artifacts/amd64
+
+      - name: Create universal binary
+        run: |
+          # Extract both builds
+          cd artifacts/arm64
+          tar -xzf Finicky-arm64.tar.gz
+          cd ../amd64
+          tar -xzf Finicky-amd64.tar.gz
+          cd ../../
+          
+          # Create universal app structure
+          mkdir -p universal/Finicky.app/Contents/MacOS
+          cp -r artifacts/arm64/Finicky-arm64.app/Contents/Resources universal/Finicky.app/Contents/
+          cp -r artifacts/arm64/Finicky-arm64.app/Contents/Info.plist universal/Finicky.app/Contents/ || true
+          
+          # Create universal binary using lipo
+          lipo -create \
+            artifacts/arm64/Finicky-arm64.app/Contents/MacOS/Finicky \
+            artifacts/amd64/Finicky-amd64.app/Contents/MacOS/Finicky \
+            -output universal/Finicky.app/Contents/MacOS/Finicky
+          
+          # Verify the universal binary
+          lipo -info universal/Finicky.app/Contents/MacOS/Finicky
+          
+          # Create archive
+          cd universal
+          tar -czf Finicky-universal.tar.gz Finicky.app
+
+      - name: Upload universal binary
+        uses: actions/upload-artifact@v4
+        with:
+          name: Finicky-universal
+          path: universal/Finicky-universal.tar.gz
+          retention-days: 14
