@@ -10,16 +10,17 @@ on:
 
 jobs:
   build-macos:
-    runs-on: macos-latest
-    
     strategy:
       matrix:
-        architecture: [arm64, amd64]
         include:
           - architecture: arm64
             display_name: "Apple Silicon (ARM64)"
+            runner: macos-latest
           - architecture: amd64
             display_name: "Intel (x86_64)"
+            runner: macos-13
+            
+    runs-on: ${{ matrix.runner }}
 
     steps:
       - name: Checkout code
@@ -38,7 +39,7 @@ jobs:
         uses: actions/setup-go@v4
         with:
           go-version: '1.21'
-          
+
       - name: Install dependencies
         run: |
           # Make install script executable and run it
@@ -47,8 +48,6 @@ jobs:
 
       - name: Build for ${{ matrix.display_name }}
         env:
-          GOOS: darwin
-          GOARCH: ${{ matrix.architecture }}
           API_HOST: ${{ vars.API_HOST || '' }}
           BUILD_TARGET_ARCH: ${{ matrix.architecture }}
         run: |
