@@ -30,7 +30,7 @@ Finicky is a macOS application that allows you to set up rules that decide which
 - Download from [releases](https://github.com/johnste/finicky/releases)
 - Or install via homebrew: `brew install --cask finicky`
 - Create a JavaScript or TypeScript configuration file at `~/finicky.js`.  Have a look at the example configuration below, or in the `example-config` folder.
-- Start Finicky (in Applications, or through Spotlify/Alfred/Raycast) to open the configuration/troubleshooting window.
+- Start Finicky (in Applications, or through Spotlight/Alfred/Raycast) and allow it to be set as the default browser. Starting Finicky manually opens the configuration/troubleshooting window. 
 
 ## Basic configuration
 
