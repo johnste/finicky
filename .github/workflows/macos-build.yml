@@ -19,7 +19,7 @@ jobs:
           - architecture: amd64
             display_name: "Intel (x86_64)"
             runner: macos-13
-            
+
     runs-on: ${{ matrix.runner }}
 
     steps:
@@ -53,7 +53,7 @@ jobs:
         run: |
           # Create a temporary .env file with the API_HOST variable
           echo "API_HOST=${{ vars.API_HOST || '' }}" > .env
-          
+
           # Make build script executable and run it
           chmod +x scripts/build.sh
           ./scripts/build.sh
@@ -73,18 +73,18 @@ jobs:
   create-universal-binary:
     runs-on: macos-latest
     needs: build-macos
-    
+
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
-        
+
       - name: Download ARM64 artifact
         uses: actions/download-artifact@v4
         with:
           name: Finicky-arm64
           path: ./artifacts/arm64
-          
-      - name: Download AMD64 artifact  
+
+      - name: Download AMD64 artifact
         uses: actions/download-artifact@v4
         with:
           name: Finicky-amd64
@@ -98,21 +98,21 @@ jobs:
           cd ../amd64
           tar -xzf Finicky-amd64.tar.gz
           cd ../../
-          
+
           # Create universal app structure
           mkdir -p universal/Finicky.app/Contents/MacOS
           cp -r artifacts/arm64/Finicky-arm64.app/Contents/Resources universal/Finicky.app/Contents/
           cp -r artifacts/arm64/Finicky-arm64.app/Contents/Info.plist universal/Finicky.app/Contents/ || true
-          
+
           # Create universal binary using lipo
           lipo -create \
             artifacts/arm64/Finicky-arm64.app/Contents/MacOS/Finicky \
             artifacts/amd64/Finicky-amd64.app/Contents/MacOS/Finicky \
             -output universal/Finicky.app/Contents/MacOS/Finicky
-          
+
           # Verify the universal binary
           lipo -info universal/Finicky.app/Contents/MacOS/Finicky
-          
+
           # Create archive
           cd universal
           tar -czf Finicky-universal.tar.gz Finicky.app
@@ -123,3 +123,74 @@ jobs:
           name: Finicky-universal
           path: universal/Finicky-universal.tar.gz
           retention-days: 14
+
+  sign-and-notarize:
+    runs-on: macos-latest
+    needs: create-universal-binary
+    if: github.ref == 'refs/heads/main' && github.event_name == 'push'
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Download universal binary
+        uses: actions/download-artifact@v4
+        with:
+          name: Finicky-universal
+          path: ./universal
+
+      - name: Extract universal binary
+        run: |
+          cd universal
+          tar -xzf Finicky-universal.tar.gz
+
+      - name: Import signing certificate
+        env:
+          SIGNING_CERTIFICATE_P12_DATA: ${{ secrets.SIGNING_CERTIFICATE_P12_DATA }}
+          SIGNING_CERTIFICATE_PASSWORD: ${{ secrets.SIGNING_CERTIFICATE_PASSWORD }}
+        run: |
+          # Create temporary keychain
+          security create-keychain -p temp_password temp.keychain
+          security default-keychain -s temp.keychain
+          security unlock-keychain -p temp_password temp.keychain
+
+          # Import certificate
+          echo "$SIGNING_CERTIFICATE_P12_DATA" | base64 --decode > certificate.p12
+          security import certificate.p12 -k temp.keychain -P "$SIGNING_CERTIFICATE_PASSWORD" -T /usr/bin/codesign
+
+          # Set partition list
+          security set-key-partition-list -S apple-tool:,apple:,codesign: -s -k temp_password temp.keychain
+
+          # Clean up
+          rm certificate.p12
+
+      - name: Install gon
+        run: |
+          brew tap mitchellh/gon
+          brew install mitchellh/gon/gon
+
+      - name: Update gon config for CI
+        run: |
+          # Copy the universal binary to the expected location for the existing gon config
+          cp -r universal/Finicky.app apps/finicky/build/Finicky.app
+
+      - name: Sign and notarize
+        env:
+          AC_USERNAME: ${{ secrets.APPLE_ID_USERNAME }}
+          AC_PASSWORD: ${{ secrets.APPLE_ID_PASSWORD }}
+          AC_PROVIDER: ${{ secrets.AC_PROVIDER }}
+        run: |
+          mkdir -p dist
+          gon scripts/gon-config.json
+
+      - name: Upload signed DMG
+        uses: actions/upload-artifact@v4
+        with:
+          name: Finicky-signed-dmg
+          path: dist/Finicky.dmg
+          retention-days: 30
+
+      - name: Cleanup keychain
+        if: always()
+        run: |
+          security delete-keychain temp.keychain || true
