@@ -127,6 +127,7 @@ jobs:
   sign-and-notarize:
     runs-on: macos-latest
     needs: create-universal-binary
+    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
 
     steps:
       - name: Checkout code
