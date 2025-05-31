@@ -1,11 +1,11 @@
 (
     cd packages/config-api
-    npm install
+    npm ci
 )
 
 (
     cd packages/finicky-ui
-    npm install
+    npm ci
 )
 
 
