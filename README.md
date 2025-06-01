@@ -24,6 +24,7 @@ Finicky is a macOS application that allows you to set up rules that decide which
 - [Installation](#installation)
 - [Basic configuration](#basic-configuration)
 - [Configuration](#documentation)
+- [Migrating from Finicky 3](#migrating-from-finicky-3)
 
 ## Installation
 
@@ -76,6 +77,10 @@ Finicky has extensive support for matching, rewriting and starting browsers or o
 
 - The wiki has some good [configuration ideas](https://github.com/johnste/finicky/wiki/Configuration-ideas).
 - Visit [discussions](https://github.com/johnste/finicky/discussions) to discuss supporting specific apps.
+
+## Migrating from Finicky 3
+
+Please see the [wiki page](https://github.com/johnste/finicky/wiki/Migrating-from-Finicky-3) for updating info and migrating your configuration
 
 # Other
 
