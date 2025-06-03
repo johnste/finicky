@@ -65,6 +65,12 @@ func (vm *VM) setup(embeddedFiles embed.FS, bundlePath string) error {
 		finicky[key] = userAPI.Get(key)
 	}
 
+	// Set system-specific functions
+	finicky["getModifierKeys"] = util.GetModifierKeys
+	finicky["getSystemInfo"] = util.GetSystemInfo
+	finicky["getPowerInfo"] = util.GetPowerInfo
+	finicky["isAppRunning"] = util.IsAppRunning
+
 	vm.runtime.Set("finicky", finicky)
 
 	if content != nil {
@@ -90,12 +96,6 @@ func (vm *VM) setup(embeddedFiles embed.FS, bundlePath string) error {
 	if !validConfig.ToBoolean() {
 		return fmt.Errorf("configuration is invalid")
 	}
-
-	// Set system-specific functions
-	vm.SetModifierKeysFunc(util.GetModifierKeys)
-	vm.SetSystemInfoFunc(util.GetSystemInfo)
-	vm.SetPowerInfoFunc(util.GetPowerInfo)
-	vm.SetIsAppRunningFunc(util.IsAppRunning)
 
 	return nil
 }
@@ -141,28 +141,4 @@ func (vm *VM) GetConfigState() *ConfigState {
 // Runtime returns the underlying goja.Runtime
 func (vm *VM) Runtime() *goja.Runtime {
 	return vm.runtime
-}
-
-// SetModifierKeysFunc sets the getModifierKeys function in the VM
-func (vm *VM) SetModifierKeysFunc(fn func() map[string]bool) {
-	finicky := vm.runtime.Get("finicky").ToObject(vm.runtime)
-	finicky.Set("getModifierKeys", fn)
-}
-
-// SetSystemInfoFunc sets the getSystemInfo function in the VM
-func (vm *VM) SetSystemInfoFunc(fn func() map[string]string) {
-	finicky := vm.runtime.Get("finicky").ToObject(vm.runtime)
-	finicky.Set("getSystemInfo", fn)
-}
-
-// SetPowerInfoFunc sets the getPowerInfo function in the VM
-func (vm *VM) SetPowerInfoFunc(fn func() map[string]interface{}) {
-	finicky := vm.runtime.Get("finicky").ToObject(vm.runtime)
-	finicky.Set("getPowerInfo", fn)
-}
-
-// SetIsAppRunningFunc sets the isAppRunning function in the VM
-func (vm *VM) SetIsAppRunningFunc(fn func(string) bool) {
-	finicky := vm.runtime.Get("finicky").ToObject(vm.runtime)
-	finicky.Set("isAppRunning", fn)
 }
