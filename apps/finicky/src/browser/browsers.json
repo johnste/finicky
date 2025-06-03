@@ -46,5 +46,11 @@
     "id": "com.bookry.wavebox",
     "type": "Chromium",
     "app_name": "Wavebox"
+  },
+  {
+    "config_dir_relative": "net.imput.helium",
+    "id": "net.imput.helium",
+    "type": "Chromium",
+    "app_name": "Helium"
   }
 ]
