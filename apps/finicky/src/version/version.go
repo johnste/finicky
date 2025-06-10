@@ -138,6 +138,11 @@ func checkForUpdates() (releaseInfo *ReleaseInfo) {
 		timeSinceLastCheck := time.Since(time.Unix(updateCheckInfo.Timestamp, 0))
 		if timeSinceLastCheck < updateCheckInterval {
 			slog.Debug("Skipping update check - last checked", "duration", fmt.Sprintf("%dh %dm ago (check interval: %dh)", int(timeSinceLastCheck.Hours()), int(timeSinceLastCheck.Minutes())%60, int(updateCheckInterval.Hours())))
+
+			if currentVersion == strings.TrimPrefix(updateCheckInfo.ReleaseInfo.LatestVersion, "v") {
+				return nil
+			}
+
 			return &updateCheckInfo.ReleaseInfo
 		}
 	}
@@ -191,6 +196,10 @@ func checkForUpdates() (releaseInfo *ReleaseInfo) {
 		Timestamp:   time.Now().Unix(),
 		ReleaseInfo: *releaseInfo,
 	})
+
+	if currentVersion == strings.TrimPrefix(releaseInfo.LatestVersion, "v") {
+		return nil
+	}
 
 	return releaseInfo
 }
