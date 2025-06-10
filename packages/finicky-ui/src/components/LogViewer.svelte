@@ -3,6 +3,7 @@
   import LogContent from "./LogContent.svelte";
 
   export let messageBuffer: LogEntry[] = [];
+  export let onClearLogs: () => void;
 
   let showDebug = false;
   let copyButtonText = "Copy Logs";
@@ -49,17 +50,12 @@
 
   // Clear logs
   function clearLogs() {
-    messageBuffer = [];
+    onClearLogs();
   }
 
   // Toggle debug logs
   function toggleDebug() {
     showDebug = !showDebug;
-  }
-
-  // Toggle debug mode
-  function toggleDebugMode(isEnabled: boolean) {
-    showDebug = isEnabled;
   }
 </script>
 

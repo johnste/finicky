@@ -63,6 +63,11 @@
     messageBuffer = [...messageBuffer, message];
   }
 
+  // Clear all logs
+  function clearAllLogs() {
+    messageBuffer = [];
+  }
+
   onMount(() => {
     // Load dev mode state from localStorage
     isDevMode = localStorage.getItem("finicky-dev-mode") === "true";
@@ -99,7 +104,7 @@
         </Route>
 
         <Route path="/troubleshoot">
-          <LogViewer {messageBuffer} />
+          <LogViewer {messageBuffer} onClearLogs={clearAllLogs} />
         </Route>
 
         <Route path="/about">
