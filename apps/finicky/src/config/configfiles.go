@@ -82,10 +82,23 @@ func (cfw *ConfigFileWatcher) GetConfigPath(log bool) (string, error) {
 
 	for _, path := range configPaths {
 		if _, err := os.Stat(path); err == nil {
-			if log {
-				slog.Info("Using config file", "path", strings.Replace(path, os.Getenv("HOME"), "~", 1))
+			// Resolve symlinks to get the actual file path
+			resolvedPath, err := resolveSymlink(path)
+			if err != nil {
+				slog.Warn("Failed to resolve symlink, using original path", "original", path, "error", err)
+				resolvedPath = path
 			}
-			return path, nil
+
+			if log {
+				displayPath := strings.Replace(path, os.Getenv("HOME"), "~", 1)
+				if resolvedPath != path {
+					resolvedDisplayPath := strings.Replace(resolvedPath, os.Getenv("HOME"), "~", 1)
+					slog.Info("Using config file", "path", displayPath, "resolved", resolvedDisplayPath)
+				} else {
+					slog.Info("Using config file", "path", displayPath)
+				}
+			}
+			return resolvedPath, nil
 		}
 	}
 	if cfw.customConfigPath != "" {
@@ -336,4 +349,25 @@ func (cfw *ConfigFileWatcher) handleConfigFileEvent(event fsnotify.Event) error 
 	time.Sleep(500 * time.Millisecond)
 	cfw.configChangeNotify <- struct{}{}
 	return nil
+}
+
+// resolveSymlink resolves a symlink to its target file path
+// If the path is not a symlink, it returns the original path
+func resolveSymlink(path string) (string, error) {
+	fileInfo, err := os.Lstat(path)
+	if err != nil {
+		return path, err
+	}
+
+	// Check if it's a symlink
+	if fileInfo.Mode()&os.ModeSymlink != 0 {
+		resolvedPath, err := filepath.EvalSymlinks(path)
+		if err != nil {
+			return path, fmt.Errorf("failed to resolve symlink %s: %w", path, err)
+		}
+		slog.Debug("Resolved symlink", "original", path, "resolved", resolvedPath)
+		return resolvedPath, nil
+	}
+
+	return path, nil
 }
