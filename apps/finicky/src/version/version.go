@@ -12,6 +12,7 @@ import (
 	"strings"
 	"time"
 
+	"github.com/Masterminds/semver"
 	"github.com/dop251/goja"
 )
 
@@ -139,11 +140,19 @@ func checkForUpdates() (releaseInfo *ReleaseInfo) {
 		if timeSinceLastCheck < updateCheckInterval {
 			slog.Debug("Skipping update check - last checked", "duration", fmt.Sprintf("%dh %dm ago (check interval: %dh)", int(timeSinceLastCheck.Hours()), int(timeSinceLastCheck.Minutes())%60, int(updateCheckInterval.Hours())))
 
-			if currentVersion == strings.TrimPrefix(updateCheckInfo.ReleaseInfo.LatestVersion, "v") {
+			updateAvailable, err := isUpdateAvailable(currentVersion, updateCheckInfo.ReleaseInfo.LatestVersion)
+			if err != nil {
+				slog.Error("Error checking version", "error", err)
 				return nil
 			}
 
-			return &updateCheckInfo.ReleaseInfo
+			if updateAvailable {
+				slog.Debug("Update available", "currentVersion", currentVersion, "latestVersion", updateCheckInfo.ReleaseInfo.LatestVersion)
+				return &updateCheckInfo.ReleaseInfo
+			} else {
+				slog.Debug("Current version is up to date", "currentVersion", currentVersion, "latestVersion", updateCheckInfo.ReleaseInfo.LatestVersion)
+				return nil
+			}
 		}
 	}
 
@@ -197,7 +206,16 @@ func checkForUpdates() (releaseInfo *ReleaseInfo) {
 		ReleaseInfo: *releaseInfo,
 	})
 
-	if currentVersion == strings.TrimPrefix(releaseInfo.LatestVersion, "v") {
+	updateAvailable, err := isUpdateAvailable(currentVersion, releaseInfo.LatestVersion)
+	if err != nil {
+		slog.Error("Error checking version", "error", err)
+		return nil
+	}
+
+	if updateAvailable {
+		slog.Debug("Update available", "currentVersion", currentVersion, "latestVersion", releaseInfo.LatestVersion)
+	} else {
+		slog.Debug("Current version is up to date", "currentVersion", currentVersion, "latestVersion", releaseInfo.LatestVersion)
 		return nil
 	}
 
@@ -226,4 +244,23 @@ func CheckForUpdatesIfEnabled(vm *goja.Runtime) (releaseInfo *ReleaseInfo, updat
 		slog.Debug("Skipping update check")
 	}
 	return nil, false, nil
+}
+
+// isUpdateAvailable checks if the latest version is newer than the current version
+func isUpdateAvailable(currentVersion, latestVersion string) (bool, error) {
+
+	currentVersion = strings.TrimPrefix(currentVersion, "v")
+	latestVersion = strings.TrimPrefix(latestVersion, "v")
+
+	currentSemver, err := semver.NewVersion(currentVersion)
+	if err != nil {
+		return false, fmt.Errorf("parsing current version %s: %w", currentVersion, err)
+	}
+
+	latestSemver, err := semver.NewVersion(latestVersion)
+	if err != nil {
+		return false, fmt.Errorf("parsing latest version %s: %w", latestVersion, err)
+	}
+
+	return latestSemver.GreaterThan(currentSemver), nil
 }
