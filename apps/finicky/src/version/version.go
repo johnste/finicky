@@ -12,6 +12,7 @@ import (
 	"strings"
 	"time"
 
+	"github.com/Masterminds/semver"
 	"github.com/dop251/goja"
 )
 
@@ -139,7 +140,22 @@ func checkForUpdates() (releaseInfo *ReleaseInfo) {
 		if timeSinceLastCheck < updateCheckInterval {
 			slog.Debug("Skipping update check - last checked", "duration", fmt.Sprintf("%dh %dm ago (check interval: %dh)", int(timeSinceLastCheck.Hours()), int(timeSinceLastCheck.Minutes())%60, int(updateCheckInterval.Hours())))
 
-			if currentVersion == strings.TrimPrefix(updateCheckInfo.ReleaseInfo.LatestVersion, "v") {
+			currentSemverVersion, err := semver.NewVersion(currentVersion)
+			if err != nil {
+				slog.Error("Error parsing current version", "error", err, "version", currentVersion)
+				return &updateCheckInfo.ReleaseInfo
+			}
+
+			latest, err := semver.NewVersion(updateCheckInfo.ReleaseInfo.LatestVersion)
+			if err != nil {
+				slog.Error("Error parsing latest version", "error", err, "version", updateCheckInfo.ReleaseInfo.LatestVersion)
+				return &updateCheckInfo.ReleaseInfo
+			}
+
+			if latest.GreaterThan(currentSemverVersion) {
+				slog.Debug("Update available", "currentVersion", currentVersion, "latestVersion", updateCheckInfo.ReleaseInfo.LatestVersion)
+			} else {
+				slog.Debug("Current version is up to date", "currentVersion", currentVersion, "latestVersion", updateCheckInfo.ReleaseInfo.LatestVersion)
 				return nil
 			}
 
@@ -197,7 +213,22 @@ func checkForUpdates() (releaseInfo *ReleaseInfo) {
 		ReleaseInfo: *releaseInfo,
 	})
 
-	if currentVersion == strings.TrimPrefix(releaseInfo.LatestVersion, "v") {
+	currentSemverVersion, err := semver.NewVersion(currentVersion)
+	if err != nil {
+		slog.Error("Error parsing current version", "error", err, "version", currentVersion)
+		return releaseInfo
+	}
+
+	latest, err := semver.NewVersion(releaseInfo.LatestVersion)
+	if err != nil {
+		slog.Error("Error parsing latest version", "error", err, "version", updateCheckInfo.ReleaseInfo.LatestVersion)
+		return releaseInfo
+	}
+
+	if latest.GreaterThan(currentSemverVersion) {
+		slog.Debug("Update available", "currentVersion", currentVersion, "latestVersion", updateCheckInfo.ReleaseInfo.LatestVersion)
+	} else {
+		slog.Debug("Current version is up to date", "currentVersion", currentVersion, "latestVersion", updateCheckInfo.ReleaseInfo.LatestVersion)
 		return nil
 	}
 

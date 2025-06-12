@@ -11,6 +11,7 @@ require (
 )
 
 require (
+	github.com/Masterminds/semver v1.5.0 // indirect
 	github.com/dlclark/regexp2 v1.11.5 // indirect
 	github.com/go-sourcemap/sourcemap v2.1.4+incompatible // indirect
 	github.com/google/pprof v0.0.0-20250302191652-9094ed2288e7 // indirect
