@@ -26,8 +26,9 @@
         openWindow = !self.receivedURL;
     }
 
-    NSLog(@"Madeleine openWindow: %d openInBackground: %d", openWindow, openInBackground);
-    QueueWindowDisplay(openWindow, openInBackground);
+    NSString *homeDir = NSHomeDirectory();
+
+    QueueWindowDisplay(openWindow, openInBackground, (char*)[homeDir UTF8String]);
 }
 
 - (void)applicationWillFinishLaunching:(NSNotification *)aNotification
