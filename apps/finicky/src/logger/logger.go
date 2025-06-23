@@ -2,13 +2,13 @@ package logger
 
 import (
 	"bytes"
+	"finicky/util"
 	"finicky/window"
 	"fmt"
 	"io"
 	"log/slog"
 	"os"
 	"path/filepath"
-	"strings"
 	"time"
 )
 
@@ -69,9 +69,9 @@ func SetupFile(shouldLog bool) error {
 		return nil
 	}
 
-	homeDir, err := os.UserHomeDir()
+	homeDir, err := util.UserHomeDir()
 	if err != nil {
-		return fmt.Errorf("failed to get user home directory: %v", err)
+		return fmt.Errorf("failed to get user home directory: %w", err)
 	}
 
 	logDir := filepath.Join(homeDir, "Library", "Logs", "Finicky")
@@ -88,7 +88,7 @@ func SetupFile(shouldLog bool) error {
 		return fmt.Errorf("failed to open log file: %v", err)
 	}
 
-	slog.Info("Log file created", "path", strings.Replace(logFile, os.Getenv("HOME"), "~", 1))
+	slog.Info("Log file created", "path", logFile)
 
 	// Write buffered logs to file
 	if _, err := file.Write(memLog.Bytes()); err != nil {

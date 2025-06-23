@@ -1,6 +1,7 @@
 package config
 
 import (
+	"finicky/util"
 	"fmt"
 	"io"
 	"log/slog"
@@ -56,21 +57,28 @@ func (cfw *ConfigFileWatcher) TearDown() {
 func (cfw *ConfigFileWatcher) GetConfigPaths() []string {
 	var configPaths []string
 
+	homeDir, err := util.UserHomeDir()
+	if err != nil {
+		slog.Error("Failed to get user home directory", "error", err)
+		return configPaths
+	}
+
 	if cfw.customConfigPath != "" {
 		configPaths = append(configPaths, cfw.customConfigPath)
 	} else {
 		configPaths = append(configPaths,
-			"$HOME/.finicky.js",
-			"$HOME/.finicky.ts",
-			"$HOME/.config/finicky.js",
-			"$HOME/.config/finicky.ts",
-			"$HOME/.config/finicky/finicky.js",
-			"$HOME/.config/finicky/finicky.ts",
+			"~/.finicky.js",
+			"~/.finicky.ts",
+			"~/.config/finicky.js",
+			"~/.config/finicky.ts",
+			"~/.config/finicky/finicky.js",
+			"~/.config/finicky/finicky.ts",
 		)
 	}
 
 	for i, path := range configPaths {
 		configPaths[i] = os.ExpandEnv(path)
+		configPaths[i] = strings.ReplaceAll(configPaths[i], "~", homeDir)
 	}
 
 	return configPaths
@@ -90,9 +98,9 @@ func (cfw *ConfigFileWatcher) GetConfigPath(log bool) (string, error) {
 			}
 
 			if log {
-				displayPath := strings.Replace(path, os.Getenv("HOME"), "~", 1)
+				displayPath := path
 				if resolvedPath != path {
-					resolvedDisplayPath := strings.Replace(resolvedPath, os.Getenv("HOME"), "~", 1)
+					resolvedDisplayPath := resolvedPath
 					slog.Info("Using config file", "path", displayPath, "resolved", resolvedDisplayPath)
 				} else {
 					slog.Info("Using config file", "path", displayPath)
@@ -299,7 +307,7 @@ func (cfw *ConfigFileWatcher) StartWatching() error {
 			}
 
 		} else {
-			slog.Debug("Watching config file", "path", strings.Replace(configPath, os.Getenv("HOME"), "~", 1))
+			slog.Debug("Watching config file", "path", configPath)
 
 			cfw.watcher.Add(configPath)
 

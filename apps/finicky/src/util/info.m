@@ -2,6 +2,8 @@
 #import <Cocoa/Cocoa.h>
 #import <IOKit/ps/IOPSKeys.h>
 #import <IOKit/ps/IOPowerSources.h>
+#import <stdlib.h>
+#import <string.h>
 
 ModifierKeys getModifierKeys() {
     NSEventModifierFlags flags = [NSEvent modifierFlags];
@@ -113,4 +115,18 @@ _Bool isAppRunning(const char* identifier) {
     }
 
     return 0;
+}
+
+const char* getNSHomeDirectory(void) {
+    NSString *homeDirString = NSHomeDirectory();
+    return [homeDirString UTF8String];
+}
+
+const char* getNSCacheDirectory(void) {
+    NSArray *paths = NSSearchPathForDirectoriesInDomains(NSCachesDirectory, NSUserDomainMask, YES);
+    if (paths.count > 0) {
+        NSString *cacheDirString = [paths objectAtIndex:0];
+        return [cacheDirString UTF8String];
+    }
+    return NULL;
 }

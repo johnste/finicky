@@ -27,5 +27,7 @@ ModifierKeys getModifierKeys(void);
 SystemInfo getSystemInfo(void);
 PowerInfo getPowerInfo(void);
 _Bool isAppRunning(const char* identifier);
+const char* getNSHomeDirectory(void);
+const char* getNSCacheDirectory(void);
 
 #endif /* INFO_H */
