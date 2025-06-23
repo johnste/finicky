@@ -12,6 +12,8 @@ import (
 	"strings"
 	"time"
 
+	"finicky/util"
+
 	"github.com/Masterminds/semver"
 	"github.com/dop251/goja"
 )
@@ -43,7 +45,7 @@ func GetBuildInfo() (string, string) {
 }
 
 func getCacheDir() string {
-	cacheDir, err := os.UserCacheDir()
+	cacheDir, err := util.UserCacheDir()
 	if err != nil {
 		slog.Error("Error getting user cache directory", "error", err)
 		return ""

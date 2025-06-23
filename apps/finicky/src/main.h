@@ -10,7 +10,7 @@
 #include <stdbool.h>
 
 extern void HandleURL(char *url, char *name, char *bundleId, char *path);
-extern void QueueWindowDisplay(int launchedByUser, int openInBackground, char *homeDir);
+extern void QueueWindowDisplay(int launchedByUser, int openInBackground);
 
 #ifdef __OBJC__
 @interface BrowseAppDelegate: NSObject<NSApplicationDelegate>
