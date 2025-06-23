@@ -2,6 +2,7 @@ package logger
 
 import (
 	"bytes"
+	"finicky/util"
 	"finicky/window"
 	"fmt"
 	"io"
@@ -69,13 +70,13 @@ func SetupFile(shouldLog bool) error {
 		return nil
 	}
 
-	homeDir, err := os.UserHomeDir()
-	if err != nil {
-		return fmt.Errorf("failed to get user home directory: %v", err)
+	homeDir := util.UserHomeDir()
+	if homeDir == "" {
+		return fmt.Errorf("failed to get user home directory")
 	}
 
 	logDir := filepath.Join(homeDir, "Library", "Logs", "Finicky")
-	err = os.MkdirAll(logDir, 0755) // Create directory if it doesn't exist
+	err := os.MkdirAll(logDir, 0755) // Create directory if it doesn't exist
 	if err != nil {
 		return fmt.Errorf("failed to create log directory: %v", err)
 	}

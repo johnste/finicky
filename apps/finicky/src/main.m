@@ -26,7 +26,6 @@
         openWindow = !self.receivedURL;
     }
 
-    NSLog(@"Madeleine openWindow: %d openInBackground: %d", openWindow, openInBackground);
     QueueWindowDisplay(openWindow, openInBackground);
 }
 

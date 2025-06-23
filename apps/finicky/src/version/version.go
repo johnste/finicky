@@ -12,6 +12,7 @@ import (
 	"strings"
 	"time"
 
+	"finicky/util"
 	"github.com/dop251/goja"
 )
 
@@ -42,9 +43,9 @@ func GetBuildInfo() (string, string) {
 }
 
 func getCacheDir() string {
-	cacheDir, err := os.UserCacheDir()
-	if err != nil {
-		slog.Error("Error getting user cache directory", "error", err)
+	cacheDir := util.UserCacheDir()
+	if cacheDir == "" {
+		slog.Error("Error getting user cache directory")
 		return ""
 	}
 	cacheDir = filepath.Join(cacheDir, "Finicky")

@@ -304,6 +304,7 @@ func handleFatalError(errorMessage string) {
 
 //export QueueWindowDisplay
 func QueueWindowDisplay(openWindow int32, isActive int32) {
+
 	openInBackgroundByDefault = isActive != 0
 	queueWindowOpen <- openWindow != 0
 }
