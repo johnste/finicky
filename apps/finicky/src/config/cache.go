@@ -11,6 +11,7 @@ import (
 	"strings"
 	"time"
 
+	"finicky/util"
 	"finicky/version"
 )
 
@@ -268,14 +269,14 @@ func CleanupOldFiles(subDir string, currentFile string) {
 // creating it if it doesn't exist.
 func getFinickyCacheDir() string {
 	// Get cache directory in user's cache directory
-	cacheDir, err := os.UserCacheDir()
-	if err != nil {
-		slog.Debug("Could not get user cache directory", "error", err)
+	cacheDir := util.UserCacheDir()
+	if cacheDir == "" {
+		slog.Debug("Could not get user cache directory")
 		cacheDir = os.TempDir()
 	}
 
 	finickyCacheDir := filepath.Join(cacheDir, "Finicky")
-	err = os.MkdirAll(finickyCacheDir, 0755)
+	err := os.MkdirAll(finickyCacheDir, 0755)
 	if err != nil {
 		slog.Debug("Could not create finicky cache directory", "error", err)
 	}

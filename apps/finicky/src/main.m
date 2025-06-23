@@ -26,9 +26,7 @@
         openWindow = !self.receivedURL;
     }
 
-    NSString *homeDir = NSHomeDirectory();
-
-    QueueWindowDisplay(openWindow, openInBackground, (char*)[homeDir UTF8String]);
+    QueueWindowDisplay(openWindow, openInBackground);
 }
 
 - (void)applicationWillFinishLaunching:(NSNotification *)aNotification

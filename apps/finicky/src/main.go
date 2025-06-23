@@ -207,7 +207,7 @@ func main() {
 func handleRuntimeError(err error) {
 	slog.Error("Failed evaluating url", "error", err)
 	lastError = err
-	go QueueWindowDisplay(1, 0, C.CString(""))
+	go QueueWindowDisplay(1, 0)
 }
 
 //export HandleURL
@@ -303,9 +303,7 @@ func handleFatalError(errorMessage string) {
 }
 
 //export QueueWindowDisplay
-func QueueWindowDisplay(openWindow int32, isActive int32, homeDir *C.char) {
-
-	slog.Debug("Home directory detected via obj-c", "homeDir", C.GoString(homeDir))
+func QueueWindowDisplay(openWindow int32, isActive int32) {
 
 	openInBackgroundByDefault = isActive != 0
 	queueWindowOpen <- openWindow != 0
