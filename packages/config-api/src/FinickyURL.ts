@@ -30,7 +30,7 @@ export class FinickyURL extends URL {
 
   get opener(): ProcessInfo | null {
     console.warn(
-      'Accessing legacy property "opener" that is no longer supported.'
+      'Accessing legacy property "opener" that is no longer supported. It\'s now available on the second argument, see https://github.com/johnste/finicky/wiki/Configuration-(v4)#function-parameters'
     );
     return this._opener;
   }
