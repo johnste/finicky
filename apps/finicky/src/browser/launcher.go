@@ -68,7 +68,7 @@ func LaunchBrowser(config BrowserConfig, dryRun bool, openInBackgroundByDefault 
 	if len(config.Args) == 0 {
 
 		profileArgument, ok := resolveBrowserProfileArgument(config.Name, config.Profile)
-		if ok {
+		if ok && profileArgument != "" {
 			// FIXME: This is a hack to get the profile argument to work – this won't work for Firefox
 			openArgs = append(openArgs, "-n")
 			openArgs = append(openArgs, "--args")
@@ -172,7 +172,7 @@ func resolveBrowserProfileArgument(identifier string, profile string) (string, b
 		}
 	}
 
-	return "", true
+	return "", false
 }
 
 func parseProfiles(localStatePath string, profile string) (string, bool) {
