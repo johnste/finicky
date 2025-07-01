@@ -55,7 +55,6 @@ func LaunchBrowser(config BrowserConfig, dryRun bool, openInBackgroundByDefault 
 		openArgs = []string{"-a", config.Name}
 	}
 
-
 	var openInBackground bool = openInBackgroundByDefault
 
 	if config.OpenInBackground != nil {
@@ -66,19 +65,33 @@ func LaunchBrowser(config BrowserConfig, dryRun bool, openInBackgroundByDefault 
 		openArgs = append(openArgs, "-g")
 	}
 
-	if len(config.Args) == 0 {
+	// Handle profile and custom args
+	profileArgument, ok := resolveBrowserProfileArgument(config.Name, config.Profile)
+	hasCustomArgs := len(config.Args) > 0
 
-		profileArgument, ok := resolveBrowserProfileArgument(config.Name, config.Profile)
-		if ok && profileArgument != "" {
-			// FIXME: This is a hack to get the profile argument to work – this won't work for Firefox
-			openArgs = append(openArgs, "-n")
-			openArgs = append(openArgs, "--args")
+	// Add -n flag if profile is used (required for profile switching)
+	if ok {
+		openArgs = append(openArgs, "-n")
+	}
+
+	// Add --args if we have profile args or custom args
+	if ok || hasCustomArgs {
+		openArgs = append(openArgs, "--args")
+
+		// Add profile argument first if present
+		if ok {
 			openArgs = append(openArgs, profileArgument)
 		}
 
-		openArgs = append(openArgs, config.URL)
+		// Add custom args or URL
+		if hasCustomArgs {
+			openArgs = append(openArgs, config.Args...)
+		} else {
+			openArgs = append(openArgs, config.URL)
+		}
 	} else {
-		openArgs = append(openArgs, config.Args...)
+		// No special args, just add the URL
+		openArgs = append(openArgs, config.URL)
 	}
 
 	cmd := exec.Command("open", openArgs...)
