@@ -52,5 +52,15 @@
     "id": "net.imput.helium",
     "type": "Chromium",
     "app_name": "Helium"
+  },
+  {
+    "id": "org.mozilla.firefoxdeveloperedition",
+    "type": "Firefox",
+    "app_name": "Firefox Developer Edition"
+  },
+  {
+    "id": "org.mozilla.firefox",
+    "type": "Firefox",
+    "app_name": "Firefox"
   }
 ]
