@@ -10,7 +10,7 @@ import (
 	"os/exec"
 	"path/filepath"
 	"strings"
-        "slices"
+	"slices"
 
 	"al.essio.dev/pkg/shellescape"
 	"finicky/util"
@@ -77,9 +77,9 @@ func LaunchBrowser(config BrowserConfig, dryRun bool, openInBackgroundByDefault 
 
 	// Add --args if we have profile args or custom args
 	if ok || hasCustomArgs {
-                if ! slices.Contains(config.Args, "--args") {
-		        openArgs = append(openArgs, "--args")
-                }
+		if ! slices.Contains(config.Args, "--args") {
+			openArgs = append(openArgs, "--args")
+		}
 		// Add profile argument first if present
 		if ok {
 			openArgs = append(openArgs, profileArgument)
