@@ -52,5 +52,11 @@
     "id": "net.imput.helium",
     "type": "Chromium",
     "app_name": "Helium"
+  },
+  {
+    "config_dir_relative": "Comet",
+    "id": "ai.perplexity.comet",
+    "type": "Chromium",
+    "app_name": "Comet"
   }
 ]
