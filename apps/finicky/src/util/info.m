@@ -123,7 +123,7 @@ const char* getNSHomeDirectory(void) {
 }
 
 const char* getNSCacheDirectory(void) {
-    NSArray *paths = NSSearchPathForDirectoriesInDomains(NSCachesDirectory, NSUserDomainMask, YES);
+    NSArray *paths = NSSearchPathForDirectoriesInDomains(NSCachesDirectory, NSUserDomainMask, true);
     if (paths.count > 0) {
         NSString *cacheDirString = [paths objectAtIndex:0];
         return [cacheDirString UTF8String];

@@ -23,7 +23,7 @@
     <key>CFBundleIconFile</key>
     <string>finicky.icns</string>
     <key>LSUIElement</key>
-    <string>0</string>
+    <true/>
     <key>CFBundleURLTypes</key>
     <array>
       <dict>

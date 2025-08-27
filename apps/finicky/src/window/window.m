@@ -84,10 +84,10 @@ void SetFileContentWithLength(const char* path, const char* content, size_t leng
     webView = [[WKWebView alloc] initWithFrame:window.contentView.bounds configuration:config];
     webView.autoresizingMask = NSViewWidthSizable | NSViewHeightSizable;
     webView.navigationDelegate = self;
-    webView.wantsLayer = YES;
+    webView.wantsLayer = true;
     webView.layer.backgroundColor = [NSColor colorWithCalibratedWhite:0.1 alpha:1.0].CGColor;
 
-    [webView.configuration.preferences setValue:@YES forKey:@"developerExtrasEnabled"];
+    [webView.configuration.preferences setValue:@true forKey:@"developerExtrasEnabled"];
 
     // Load HTML content
     if (htmlContent) {
@@ -109,14 +109,12 @@ void SetFileContentWithLength(const char* path, const char* content, size_t leng
 
 - (void)showWindow {
     if ([NSThread isMainThread]) {
-        [NSApp setActivationPolicy:NSApplicationActivationPolicyRegular];
         [window makeKeyAndOrderFront:nil];
-        [NSApp activateIgnoringOtherApps:YES];
+        [NSApp activateIgnoringOtherApps:true];
     } else {
         dispatch_async(dispatch_get_main_queue(), ^{
-            [NSApp setActivationPolicy:NSApplicationActivationPolicyRegular];
             [window makeKeyAndOrderFront:nil];
-            [NSApp activateIgnoringOtherApps:YES];
+            [NSApp activateIgnoringOtherApps:true];
         });
     }
 }

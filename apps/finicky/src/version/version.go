@@ -149,7 +149,7 @@ func checkForUpdates() (releaseInfo *ReleaseInfo) {
 
 			updateAvailable, err := isUpdateAvailable(currentVersion, updateCheckInfo.ReleaseInfo.LatestVersion)
 			if err != nil {
-				slog.Error("Error checking version", "error", err)
+				slog.Warn("Error checking version", "error", err)
 				return nil
 			}
 
