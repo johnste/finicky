@@ -60,8 +60,7 @@ var urlListener chan URLInfo = make(chan URLInfo)
 var windowClosed chan struct{} = make(chan struct{})
 var vm *config.VM
 
-// FIXME: find a better data type for this
-var forceWindowOpen int32 = 0
+var forceWindowOpen bool = false
 var queueWindowOpen chan bool = make(chan bool)
 var lastError error
 var dryRun bool = false
@@ -69,6 +68,7 @@ var updateInfo UpdateInfo
 var configInfo *ConfigInfo
 var currentConfigState *config.ConfigState
 var openInBackgroundByDefault bool = false
+var shouldKeepRunning bool = false
 
 func main() {
 	startTime := time.Now()
@@ -88,7 +88,7 @@ func main() {
 	}
 
 	if *windowPtr {
-		forceWindowOpen = 1
+		forceWindowOpen = true
 	}
 
 	dryRun = *dryRunPtr
@@ -126,8 +126,17 @@ func main() {
 
 	go checkForUpdates()
 
+	const oneDay = 24 * time.Hour
+
 	var showingWindow bool = false
-	var timeoutChan = time.After(1 * time.Second)
+	timeoutChan := time.After(1 * time.Second)
+	updateChan := time.After(oneDay)
+
+	shouldKeepRunning = getKeepRunning()
+	if shouldKeepRunning {
+		timeoutChan = nil
+	}
+
 	go func() {
 		slog.Info("Listening for events...")
 		for {
@@ -168,7 +177,7 @@ func main() {
 
 				slog.Debug("Time taken evaluating URL and opening browser", "duration", fmt.Sprintf("%.2fms", float64(time.Since(startTime).Microseconds())/1000))
 
-				if !showingWindow {
+				if !showingWindow && !shouldKeepRunning {
 					timeoutChan = time.After(2 * time.Second)
 				} else {
 					timeoutChan = nil
@@ -182,17 +191,26 @@ func main() {
 					handleRuntimeError(setupErr)
 				}
 				slog.Debug("VM refresh complete", "duration", fmt.Sprintf("%.2fms", float64(time.Since(startTime).Microseconds())/1000))
+				shouldKeepRunning = getKeepRunning()
 
 			case shouldShowWindow := <-queueWindowOpen:
 				if !showingWindow && shouldShowWindow {
-					go ShowTheMainWindow(lastError)
+					go ShowConfigWindow()
 					showingWindow = true
 					timeoutChan = nil
 				}
 
+			case <-updateChan:
+				go checkForUpdates()
+				updateChan = time.After(oneDay)
+
 			case <-windowClosed:
-				slog.Info("Exiting due to window closed")
-				tearDown()
+				if !shouldKeepRunning {
+					slog.Info("Exiting due to window closed")
+					tearDown()
+				} else {
+					slog.Debug("Window closed")
+				}
 
 			case <-timeoutChan:
 				slog.Info("Exiting due to timeout")
@@ -201,13 +219,34 @@ func main() {
 		}
 	}()
 
-	C.RunApp(C.int(forceWindowOpen))
+	showIcon := !getHideIcon()
+	C.RunApp(C.bool(forceWindowOpen), C.bool(showIcon), C.bool(shouldKeepRunning))
 }
 
 func handleRuntimeError(err error) {
 	slog.Error("Failed evaluating url", "error", err)
 	lastError = err
-	go QueueWindowDisplay(1, 0)
+	go QueueWindowDisplay(1)
+}
+
+func getKeepRunning() bool {
+	keepRunning, err := vm.Runtime().RunString("finickyConfigAPI.getOption('keepRunning', finalConfig, false)")
+	if err != nil {
+		return false
+	}
+	result := keepRunning.ToBoolean()
+
+	return result
+}
+
+func getHideIcon() bool {
+	hideIcon, err := vm.Runtime().RunString("finickyConfigAPI.getOption('hideIcon', finalConfig, false)")
+	if err != nil {
+		return false
+	}
+	result := hideIcon.ToBoolean()
+
+	return result
 }
 
 //export HandleURL
@@ -299,17 +338,16 @@ func evaluateURL(vm *goja.Runtime, url string, opener *ProcessInfo, openInBackgr
 func handleFatalError(errorMessage string) {
 	slog.Error("Fatal error", "msg", errorMessage)
 	lastError = fmt.Errorf("%s", errorMessage)
-	forceWindowOpen = 1
+	forceWindowOpen = true
 }
 
 //export QueueWindowDisplay
-func QueueWindowDisplay(openWindow int32, isActive int32) {
-
-	openInBackgroundByDefault = isActive != 0
+func QueueWindowDisplay(openWindow int32) {
 	queueWindowOpen <- openWindow != 0
 }
 
-func ShowTheMainWindow(err error) {
+//export ShowConfigWindow
+func ShowConfigWindow() {
 	slog.Debug("Showing window")
 	window.ShowWindow()
 
@@ -317,9 +355,6 @@ func ShowTheMainWindow(err error) {
 	currentVersion := version.GetCurrentVersion()
 	window.SendMessageToWebView("version", currentVersion)
 
-	<-windowClosed
-	slog.Info("Window closed, exiting")
-	tearDown()
 }
 
 //export WindowDidClose

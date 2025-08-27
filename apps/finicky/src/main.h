@@ -10,18 +10,21 @@
 #include <stdbool.h>
 
 extern void HandleURL(char *url, char *name, char *bundleId, char *path);
-extern void QueueWindowDisplay(int launchedByUser, int openInBackground);
+extern void QueueWindowDisplay(int launchedByUser);
+extern void ShowConfigWindow();
 
 #ifdef __OBJC__
 @interface BrowseAppDelegate: NSObject<NSApplicationDelegate>
-    @property (nonatomic) BOOL forceOpenWindow;
-    @property (nonatomic) BOOL receivedURL;
-    - (instancetype)initWithForceOpenWindow:(BOOL)forceOpenWindow;
+    @property (nonatomic) bool forceOpenWindow;
+    @property (nonatomic) bool receivedURL;
+    @property (nonatomic) bool keepRunning;
+    @property (nonatomic) bool showMenuItem;
+    - (instancetype)initWithForceOpenWindow:(bool)forceOpenWindow initShow:(bool)showMenuItem keepRunning:(bool)keepRunning;
     - (void)handleGetURLEvent:(NSAppleEventDescriptor *) event withReplyEvent:(NSAppleEventDescriptor *)replyEvent;
-    - (BOOL)application:(NSApplication *)sender openFile:(NSString *)filename;
+    - (bool)application:(NSApplication *)sender openFile:(NSString *)filename;
 @end
 #endif
 
-void RunApp(int forceOpenWindow);
+void RunApp(bool forceOpenWindow, bool showStatusItem, bool keepRunning);
 
 #endif /* MAIN_H */

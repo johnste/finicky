@@ -4,29 +4,77 @@
 #import <stdlib.h>
 #import <unistd.h>
 
+#import "window/window.h"  // For ShowWindow()
+
+// Extend BrowseAppDelegate to hold a status item and declare menu action
+@interface BrowseAppDelegate ()
+@property (nonatomic, strong) NSStatusItem *statusItem;
+- (void)showWindowAction:(id)sender;
+@end
+
 @implementation BrowseAppDelegate
 
-- (instancetype)initWithForceOpenWindow:(BOOL)forceOpenWindow {
+- (instancetype)initWithForceOpenWindow:(bool)forceOpenWindow initShow:(bool)showMenuItem keepRunning:(bool)keepRunning {
     self = [super init];
     if (self) {
-        _forceOpenWindow = forceOpenWindow;
-        _receivedURL = false;
+    _forceOpenWindow = forceOpenWindow;
+    _showMenuItem = showMenuItem;
+    _keepRunning = keepRunning;
+    _receivedURL = false;
     }
     return self;
 }
 
+// Use bool for openWindow and related logic
 - (void)applicationDidFinishLaunching:(NSNotification *)notification {
-    NSDictionary *dict = [notification userInfo];
-
-    BOOL openInBackground = ![NSApp isActive];
-    BOOL openWindow = self.forceOpenWindow;
-
+    bool openWindow = self.forceOpenWindow;
     if (!openWindow) {
         // Even if we aren't forcing the window to open, we still want to open it if didn't receive a URL
         openWindow = !self.receivedURL;
     }
 
-    QueueWindowDisplay(openWindow, openInBackground);
+    // Only show menu item if the option is enabled, and we either didn't receive a URL or we are keeping
+    // the application running. We don't want to show the icon if Finicky is just receiving a url to open
+    // and is expected to exit after
+    if (self.showMenuItem && (self.keepRunning || !self.receivedURL)) {
+        [self createStatusItem];
+    }
+
+    QueueWindowDisplay(openWindow);
+}
+
+- (BOOL)applicationShouldHandleReopen:(NSApplication *)sender hasVisibleWindows:(BOOL)flag {
+    if (!flag) {
+        // If there are no visible windows, we should open a new one
+        [self showWindowAction:nil];
+    }
+    return YES;
+}
+
+- (void)createStatusItem {
+   
+    // Create menu bar status item
+    self.statusItem = [[NSStatusBar systemStatusBar] statusItemWithLength:NSSquareStatusItemLength];
+    // Load the template icon directly from the bundle
+    NSString *iconPath = [[NSBundle mainBundle] pathForResource:@"menu-bar" ofType:@"icns"];
+    NSImage *icon = [[NSImage alloc] initWithContentsOfFile:iconPath];
+    if (icon) {
+        icon.template = true;
+        icon.size = NSMakeSize(18, 18);
+        self.statusItem.button.image = icon;
+    }
+
+    self.statusItem.button.toolTip = @"Finicky";
+    NSMenu *menu = [[NSMenu alloc] init];
+    [menu addItemWithTitle:@"Show Window" action:@selector(showWindowAction:) keyEquivalent:@""];
+    [menu addItem:[NSMenuItem separatorItem]];
+    [menu addItemWithTitle:@"Quit" action:@selector(terminate:) keyEquivalent:@"q"];
+    self.statusItem.menu = menu;
+}
+
+// Menu action to show the main window
+- (void)showWindowAction:(id)sender {
+    ShowConfigWindow();
 }
 
 - (void)applicationWillFinishLaunching:(NSNotification *)aNotification
@@ -37,7 +85,7 @@
                     forEventClass:kInternetEventClass andEventID:kAEGetURL];
 }
 
-- (BOOL)application:(NSApplication *)sender openFile:(NSString *)filename {
+- (bool)application:(NSApplication *)sender openFile:(NSString *)filename {
     NSLog(@"Opening file: %@", filename);
 
     // Convert the file path to a file:// URL
@@ -47,7 +95,7 @@
     // Handle the file URL the same way we handle other URLs
     HandleURL((char*)[urlString UTF8String], NULL, NULL, NULL);
 
-    return YES;
+    return true;
 }
 
 - (void)handleGetURLEvent:(NSAppleEventDescriptor *)event
@@ -61,8 +109,6 @@
     const char *bundleId = NULL;
     const char *path = NULL;
 
-    // If we recieve a url, we default to not showing the app in the dock
-    [NSApp setActivationPolicy:NSApplicationActivationPolicyAccessory];
     self.receivedURL = true;
 
     if (application) {
@@ -80,22 +126,22 @@
     HandleURL((char*)url, (char*)name, (char*)bundleId, (char*)path);
 }
 
-- (BOOL)application:(NSApplication *)application willContinueUserActivityWithType:(NSString *)userActivityType {
+- (bool)application:(NSApplication *)application willContinueUserActivityWithType:(NSString *)userActivityType {
     return [userActivityType isEqualToString:NSUserActivityTypeBrowsingWeb];
 }
 
-- (BOOL)application:(NSApplication *)application continueUserActivity:(NSUserActivity *)userActivity restorationHandler:(void (^)(NSArray<id<NSUserActivityRestoring>> * _Nullable))restorationHandler {
+- (bool)application:(NSApplication *)application continueUserActivity:(NSUserActivity *)userActivity restorationHandler:(void (^)(NSArray<id<NSUserActivityRestoring>> * _Nullable))restorationHandler {
     if (![userActivity.activityType isEqualToString:NSUserActivityTypeBrowsingWeb]) {
-        return NO;
+        return false;
     }
 
     NSURL *url = userActivity.webpageURL;
     if (!url) {
-        return NO;
+        return false;
     }
 
     HandleURL((char*)[[url absoluteString] UTF8String], NULL, NULL, NULL);
-    return YES;
+    return true;
 }
 
 - (void)application:(NSApplication *)application didFailToContinueUserActivityWithType:(NSString *)userActivityType error:(NSError *)error {
@@ -104,13 +150,12 @@
 
 @end
 
-void RunApp(int forceOpenWindow) {
+void RunApp(bool forceOpenWindow, bool showStatusItem, bool keepRunning) {
     @autoreleasepool {
         // Initialize on the main thread directly, not async
         [NSApplication sharedApplication];
-        [NSApp setActivationPolicy:NSApplicationActivationPolicyRegular];
 
-        BrowseAppDelegate *app = [[BrowseAppDelegate alloc] initWithForceOpenWindow:forceOpenWindow];
+        BrowseAppDelegate *app = [[BrowseAppDelegate alloc] initWithForceOpenWindow:forceOpenWindow initShow:showStatusItem keepRunning:keepRunning];
         [NSApp setDelegate:app];
 
         [NSApp finishLaunching];
