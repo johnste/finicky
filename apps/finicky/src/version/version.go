@@ -84,11 +84,6 @@ func setLastUpdateCheck(info UpdateCheckInfo) {
 		return
 	}
 
-	if info.ReleaseInfo.LatestVersion == "" || info.ReleaseInfo.DownloadUrl == "" || info.ReleaseInfo.ReleaseUrl == "" {
-		slog.Debug("Incomplete update check info", "info", info)
-		return
-	}
-
 	data, err := json.Marshal(info)
 	if err != nil {
 		slog.Error("Error marshaling update check info", "error", err)
@@ -212,6 +207,11 @@ func checkForUpdates() (releaseInfo *ReleaseInfo) {
 		Timestamp:   time.Now().Unix(),
 		ReleaseInfo: *releaseInfo,
 	})
+
+	if releaseInfo.LatestVersion == "" {
+		slog.Debug("No latest version found")
+		return nil
+	}
 
 	updateAvailable, err := isUpdateAvailable(currentVersion, releaseInfo.LatestVersion)
 	if err != nil {
