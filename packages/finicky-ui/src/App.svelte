@@ -91,30 +91,32 @@
 
 <Router>
   <main>
-    <TabBar {numErrors} />
-    <div class="container">
-      <div class="content">
-        <Route path="/">
-          <StartPage
-            {hasConfig}
-            {updateInfo}
-            configPath={config.configPath}
-            {numErrors}
-          />
-        </Route>
+    <div class="layout">
+      <TabBar {numErrors} />
+      <div class="container">
+        <div class="content">
+          <Route path="/">
+            <StartPage
+              {hasConfig}
+              {updateInfo}
+              configPath={config.configPath}
+              {numErrors}
+            />
+          </Route>
 
-        <Route path="/troubleshoot">
-          <LogViewer {messageBuffer} onClearLogs={clearAllLogs} />
-        </Route>
+          <Route path="/troubleshoot">
+            <LogViewer {messageBuffer} onClearLogs={clearAllLogs} />
+          </Route>
 
-        <Route path="/about">
-          <About
-            {version}
-            {isDevMode}
-            toggleDevMode={activateDevMode}
-            addMessage={handleDebugMessage}
-          />
-        </Route>
+          <Route path="/about">
+            <About
+              {version}
+              {isDevMode}
+              toggleDevMode={activateDevMode}
+              addMessage={handleDebugMessage}
+            />
+          </Route>
+        </div>
       </div>
     </div>
     <div class="footer">
@@ -129,13 +131,17 @@
 
 <style>
   main {
-    min-height: 100vh;
     display: flex;
     flex-direction: column;
     height: 100vh;
     position: relative;
   }
 
+  .layout {
+    display: flex;
+    flex: 1 1 auto;
+  }
+  
   .container {
     padding: 1rem;
     max-width: 100%;
@@ -148,6 +154,7 @@
 
   .footer {
     display: flex;
+    flex: 0 0 auto;
     align-items: center;
     gap: 0.5rem;
     padding: 0.5rem;

@@ -2,7 +2,7 @@
   import type { LogEntry } from "../types";
   import LogContent from "./LogContent.svelte";
 
-  export let messageBuffer: LogEntry[] = [];
+  export const messageBuffer: LogEntry[] = [];
   export let onClearLogs: () => void;
 
   let showDebug = false;

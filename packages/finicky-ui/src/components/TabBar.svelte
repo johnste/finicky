@@ -60,25 +60,29 @@
   }
 
   .tab-container {
-    width: 100%;
+    
+    width: 220px;
     background: var(--bg-primary);
     position: sticky;
     top: 0;
     z-index: 10;
-    padding: 0.5rem;
-
+    padding: 1rem 0.5rem;
     display: flex;
-    align-items: center;
-    justify-content: center;
-    border-bottom: 1px solid var(--border-color);
+    flex: 0 0 auto;
+    flex-direction: column;
+    align-items: stretch;
+    justify-content: flex-start;
+    border-right: 1px solid var(--border-color);
+    border-bottom: none;
   }
 
   .tab-bar {
     display: flex;
-    gap: 1rem;
+    flex-direction: column;
+    gap: 0.5rem;
     justify-content: flex-start;
     background: transparent;
-    padding: 0 8px;
+    padding: 0;
     margin: 0;
     :global(a) {
       text-decoration: none;
@@ -90,12 +94,12 @@
     --gradient-end: rgba(111, 111, 111, 0.1);
 
     user-select: none;
-    padding: 0.5rem;
+    padding: 0.75rem 1rem;
     border-radius: 0.5rem;
     display: flex;
-    align-items: center;
-    flex-direction: column;
-    gap: 4px;
+    align-items: flex-start;
+    flex-direction: row;
+    gap: 12px;
     color: var(--text-primary);
     background: radial-gradient(
       circle at center,
@@ -106,7 +110,9 @@
     transition:
       --gradient-start 0.3s ease,
       --gradient-end 0.3s ease;
-    animation: gradient 3s ease infinite;
+    animation: gradient 3s ease 1;
+    width: 100%;
+    text-align: left;
 
     &:hover {
       --gradient-start: rgba(98, 98, 98, 0.4);
@@ -134,8 +140,8 @@
   .icon-container {
     position: relative;
     display: flex;
-    align-items: center;
-    justify-content: center;
+    align-items: flex-start;
+    justify-content: flex-start;
   }
 
   .error-badge {
