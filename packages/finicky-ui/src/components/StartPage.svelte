@@ -1,8 +1,6 @@
 <script lang="ts">
   import { Link } from "svelte-routing";
   import type { UpdateInfo } from "../types";
-  // TODO
-  // import Configuration from "./Configuration.svelte";
 
   export let hasConfig: boolean;
   export let numErrors: number;
