@@ -61,7 +61,7 @@
 
   .tab-container {
     
-    width: 220px;
+    width: 190px;
     background: var(--bg-primary);
     position: sticky;
     top: 0;
