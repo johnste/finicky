@@ -15,8 +15,6 @@
         <span class="log-time" title={entry.time}>
           {new Date(entry.time).toLocaleTimeString()}
         </span>
-        <span class="log-level-icon log-level-{entry.level.toLowerCase()}"
-        ></span>
         <div class="log-message log-level-{entry.level.toLowerCase()}">
           {#each formatLogEntry(entry) as part}
             {#if part.type === "url"}
@@ -82,18 +80,6 @@
 
   .log-level-debug {
     color: var(--log-debug);
-  }
-
-  .log-level-icon.log-level-error::before {
-    content: "❌";
-  }
-
-  .log-level-icon.log-level-warn::before {
-    content: "⚠️";
-  }
-
-  .log-level-icon.log-level-debug::before {
-    content: "🔍";
   }
 
   :global(.log-message a) {

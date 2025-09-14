@@ -98,12 +98,10 @@ func (cfw *ConfigFileWatcher) GetConfigPath(log bool) (string, error) {
 			}
 
 			if log {
-				displayPath := path
 				if resolvedPath != path {
-					resolvedDisplayPath := resolvedPath
-					slog.Info("Using config file", "path", displayPath, "resolved", resolvedDisplayPath)
+					slog.Info("Using config file", "path", resolvedPath)
 				} else {
-					slog.Info("Using config file", "path", displayPath)
+					slog.Info("Using config file", "path", path)
 				}
 			}
 			return resolvedPath, nil

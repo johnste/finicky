@@ -1,7 +1,8 @@
 <script lang="ts">
   import { Link } from "svelte-routing";
   import type { UpdateInfo } from "../types";
-  import Configuration from "./Configuration.svelte";
+  // TODO
+  // import Configuration from "./Configuration.svelte";
 
   export let hasConfig: boolean;
   export let numErrors: number;
@@ -124,26 +125,17 @@
     border-radius: 50%;
   }
 
-
-
-
-
   .success h3::before {
     background: #4caf50;
   }
-
-
 
   .warning h3::before {
     background: #ffc107;
   }
 
-
   .error h3::before {
     background: #f44336;
   }
-
-  
 
   .info h3::before {
     background: #2196f3;
