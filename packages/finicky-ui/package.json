@@ -15,7 +15,7 @@
     "svelte": "^5.20.2",
     "svelte-check": "^4.1.4",
     "typescript": "~5.7.2",
-    "vite": "^6.2.5"
+    "vite": "^6.3.6"
   },
   "dependencies": {
     "svelte-routing": "^2.13.0"
