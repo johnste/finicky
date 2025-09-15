@@ -72,3 +72,4 @@ if [ -z "$BUILD_TARGET_ARCH" ]; then
 fi
 
 echo "Build complete ✨"
+killall Finicky
