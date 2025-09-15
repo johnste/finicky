@@ -52,7 +52,7 @@
 }
 
 - (void)createStatusItem {
-   
+
     // Create menu bar status item
     self.statusItem = [[NSStatusBar systemStatusBar] statusItemWithLength:NSSquareStatusItemLength];
     // Load the template icon directly from the bundle
@@ -93,7 +93,7 @@
     NSString *urlString = [fileURL absoluteString];
 
     // Handle the file URL the same way we handle other URLs
-    HandleURL((char*)[urlString UTF8String], NULL, NULL, NULL);
+    HandleURL((char*)[urlString UTF8String], NULL, NULL, NULL, false);
 
     return true;
 }
@@ -111,6 +111,9 @@
 
     self.receivedURL = true;
 
+    NSRunningApplication *frontApp = [[NSWorkspace sharedWorkspace] frontmostApplication];
+    bool finickyIsInFront = [frontApp isEqual:[NSRunningApplication currentApplication]];
+
     if (application) {
         NSString *appName = [application localizedName];
         NSString *appBundleID = [application bundleIdentifier];
@@ -123,7 +126,8 @@
         NSLog(@"No running application found with PID: %d", pid);
     }
 
-    HandleURL((char*)url, (char*)name, (char*)bundleId, (char*)path);
+    // If Finicky isn't frontmost, we take that to mean that the browser should, by default, be opened in the background
+    HandleURL((char*)url, (char*)name, (char*)bundleId, (char*)path, !finickyIsInFront);
 }
 
 - (bool)application:(NSApplication *)application willContinueUserActivityWithType:(NSString *)userActivityType {
@@ -140,7 +144,7 @@
         return false;
     }
 
-    HandleURL((char*)[[url absoluteString] UTF8String], NULL, NULL, NULL);
+    HandleURL((char*)[[url absoluteString] UTF8String], NULL, NULL, NULL, false);
     return true;
 }
 
@@ -162,4 +166,3 @@ void RunApp(bool forceOpenWindow, bool showStatusItem, bool keepRunning) {
         [NSApp run];
     }
 }
-

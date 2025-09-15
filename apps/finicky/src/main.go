@@ -44,8 +44,9 @@ type UpdateInfo struct {
 }
 
 type URLInfo struct {
-	URL    string
-	Opener *ProcessInfo
+	URL              string
+	Opener           *ProcessInfo
+	OpenInBackground bool
 }
 
 type ConfigInfo struct {
@@ -67,7 +68,6 @@ var dryRun bool = false
 var updateInfo UpdateInfo
 var configInfo *ConfigInfo
 var currentConfigState *config.ConfigState
-var openInBackgroundByDefault bool = false
 var shouldKeepRunning bool = false
 
 func main() {
@@ -152,7 +152,7 @@ func main() {
 				var err error
 
 				if vm != nil {
-					browserConfig, err = evaluateURL(vm.Runtime(), url, urlInfo.Opener, openInBackgroundByDefault)
+					browserConfig, err = evaluateURL(vm.Runtime(), url, urlInfo.Opener)
 					if err != nil {
 						handleRuntimeError(err)
 					}
@@ -164,14 +164,14 @@ func main() {
 					browserConfig = &browser.BrowserConfig{
 						Name:             "com.apple.Safari",
 						AppType:          "bundleId",
-						OpenInBackground: nil,
+						OpenInBackground: &urlInfo.OpenInBackground,
 						Profile:          "",
 						Args:             []string{},
 						URL:              url,
 					}
 				}
 
-				if err := browser.LaunchBrowser(*browserConfig, dryRun, openInBackgroundByDefault); err != nil {
+				if err := browser.LaunchBrowser(*browserConfig, dryRun, urlInfo.OpenInBackground); err != nil {
 					slog.Error("Failed to start browser", "error", err)
 				}
 
@@ -250,7 +250,7 @@ func getHideIcon() bool {
 }
 
 //export HandleURL
-func HandleURL(url *C.char, name *C.char, bundleId *C.char, path *C.char) {
+func HandleURL(url *C.char, name *C.char, bundleId *C.char, path *C.char, openInBackground C.bool) {
 	var opener ProcessInfo
 
 	if name != nil && bundleId != nil && path != nil {
@@ -275,12 +275,13 @@ func HandleURL(url *C.char, name *C.char, bundleId *C.char, path *C.char) {
 	}
 
 	urlListener <- URLInfo{
-		URL:    urlString,
-		Opener: &opener,
+		URL:              urlString,
+		Opener:           &opener,
+		OpenInBackground: bool(openInBackground),
 	}
 }
 
-func evaluateURL(vm *goja.Runtime, url string, opener *ProcessInfo, openInBackgroundByDefault bool) (*browser.BrowserConfig, error) {
+func evaluateURL(vm *goja.Runtime, url string, opener *ProcessInfo) (*browser.BrowserConfig, error) {
 	resolvedURL, err := shorturl.ResolveURL(url)
 	if err != nil {
 		// Continue with original URL if resolution fails
