@@ -63,7 +63,7 @@ void SetFileContentWithLength(const char* path, const char* content, size_t leng
 
 - (void)setupWindow {
     // Create window
-    window = [[NSWindow alloc] initWithContentRect:NSMakeRect(0, 0, 800, 600)
+    window = [[NSWindow alloc] initWithContentRect:NSMakeRect(0, 0, 860, 600)
                                        styleMask:NSWindowStyleMaskTitled |
                                                 NSWindowStyleMaskClosable |
                                                 NSWindowStyleMaskMiniaturizable |
