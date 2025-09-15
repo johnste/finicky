@@ -39,6 +39,9 @@ jobs:
         uses: actions/setup-go@v4
         with:
           go-version: '1.21'
+          cache-dependency-path: |
+            apps/finicky/src/go.sum
+
 
       - name: Install dependencies
         run: |
@@ -165,7 +168,7 @@ jobs:
           rm certificate.p12
 
       - name: Install gon
-        run: |          
+        run: |
           brew install Bearer/tap/gon
 
       - name: Update gon config for CI
