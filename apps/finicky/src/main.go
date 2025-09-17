@@ -450,7 +450,7 @@ func setupVM(cfw *config.ConfigFileWatcher, embeddedFS embed.FS, namespace strin
 				"defaultBrowser": configInfo.DefaultBrowser,
 				"configPath":     configInfo.ConfigPath,
 			})
-		} else {
+		} else if configInfo != nil {
 			window.SendMessageToWebView("config", map[string]interface{}{
 				"handlers":       0,
 				"rewrites":       0,
