@@ -230,6 +230,10 @@ func handleRuntimeError(err error) {
 }
 
 func getKeepRunning() bool {
+	if vm == nil {
+		return false
+	}
+
 	keepRunning, err := vm.Runtime().RunString("finickyConfigAPI.getOption('keepRunning', finalConfig, false)")
 	if err != nil {
 		return false
@@ -240,6 +244,10 @@ func getKeepRunning() bool {
 }
 
 func getHideIcon() bool {
+	if vm == nil {
+		return false
+	}
+
 	hideIcon, err := vm.Runtime().RunString("finickyConfigAPI.getOption('hideIcon', finalConfig, false)")
 	if err != nil {
 		return false
