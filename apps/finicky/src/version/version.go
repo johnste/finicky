@@ -142,6 +142,11 @@ func checkForUpdates() (releaseInfo *ReleaseInfo) {
 		if timeSinceLastCheck < updateCheckInterval {
 			slog.Debug("Skipping update check - last checked", "duration", fmt.Sprintf("%dh %dm ago (check interval: %dh)", int(timeSinceLastCheck.Hours()), int(timeSinceLastCheck.Minutes())%60, int(updateCheckInterval.Hours())))
 
+			if updateCheckInfo.ReleaseInfo.LatestVersion == "" {
+				slog.Debug("No latest version found from last check")
+				return nil
+			}
+
 			updateAvailable, err := isUpdateAvailable(currentVersion, updateCheckInfo.ReleaseInfo.LatestVersion)
 			if err != nil {
 				slog.Warn("Error checking version", "error", err)
