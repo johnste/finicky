@@ -17,10 +17,10 @@
 - (instancetype)initWithForceOpenWindow:(bool)forceOpenWindow initShow:(bool)showMenuItem keepRunning:(bool)keepRunning {
     self = [super init];
     if (self) {
-    _forceOpenWindow = forceOpenWindow;
-    _showMenuItem = showMenuItem;
-    _keepRunning = keepRunning;
-    _receivedURL = false;
+        _forceOpenWindow = forceOpenWindow;
+        _showMenuItem = showMenuItem;
+        _keepRunning = keepRunning;
+        _receivedURL = false;
     }
     return self;
 }
@@ -112,7 +112,10 @@
     self.receivedURL = true;
 
     NSRunningApplication *frontApp = [[NSWorkspace sharedWorkspace] frontmostApplication];
-    bool finickyIsInFront = [frontApp isEqual:[NSRunningApplication currentApplication]];
+
+    // Assume Finicky is in front if we are not keeping running, since there's no good way
+    // to detect if Finicky was launched in the background
+    bool finickyIsInFront =  !self.keepRunning || [frontApp isEqual:[NSRunningApplication currentApplication]];
 
     if (application) {
         NSString *appName = [application localizedName];

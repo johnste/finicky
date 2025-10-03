@@ -68,7 +68,7 @@ var dryRun bool = false
 var updateInfo UpdateInfo
 var configInfo *ConfigInfo
 var currentConfigState *config.ConfigState
-var shouldKeepRunning bool = false
+var shouldKeepRunning bool = true
 
 func main() {
 	startTime := time.Now()
@@ -234,7 +234,7 @@ func getKeepRunning() bool {
 		return false
 	}
 
-	keepRunning, err := vm.Runtime().RunString("finickyConfigAPI.getOption('keepRunning', finalConfig, false)")
+	keepRunning, err := vm.Runtime().RunString("finickyConfigAPI.getOption('keepRunning', finalConfig, true)")
 	if err != nil {
 		return false
 	}
