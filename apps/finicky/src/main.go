@@ -371,6 +371,16 @@ func WindowDidClose() {
 	windowClosed <- struct{}{}
 }
 
+//export GetCurrentConfigPath
+func GetCurrentConfigPath() *C.char {
+	if configInfo != nil && configInfo.ConfigPath != "" {
+		cPath := C.CString(configInfo.ConfigPath)
+		return cPath
+	} else {
+		return nil
+	}
+}
+
 func checkForUpdates() {
 	var runtime *goja.Runtime
 	if vm != nil {
