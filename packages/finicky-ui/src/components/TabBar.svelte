@@ -1,6 +1,7 @@
 <script lang="ts">
   import { Link } from "svelte-routing";
   import General from "./icons/General.svelte";
+  import Test from "./icons/Test.svelte";
   import Troubleshoot from "./icons/Troubleshoot.svelte";
   import About from "./icons/About.svelte";
 
@@ -11,6 +12,11 @@
       path: "/",
       label: "General",
       component: General,
+    },
+    {
+      path: "/test",
+      label: "Test",
+      component: Test,
     },
     {
       path: "/troubleshoot",

@@ -5,7 +5,8 @@
   import StartPage from "./components/StartPage.svelte";
   import TabBar from "./components/TabBar.svelte";
   import About from "./components/About.svelte";
-  import type { LogEntry, UpdateInfo } from "./types";
+  import TestUrl from "./components/TestUrl.svelte";
+  import type { LogEntry, UpdateInfo, ConfigInfo } from "./types";
 
   let version = "v0.0.0";
   let buildInfo = "dev";
@@ -19,7 +20,7 @@
 
   // Configuration state
   let hasConfig = false;
-  let config: { configPath: string } = { configPath: "" };
+  let config: ConfigInfo = { configPath: "" };
   // Initialize message buffer
   let messageBuffer: LogEntry[] = [];
   let updateInfo: UpdateInfo | null = null;
@@ -99,13 +100,17 @@
             <StartPage
               {hasConfig}
               {updateInfo}
-              configPath={config.configPath}
+              {config}
               {numErrors}
             />
           </Route>
 
           <Route path="/troubleshoot">
             <LogViewer {messageBuffer} onClearLogs={clearAllLogs} />
+          </Route>
+
+          <Route path="/test">
+            <TestUrl />
           </Route>
 
           <Route path="/about">
@@ -121,7 +126,16 @@
     </div>
     <div class="footer">
       <span class="version">{version}</span>
-      <span class="build-info">{buildInfo}</span>
+      {#if hasConfig}
+        <span class="config-label">Loaded config:</span>
+        <span class="config-path" title={config.configPath}>{config.configPath || "Not set"}</span>
+      {:else}
+        <span class="config-status warning">No config</span>
+      {/if}
+      <span class="spacer"></span>
+      {#if updateInfo && updateInfo.updateCheckEnabled && !updateInfo.hasUpdate}
+        <span class="up-to-date">✓ Up to date</span>
+      {/if}
       {#if isDevMode}
         <span class="dev-mode">DEV MODE</span>
       {/if}
@@ -161,6 +175,7 @@
     padding: 0.5rem;
     background: var(--background);
     border-top: 1px solid var(--border-color);
+    overflow: hidden;
   }
 
   .version {
@@ -183,5 +198,45 @@
     font-weight: bold;
     font-size: 0.8em;
     opacity: 0.8;
+  }
+
+  .spacer {
+    flex: 1;
+  }
+
+  .up-to-date {
+    color: #4caf50;
+    font-size: 0.8em;
+    opacity: 0.9;
+  }
+
+  .config-path {
+    color: var(--text-secondary);
+    font-size: 0.8em;
+    font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+    opacity: 0.8;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    max-width: 500px;
+    flex-shrink: 1;
+    background: rgba(0, 0, 0, 0.2);
+    padding: 2px 6px;
+    border-radius: 3px;
+  }
+
+  .config-label {
+    color: var(--text-secondary);
+    font-size: 0.8em;
+    opacity: 0.8;
+  }
+
+  .config-status {
+    font-size: 0.8em;
+    opacity: 0.8;
+  }
+
+  .config-status.warning {
+    color: #ffc107;
   }
 </style>
