@@ -462,18 +462,44 @@ func setupVM(cfw *config.ConfigFileWatcher, embeddedFS embed.FS, namespace strin
 				ConfigPath:     configPath,
 			}
 
+			keepRunning := getKeepRunning()
+			hideIcon := getHideIcon()
+			
+			// Get logRequests option
+			logRequests := false
+			if logRequestsVal, err := vm.Runtime().RunString("finickyConfigAPI.getOption('logRequests', finalConfig, false)"); err == nil {
+				logRequests = logRequestsVal.ToBoolean()
+			}
+			
+			// Get checkForUpdate option
+			checkForUpdate := true
+			if checkForUpdateVal, err := vm.Runtime().RunString("finickyConfigAPI.getOption('checkForUpdate', finalConfig, true)"); err == nil {
+				checkForUpdate = checkForUpdateVal.ToBoolean()
+			}
+
 			window.SendMessageToWebView("config", map[string]interface{}{
-				"handlers":       configInfo.Handlers,
-				"rewrites":       configInfo.Rewrites,
-				"defaultBrowser": configInfo.DefaultBrowser,
-				"configPath":     configInfo.ConfigPath,
+				"handlers":         configInfo.Handlers,
+				"rewrites":         configInfo.Rewrites,
+				"defaultBrowser":   configInfo.DefaultBrowser,
+				"configPath":       configInfo.ConfigPath,
+				"keepRunning":      keepRunning,
+				"hideIcon":         hideIcon,
+				"logRequests":      logRequests,
+				"checkForUpdate":   checkForUpdate,
 			})
 		} else if configInfo != nil {
+			keepRunning := getKeepRunning()
+			hideIcon := getHideIcon()
+			
 			window.SendMessageToWebView("config", map[string]interface{}{
-				"handlers":       0,
-				"rewrites":       0,
-				"defaultBrowser": "",
-				"configPath":     configInfo.ConfigPath,
+				"handlers":         0,
+				"rewrites":         0,
+				"defaultBrowser":   "",
+				"configPath":       configInfo.ConfigPath,
+				"keepRunning":      keepRunning,
+				"hideIcon":         hideIcon,
+				"logRequests":      false,
+				"checkForUpdate":   true,
 			})
 		}
 

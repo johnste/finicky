@@ -277,11 +277,32 @@ void SetFileContentWithLength(const char* path, const char* content, size_t leng
     NSMenu *editMenu = [[NSMenu alloc] initWithTitle:@"Edit"];
     [editMenuItem setSubmenu:editMenu];
 
+    // Add Cut menu item (⌘X)
+    NSMenuItem *cutMenuItem = [[NSMenuItem alloc] initWithTitle:@"Cut"
+                                                       action:@selector(cut:)
+                                                keyEquivalent:@"x"];
+    [editMenu addItem:cutMenuItem];
+
     // Add Copy menu item (⌘C)
     NSMenuItem *copyMenuItem = [[NSMenuItem alloc] initWithTitle:@"Copy"
                                                         action:@selector(copy:)
                                                  keyEquivalent:@"c"];
     [editMenu addItem:copyMenuItem];
+
+    // Add Paste menu item (⌘V)
+    NSMenuItem *pasteMenuItem = [[NSMenuItem alloc] initWithTitle:@"Paste"
+                                                         action:@selector(paste:)
+                                                  keyEquivalent:@"v"];
+    [editMenu addItem:pasteMenuItem];
+
+    // Add separator
+    [editMenu addItem:[NSMenuItem separatorItem]];
+
+    // Add Select All menu item (⌘A)
+    NSMenuItem *selectAllMenuItem = [[NSMenuItem alloc] initWithTitle:@"Select All"
+                                                            action:@selector(selectAll:)
+                                                     keyEquivalent:@"a"];
+    [editMenu addItem:selectAllMenuItem];
 }
 
 @end

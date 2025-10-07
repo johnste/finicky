@@ -29,3 +29,21 @@ export interface UpdateInfo {
   downloadUrl: string;
   releaseUrl: string;
 }
+
+export interface ConfigOptions {
+  keepRunning: boolean;
+  hideIcon: boolean;
+  logRequests: boolean;
+  checkForUpdate: boolean;
+}
+
+export interface ConfigInfo {
+  configPath: string;
+  handlers?: number;
+  rewrites?: number;
+  defaultBrowser?: string;
+  keepRunning?: boolean;
+  hideIcon?: boolean;
+  logRequests?: boolean;
+  checkForUpdate?: boolean;
+}
