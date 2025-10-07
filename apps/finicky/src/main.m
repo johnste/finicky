@@ -67,7 +67,13 @@
     self.statusItem.button.toolTip = @"Finicky";
     NSMenu *menu = [[NSMenu alloc] init];
     [menu addItemWithTitle:@"Show Window" action:@selector(showWindowAction:) keyEquivalent:@""];
-    [menu addItem:[NSMenuItem separatorItem]];
+
+    char* configPath = GetCurrentConfigPath();
+    if (configPath) {
+        [menu addItemWithTitle:@"Edit config" action:@selector(editConfigAction:) keyEquivalent:@""];
+        [menu addItem:[NSMenuItem separatorItem]];
+    }
+
     [menu addItemWithTitle:@"Quit" action:@selector(terminate:) keyEquivalent:@"q"];
     self.statusItem.menu = menu;
 }
@@ -75,6 +81,21 @@
 // Menu action to show the main window
 - (void)showWindowAction:(id)sender {
     ShowConfigWindow();
+}
+
+
+-(void)editConfigAction:(id)sender {
+    char* configPath = GetCurrentConfigPath();
+
+    if (configPath) {
+        NSString *path = [NSString stringWithUTF8String:configPath];
+        free(configPath); // Free the C string after converting to NSString
+
+        if (path && [path length] > 0) {
+            NSURL *fileURL = [NSURL fileURLWithPath:path];
+            [[NSWorkspace sharedWorkspace] openURL:fileURL];
+        }
+    }
 }
 
 - (void)applicationWillFinishLaunching:(NSNotification *)aNotification

@@ -12,6 +12,7 @@
 extern void HandleURL(char *url, char *name, char *bundleId, char *path, bool openInBackground);
 extern void QueueWindowDisplay(int launchedByUser);
 extern void ShowConfigWindow();
+extern char* GetCurrentConfigPath();
 
 #ifdef __OBJC__
 @interface BrowseAppDelegate: NSObject<NSApplicationDelegate>
