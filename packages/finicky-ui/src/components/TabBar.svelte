@@ -1,33 +1,33 @@
 <script lang="ts">
   import { Link } from "svelte-routing";
-  import General from "./icons/General.svelte";
-  import Test from "./icons/Test.svelte";
-  import Logs from "./icons/Logs.svelte";
-  import About from "./icons/About.svelte";
+  import PreferencesIcon from "./icons/Preferences.svelte";
+  import TestIcon from "./icons/Test.svelte";
+  import LogsIcon from "./icons/Logs.svelte";
+  import AboutIcon from "./icons/About.svelte";
 
   export let numErrors: number = 0;
 
   const tabs = [
     {
       path: "/",
-      label: "General",
-      component: General,
+      label: "Preferences",
+      component: PreferencesIcon,
     },
     {
       path: "/test",
       label: "Test",
-      component: Test,
+      component: TestIcon,
     },
     {
       path: "/troubleshoot",
       label: "Logs",
       showErrors: true,
-      component: Logs,
+      component: LogsIcon,
     },
     {
       path: "/about",
       label: "About",
-      component: About,
+      component: AboutIcon,
     },
   ];
 </script>

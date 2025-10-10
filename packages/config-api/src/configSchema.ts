@@ -39,6 +39,7 @@ export type ProcessInfo = z.infer<typeof ProcessInfoSchema>;
 const OpenUrlOptionsSchema = z
   .object({
     opener: ProcessInfoSchema.nullable(),
+    originalUrl: NativeUrlSchema.optional(),
   })
   .identifier("OpenUrlOptions");
 

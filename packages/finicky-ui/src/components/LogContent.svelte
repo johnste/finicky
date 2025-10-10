@@ -35,11 +35,11 @@
   .log-content {
     list-style: none;
     margin: 0;
-    padding: 12px;
+    padding: 0;
     overflow-y: auto;
     font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas,
       monospace;
-    line-height: 1.4;
+    line-height: 1.5;
     color: var(--text-primary);
     flex: 1;
     overflow: auto;
@@ -49,25 +49,22 @@
     display: flex;
     justify-content: flex-start;
     gap: 1em;
-    margin-bottom: 4px;
+    margin-bottom: 8px;
     align-items: flex-start;
   }
 
   .log-time {
     color: var(--text-secondary);
     white-space: nowrap;
-    font-size: 0.9em;
-  }
-
-  .log-level-icon {
-    width: 1.5em;
-    text-align: center;
+    font-size: 0.85em;
+    opacity: 0.8;
   }
 
   .log-message {
     flex-grow: 1;
     white-space: pre-wrap;
     word-break: break-word;
+    font-size: 0.95em;
   }
 
   .log-level-error {

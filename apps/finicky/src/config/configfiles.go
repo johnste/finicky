@@ -333,6 +333,12 @@ func (cfw *ConfigFileWatcher) StartWatching() error {
 // handleConfigFileEvent processes configuration file events and takes appropriate actions
 // Returns an error if the configuration file was removed
 func (cfw *ConfigFileWatcher) handleConfigFileEvent(event fsnotify.Event) error {
+	// Ignore CHMOD-only events (permission changes) as they don't affect config content
+	// Note: Some editors may send CHMOD along with WRITE, so we only ignore pure CHMOD
+	if event.Op == fsnotify.Chmod {
+		return nil
+	}
+
 	if event.Has(fsnotify.Create) {
 		slog.Debug("Configuration file created", "path", event.Name)
 	}

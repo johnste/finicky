@@ -34,7 +34,7 @@ export interface ConfigOptions {
   keepRunning: boolean;
   hideIcon: boolean;
   logRequests: boolean;
-  checkForUpdate: boolean;
+  checkForUpdates: boolean;
 }
 
 export interface ConfigInfo {
@@ -42,8 +42,10 @@ export interface ConfigInfo {
   handlers?: number;
   rewrites?: number;
   defaultBrowser?: string;
-  keepRunning?: boolean;
-  hideIcon?: boolean;
-  logRequests?: boolean;
-  checkForUpdate?: boolean;
+  options?: {
+    keepRunning?: boolean;
+    hideIcon?: boolean;
+    logRequests?: boolean;
+    checkForUpdates?: boolean;
+  };
 }

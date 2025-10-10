@@ -28,6 +28,7 @@
   --button-hover: #4a4a4a;
   --log-error: #ff5252;
   --log-warning: #ffb74d;
+  --log-success: #73d13d;
   --log-debug: #b654ff;
   --nav-active: transparent;
   --nav-hover: transparent;
@@ -49,6 +50,7 @@
     --button-hover: #f0f0f0;
     --log-error: #d32f2f;
     --log-warning: #f57c00;
+    --log-success: #389e0d;
     --log-debug: #b654ff;
     --nav-active: #ffffff;
     --nav-hover: #e8e8e8;
@@ -66,7 +68,7 @@ body {
   font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto;
   background: var(--bg-primary);
   color: var(--text-secondary);
-  min-width: 300px;
+  min-width: 800px;
 }
 
 a {

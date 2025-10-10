@@ -1,6 +1,8 @@
 <script lang="ts">
   import { Link } from "svelte-routing";
+  import PageContainer from "../components/PageContainer.svelte";
   import type { UpdateInfo, ConfigInfo } from "../types";
+  import ExternalIcon from "../components/icons/External.svelte";
 
   export let hasConfig: boolean;
   export let numErrors: number;
@@ -8,80 +10,95 @@
   export let updateInfo: UpdateInfo | null;
 </script>
 
-
-<div class="status-section">
+<PageContainer
+  title={hasConfig ? "Configuration" : "No Configuration Found"}
+  description={hasConfig
+    ? "Current settings from your configuration file"
+    : undefined}
+>
   {#if !hasConfig}
-    <div class="status-card warning">
-      <h3>No Configuration Found</h3>
-      <p>Create a configuration file to customize your browser behavior.<br />
-        <a
-          href="https://github.com/johnste/finicky/wiki/Getting-started"
-          target="_blank"
-        >
-          Learn how to get started
-        </a>
-      </p>
+    <div class="no-config-message">
+      <a
+        href="https://github.com/johnste/finicky/wiki/Getting-started"
+        target="_blank"
+        rel="noopener noreferrer"
+        class="external-link"
+      >
+        Learn how to get started
+        <ExternalIcon />
+      </a>
     </div>
   {/if}
 
-  {#if hasConfig && (config.keepRunning !== undefined || config.hideIcon !== undefined || config.logRequests !== undefined || config.checkForUpdate !== undefined)}
-    <div class="config-options">
-      <h3>Configuration</h3>
-      <p class="options-description">Current settings from your configuration file</p>
-      <div class="options-grid">
-        <div class="option-row">
-          <div class="option-info">
-            <div class="option-text">
-              <span class="option-label">Keep Running</span>
-              <span class="option-hint">App stays open after handling links</span>
-            </div>
-            <label class="toggle">
-              <input type="checkbox" checked={config.keepRunning ?? true} disabled />
-              <span class="toggle-slider"></span>
-            </label>
+  <div class="config-options">
+    <div class="options-grid">
+      <div class="option-row">
+        <div class="option-info">
+          <div class="option-text">
+            <span class="option-label">Keep running</span>
+            <span class="option-hint">App stays open in the background</span>
           </div>
+          <label class="toggle">
+            <input
+              type="checkbox"
+              checked={config.options?.keepRunning ?? true}
+              disabled
+            />
+            <span class="toggle-slider"></span>
+          </label>
         </div>
-        <div class="option-row">
-          <div class="option-info">
-            <div class="option-text">
-              <span class="option-label">Hide Icon</span>
-              <span class="option-hint">Hide menu bar icon</span>
-            </div>
-            <label class="toggle">
-              <input type="checkbox" checked={config.hideIcon ?? false} disabled />
-              <span class="toggle-slider"></span>
-            </label>
+      </div>
+      <div class="option-row">
+        <div class="option-info">
+          <div class="option-text">
+            <span class="option-label">Hide icon</span>
+            <span class="option-hint">Hide menu bar icon</span>
           </div>
+          <label class="toggle">
+            <input
+              type="checkbox"
+              checked={config.options?.hideIcon ?? false}
+              disabled
+            />
+            <span class="toggle-slider"></span>
+          </label>
         </div>
-        <div class="option-row">
-          <div class="option-info">
-            <div class="option-text">
-              <span class="option-label">Log Requests</span>
-              <span class="option-hint">Log all URL handling to file</span>
-            </div>
-            <label class="toggle">
-              <input type="checkbox" checked={config.logRequests ?? false} disabled />
-              <span class="toggle-slider"></span>
-            </label>
+      </div>
+      <div class="option-row">
+        <div class="option-info">
+          <div class="option-text">
+            <span class="option-label">Log requests</span>
+            <span class="option-hint">Log all URL handling to file</span>
           </div>
+          <label class="toggle">
+            <input
+              type="checkbox"
+              checked={config.options?.logRequests ?? false}
+              disabled
+            />
+            <span class="toggle-slider"></span>
+          </label>
         </div>
-        <div class="option-row">
-          <div class="option-info">
-            <div class="option-text">
-              <span class="option-label">Check For Updates</span>
-              <span class="option-hint">Automatically check for new versions</span>
-            </div>
-            <label class="toggle">
-              <input type="checkbox" checked={config.checkForUpdate ?? true} disabled />
-              <span class="toggle-slider"></span>
-            </label>
+      </div>
+      <div class="option-row">
+        <div class="option-info">
+          <div class="option-text">
+            <span class="option-label">Check for updates</span>
+            <span class="option-hint">Automatically check for new versions</span
+            >
           </div>
+          <label class="toggle">
+            <input
+              type="checkbox"
+              checked={config.options?.checkForUpdates ?? true}
+              disabled
+            />
+            <span class="toggle-slider"></span>
+          </label>
         </div>
       </div>
     </div>
-  {/if}
-
-
+  </div>
 
   {#if numErrors > 0}
     <div class="status-card error">
@@ -122,21 +139,9 @@
   {/if}
 
   <!-- <Configuration /> -->
-
-</div>
-
+</PageContainer>
 
 <style>
-
-
-  .status-section {
-    max-width: 700px;
-    margin: 0 auto 32px;
-    display: flex;
-    flex-direction: column;
-    gap: 16px;
-  }
-
   .status-card {
     display: flex;
     flex-direction: column;
@@ -171,10 +176,6 @@
     border-radius: 50%;
   }
 
-  .success h3::before {
-    background: #4caf50;
-  }
-
   .warning h3::before {
     background: #ffc107;
   }
@@ -187,15 +188,25 @@
     background: #2196f3;
   }
 
-  .config-options {
-    margin: 0 0 16px 0;
+  .external-link {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
   }
 
-  .config-options h3 {
-    margin: 0 0 8px 0;
-    font-size: 1.1em;
-    color: var(--text-primary);
-    padding-left: 12px;
+  .external-link svg {
+    opacity: 0.7;
+  }
+
+  .no-config-message {
+    margin: -12px 0 0 12px;
+    color: var(--text-secondary);
+    font-size: 0.9em;
+    opacity: 0.8;
+  }
+
+  .config-options {
+    margin: 0;
   }
 
   .options-description {
@@ -272,7 +283,7 @@
     left: 0;
     right: 0;
     bottom: 0;
-    background-color: #ccc;
+    background-color: #666;
     transition: 0.3s;
     border-radius: 24px;
   }
@@ -284,16 +295,17 @@
     width: 18px;
     left: 3px;
     bottom: 3px;
-    background-color: white;
+    background-color: #ddd;
     transition: 0.3s;
     border-radius: 50%;
   }
 
   .toggle input:checked + .toggle-slider {
-    background-color: #4caf50;
+    background-color: var(--log-success);
   }
 
   .toggle input:checked + .toggle-slider:before {
     transform: translateX(20px);
+    background-color: white;
   }
 </style>
