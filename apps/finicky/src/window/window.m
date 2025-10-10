@@ -75,6 +75,10 @@ void SetFileContentWithLength(const char* path, const char* content, size_t leng
     [window setReleasedWhenClosed:NO];
     [window setBackgroundColor:[NSColor colorWithCalibratedWhite:0.1 alpha:1.0]];
 
+    // Set minimum window size
+    [window setMinSize:NSMakeSize(800, 500)];
+    [window setMaxSize:NSMakeSize(1200, 900)];
+
     // Configure WKWebView
     WKWebViewConfiguration *config = [[WKWebViewConfiguration alloc] init];
     [config.userContentController addScriptMessageHandler:self name:@"finicky"];
