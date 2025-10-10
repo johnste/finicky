@@ -2,7 +2,7 @@
   import { Link } from "svelte-routing";
   import General from "./icons/General.svelte";
   import Test from "./icons/Test.svelte";
-  import Troubleshoot from "./icons/Troubleshoot.svelte";
+  import Logs from "./icons/Logs.svelte";
   import About from "./icons/About.svelte";
 
   export let numErrors: number = 0;
@@ -20,9 +20,9 @@
     },
     {
       path: "/troubleshoot",
-      label: "Troubleshoot",
+      label: "Logs",
       showErrors: true,
-      component: Troubleshoot,
+      component: Logs,
     },
     {
       path: "/about",
@@ -66,7 +66,6 @@
   }
 
   .tab-container {
-    
     width: 190px;
     background: var(--bg-primary);
     position: sticky;
