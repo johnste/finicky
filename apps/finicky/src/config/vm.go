@@ -100,22 +100,6 @@ func (vm *VM) setup(embeddedFiles embed.FS, bundlePath string) error {
 	return nil
 }
 
-func (vm *VM) ShouldLogToFile(hasError bool) bool {
-
-	logRequests := vm.runtime.ToValue(hasError)
-
-	if !hasError {
-		var err error
-		logRequests, err = vm.runtime.RunString("finickyConfigAPI.getOption('logRequests', finalConfig)")
-		if err != nil {
-			slog.Warn("Failed to get logRequests option", "error", err)
-			logRequests = vm.runtime.ToValue(true)
-		}
-	}
-
-	return logRequests.ToBoolean()
-}
-
 func (vm *VM) GetConfigState() *ConfigState {
 	state, err := vm.runtime.RunString("finickyConfigAPI.getConfigState(finalConfig)")
 	if err != nil {

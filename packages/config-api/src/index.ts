@@ -82,8 +82,10 @@ export function getConfigState(config: Config) {
 export function openUrl(
   urlString: string,
   opener: ProcessInfo | null,
+  originalUrlString: string | null,
   config: object
 ) {
+  try {
   if (!validateConfig(config)) {
     throw new Error("Invalid config");
   }
@@ -93,6 +95,10 @@ export function openUrl(
   const options: OpenUrlOptions = {
     opener: opener,
   };
+
+  if (originalUrlString) {
+    options.originalUrl = new FinickyURL(originalUrlString, opener);
+  }
 
   let error: string | undefined;
 
@@ -124,6 +130,19 @@ export function openUrl(
     browser,
     error,
   };
+  } catch (ex: unknown) {
+    throw new Error(
+      JSON.stringify(
+        {
+          message: "Failed to open URL",
+          url: urlString,
+          error: fromError(ex).toString(),
+        },
+        null,
+        2
+      )
+    );
+  }
 }
 
 export function createBrowserConfig(

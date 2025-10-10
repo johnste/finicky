@@ -156,6 +156,21 @@ void SetFileContentWithLength(const char* path, const char* content, size_t leng
       didReceiveScriptMessage:(WKScriptMessage *)message {
     // Handle messages from JavaScript here
     NSLog(@"Received message from WebView: %@", message.body);
+
+    // Convert the message body to JSON string and forward to Go
+    if ([message.body isKindOfClass:[NSString class]]) {
+        extern void HandleWebViewMessage(const char* message);
+        NSString *messageString = (NSString *)message.body;
+        HandleWebViewMessage([messageString UTF8String]);
+    } else if ([message.body isKindOfClass:[NSDictionary class]]) {
+        NSError *error;
+        NSData *jsonData = [NSJSONSerialization dataWithJSONObject:message.body options:0 error:&error];
+        if (jsonData && !error) {
+            NSString *jsonString = [[NSString alloc] initWithData:jsonData encoding:NSUTF8StringEncoding];
+            extern void HandleWebViewMessage(const char* message);
+            HandleWebViewMessage([jsonString UTF8String]);
+        }
+    }
 }
 
 #pragma mark - WKURLSchemeHandler
@@ -298,6 +313,21 @@ void SetFileContentWithLength(const char* path, const char* content, size_t leng
                                                          action:@selector(paste:)
                                                   keyEquivalent:@"v"];
     [editMenu addItem:pasteMenuItem];
+
+    // Add separator
+    [editMenu addItem:[NSMenuItem separatorItem]];
+
+    // Add Undo menu item (⌘Z)
+    NSMenuItem *undoMenuItem = [[NSMenuItem alloc] initWithTitle:@"Undo"
+                                                       action:@selector(undo:)
+                                                keyEquivalent:@"z"];
+    [editMenu addItem:undoMenuItem];
+
+    // Add Redo menu item (⌘⇧Z)
+    NSMenuItem *redoMenuItem = [[NSMenuItem alloc] initWithTitle:@"Redo"
+                                                       action:@selector(redo:)
+                                                keyEquivalent:@"Z"];
+    [editMenu addItem:redoMenuItem];
 
     // Add separator
     [editMenu addItem:[NSMenuItem separatorItem]];

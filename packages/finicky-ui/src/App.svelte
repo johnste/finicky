@@ -1,12 +1,15 @@
 <script lang="ts">
   import { onMount } from "svelte";
   import { Router, Route } from "svelte-routing";
-  import LogViewer from "./components/LogViewer.svelte";
-  import StartPage from "./components/StartPage.svelte";
+  import LogViewer from "./pages/LogViewer.svelte";
+  import StartPage from "./pages/StartPage.svelte";
   import TabBar from "./components/TabBar.svelte";
-  import About from "./components/About.svelte";
-  import TestUrl from "./components/TestUrl.svelte";
+  import About from "./pages/About.svelte";
+  import TestUrl from "./pages/TestUrl.svelte";
+  import ToastContainer from "./components/ToastContainer.svelte";
+  import ExternalIcon from "./components/icons/External.svelte";
   import type { LogEntry, UpdateInfo, ConfigInfo } from "./types";
+  import { testUrlResult } from "./lib/testUrlStore";
 
   let version = "v0.0.0";
   let buildInfo = "dev";
@@ -43,6 +46,9 @@
 
       case "updateInfo":
         updateInfo = parsedMsg.message;
+        break;
+      case "testUrlResult":
+        testUrlResult.set(parsedMsg.message);
         break;
       default:
         const newMessage = parsedMsg.message
@@ -110,6 +116,10 @@
         <span class="config-path" title={config.configPath}>{config.configPath || "Not set"}</span>
       {:else}
         <span class="config-status warning">No config</span>
+        <a href="https://github.com/johnste/finicky/wiki/Getting-started" target="_blank" rel="noopener noreferrer" class="config-link">
+          Get started
+          <ExternalIcon />
+        </a>
       {/if}
       <span class="spacer"></span>
       {#if updateInfo && updateInfo.updateCheckEnabled && !updateInfo.hasUpdate}
@@ -118,6 +128,8 @@
     </div>
   </main>
 </Router>
+
+<ToastContainer />
 
 <style>
   main {
@@ -141,6 +153,7 @@
     flex-direction: column;
     flex: 1 1 100%;
     overflow-y: auto;
+    scrollbar-gutter: stable;
   }
 
   .footer {
@@ -159,12 +172,6 @@
     font-size: 0.9em;
   }
 
-  .build-info {
-    color: var(--text-secondary);
-    font-size: 0.8em;
-    opacity: 0.8;
-  }
-
   .content {
     flex: 1;
   }
@@ -174,7 +181,7 @@
   }
 
   .up-to-date {
-    color: #4caf50;
+    color: var(--log-success);
     font-size: 0.8em;
     opacity: 0.9;
   }
@@ -207,5 +214,23 @@
 
   .config-status.warning {
     color: #ffc107;
+  }
+
+  .config-link {
+    color: var(--accent-color);
+    font-size: 0.8em;
+    text-decoration: none;
+    transition: opacity 0.2s ease;
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+  }
+
+  .config-link:hover {
+    text-decoration: underline;
+  }
+
+  .config-link svg {
+    opacity: 0.7;
   }
 </style>

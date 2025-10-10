@@ -57,11 +57,23 @@ func ResolveURL(originalURL string) (string, error) {
 
 	slog.Debug("URL host looks like a short URL", "host", parsedURL.Host)
 
+	var lastUrl string
+
+	// Helper to get the best available URL
+	getReturnUrl := func() string {
+		if lastUrl != "" && lastUrl != originalURL {
+			slog.Debug("Falling back to last known URL from redirects", "url", lastUrl)
+			return lastUrl
+		}
+		return originalURL
+	}
+
 	// Create a client with a timeout
 	client := &http.Client{
-		Timeout: 500 * time.Millisecond,
+		Timeout: 750 * time.Millisecond,
 		CheckRedirect: func(req *http.Request, via []*http.Request) error {
-			slog.Debug("Redirected to", "url", req.URL.String())
+			lastUrl = req.URL.String()
+			slog.Debug("Redirected to", "url", lastUrl)
 			// Allow up to 3 redirects
 			if len(via) >= 3 {
 				return fmt.Errorf("stopped after 3 redirects")
@@ -78,6 +90,7 @@ func ResolveURL(originalURL string) (string, error) {
 	req.Header.Set("User-Agent", "Finicky/4.0")
 
 	resp, err := client.Do(req)
+
 	if err != nil {
 		slog.Debug("Failed to make HEAD request", "url", originalURL, "error", err)
 	}
@@ -97,13 +110,14 @@ func ResolveURL(originalURL string) (string, error) {
 	// If HEAD request failed, try GET as fallback
 	req, err = http.NewRequest("GET", originalURL, nil)
 	if err != nil {
-		return originalURL, fmt.Errorf("failed to create GET request: %v", err)
+		return getReturnUrl(), fmt.Errorf("failed to create GET request: %v", err)
 	}
 	req.Header.Set("User-Agent", "Finicky/4.0")
 
 	resp, err = client.Do(req)
+
 	if err != nil {
-		return originalURL, fmt.Errorf("failed to make GET request: %v", err)
+		return getReturnUrl(), fmt.Errorf("failed to make GET request: %v", err)
 	}
 
 	if resp != nil {
@@ -118,6 +132,6 @@ func ResolveURL(originalURL string) (string, error) {
 	}
 
 	// If both HEAD and GET failed, return original URL
-	return originalURL, fmt.Errorf("failed to resolve URL: no response received")
+	return getReturnUrl(), fmt.Errorf("failed to resolve URL: no response received")
 
 }

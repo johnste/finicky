@@ -11,7 +11,7 @@ describe("openUrl", () => {
 
   it("validation", () => {
     expect(() =>
-      openUrl("https://example.com", mockProcessInfo, {
+      openUrl("https://example.com", mockProcessInfo, null, {
         defaultBrowser: 123,
       })
     ).toThrow("Invalid config");
@@ -52,7 +52,7 @@ describe("openUrl", () => {
 
     cases.forEach(({ url, expected }) => {
       it(`handles ${url}`, () => {
-        const result = openUrl(url, mockProcessInfo, handlerConfig);
+        const result = openUrl(url, mockProcessInfo, null, handlerConfig);
         expect(result.browser).toMatchObject(
           typeof expected === "string" ? { name: expected } : expected
         );
@@ -60,7 +60,7 @@ describe("openUrl", () => {
     });
 
     it("works with null opener", () => {
-      const result = openUrl("https://example.com", null, handlerConfig);
+      const result = openUrl("https://example.com", null, null, handlerConfig);
       expect(result.browser).toMatchObject({ name: "Firefox" });
     });
   });
@@ -109,7 +109,7 @@ describe("openUrl", () => {
 
     cases.forEach(({ input, expectedUrl }) => {
       it(`rewrites ${input}`, () => {
-        const result = openUrl(input, mockProcessInfo, rewriteConfig);
+        const result = openUrl(input, mockProcessInfo, null, rewriteConfig);
         expect(result.browser).toMatchObject({
           name: "Safari",
           url: expectedUrl,
@@ -149,7 +149,7 @@ describe("openUrl", () => {
     cases.forEach(({ urls, expected }) => {
       urls.forEach((url) => {
         it(`${expected} handles ${url}`, () => {
-          const result = openUrl(url, mockProcessInfo, wildcardConfig);
+          const result = openUrl(url, mockProcessInfo, null, wildcardConfig);
           expect(result.browser).toMatchObject({ name: expected });
         });
       });
@@ -174,7 +174,7 @@ describe("openUrl", () => {
 
     cases.forEach(({ url, expected }) => {
       it(`${expected} handles ${url}`, () => {
-        const result = openUrl(url, mockProcessInfo, edgeCaseConfig);
+        const result = openUrl(url, mockProcessInfo, null, edgeCaseConfig);
         expect(result.browser).toMatchObject({ name: expected });
       });
     });

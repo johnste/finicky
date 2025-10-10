@@ -25,6 +25,7 @@ var (
 	messageQueue []string
 	queueMutex   sync.Mutex
 	windowReady  bool
+	TestUrlHandler func(string)
 )
 
 //export WindowIsReady
@@ -135,4 +136,49 @@ func SendBuildInfo() {
 	commitHash, buildDate := version.GetBuildInfo()
 	buildInfo := fmt.Sprintf("(%s, built %s)", commitHash, buildDate)
 	SendMessageToWebView("buildInfo", buildInfo)
+}
+
+//export HandleWebViewMessage
+func HandleWebViewMessage(messagePtr *C.char) {
+	messageStr := C.GoString(messagePtr)
+
+	var msg map[string]interface{}
+	if err := json.Unmarshal([]byte(messageStr), &msg); err != nil {
+		slog.Error("Failed to parse webview message", "error", err)
+		return
+	}
+
+	messageType, ok := msg["type"].(string)
+	if !ok {
+		slog.Error("Message missing type field")
+		return
+	}
+
+	slog.Debug("Received message from webview", "type", messageType)
+
+	switch messageType {
+	case "testUrl":
+		handleTestUrl(msg)
+	default:
+		slog.Debug("Unknown message type", "type", messageType)
+	}
+}
+
+func handleTestUrl(msg map[string]interface{}) {
+	url, ok := msg["url"].(string)
+	if !ok {
+		slog.Error("testUrl message missing url field")
+		return
+	}
+
+	slog.Debug("Forwarding test URL request", "url", url)
+
+	if TestUrlHandler != nil {
+		TestUrlHandler(url)
+	} else {
+		slog.Error("TestUrlHandler not set")
+		SendMessageToWebView("testUrlResult", map[string]interface{}{
+			"error": "Test handler not initialized",
+		})
+	}
 }

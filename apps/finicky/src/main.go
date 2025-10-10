@@ -126,13 +126,18 @@ func main() {
 
 	go checkForUpdates()
 
+	// Set up test URL handler
+	window.TestUrlHandler = func(url string) {
+		go TestURLInternal(url)
+	}
+
 	const oneDay = 24 * time.Hour
 
 	var showingWindow bool = false
 	timeoutChan := time.After(1 * time.Second)
 	updateChan := time.After(oneDay)
 
-	shouldKeepRunning = getKeepRunning()
+	shouldKeepRunning = getConfigOption("keepRunning", true)
 	if shouldKeepRunning {
 		timeoutChan = nil
 	}
@@ -186,12 +191,13 @@ func main() {
 			case <-configChange:
 				startTime := time.Now()
 				var setupErr error
+				slog.Debug("Config has changed")
 				vm, setupErr = setupVM(cfw, embeddedFiles, namespace)
 				if setupErr != nil {
 					handleRuntimeError(setupErr)
 				}
 				slog.Debug("VM refresh complete", "duration", fmt.Sprintf("%.2fms", float64(time.Since(startTime).Microseconds())/1000))
-				shouldKeepRunning = getKeepRunning()
+				shouldKeepRunning = getConfigOption("keepRunning", true)
 
 			case shouldShowWindow := <-queueWindowOpen:
 				if !showingWindow && shouldShowWindow {
@@ -219,8 +225,9 @@ func main() {
 		}
 	}()
 
-	showIcon := !getHideIcon()
-	C.RunApp(C.bool(forceWindowOpen), C.bool(showIcon), C.bool(shouldKeepRunning))
+	hideIcon := getConfigOption("hideIcon", false)
+
+	C.RunApp(C.bool(forceWindowOpen), C.bool(!hideIcon), C.bool(shouldKeepRunning))
 }
 
 func handleRuntimeError(err error) {
@@ -229,32 +236,21 @@ func handleRuntimeError(err error) {
 	go QueueWindowDisplay(1)
 }
 
-func getKeepRunning() bool {
-	if vm == nil {
-		return false
+func getConfigOption(optionName string, defaultValue bool) bool {
+	if vm == nil || vm.Runtime() == nil {
+		slog.Debug("VM not initialized, returning default for config option", "option", optionName, "default", defaultValue)
+		return defaultValue
 	}
 
-	keepRunning, err := vm.Runtime().RunString("finickyConfigAPI.getOption('keepRunning', finalConfig, true)")
+	script := fmt.Sprintf("finickyConfigAPI.getOption('%s', finalConfig, %t)", optionName, defaultValue)
+	optionVal, err := vm.Runtime().RunString(script)
+
 	if err != nil {
-		return false
-	}
-	result := keepRunning.ToBoolean()
-
-	return result
-}
-
-func getHideIcon() bool {
-	if vm == nil {
-		return false
+		slog.Error("Failed to get config option", "option", optionName, "error", err)
+		return defaultValue
 	}
 
-	hideIcon, err := vm.Runtime().RunString("finickyConfigAPI.getOption('hideIcon', finalConfig, false)")
-	if err != nil {
-		return false
-	}
-	result := hideIcon.ToBoolean()
-
-	return result
+	return optionVal.ToBoolean()
 }
 
 //export HandleURL
@@ -289,15 +285,58 @@ func HandleURL(url *C.char, name *C.char, bundleId *C.char, path *C.char, openIn
 	}
 }
 
+//export TestURL
+func TestURL(url *C.char) {
+	urlString := C.GoString(url)
+	TestURLInternal(urlString)
+}
+
+func TestURLInternal(urlString string) {
+	slog.Debug("Testing URL", "url", urlString)
+
+	if vm == nil {
+		slog.Error("VM not initialized")
+		window.SendMessageToWebView("testUrlResult", map[string]interface{}{
+			"error": "Configuration not loaded",
+		})
+		return
+	}
+
+	browserConfig, err := evaluateURL(vm.Runtime(), urlString, nil)
+	if err != nil {
+		slog.Error("Failed to evaluate URL", "error", err)
+		window.SendMessageToWebView("testUrlResult", map[string]interface{}{
+			"error": err.Error(),
+		})
+		return
+	}
+
+	if browserConfig == nil {
+		window.SendMessageToWebView("testUrlResult", map[string]interface{}{
+			"error": "No browser config returned",
+		})
+		return
+	}
+
+	window.SendMessageToWebView("testUrlResult", map[string]interface{}{
+		"url":              browserConfig.URL,
+		"browser":          browserConfig.Name,
+		"openInBackground": browserConfig.OpenInBackground,
+		"profile":          browserConfig.Profile,
+		"args":             browserConfig.Args,
+	})
+}
+
 func evaluateURL(vm *goja.Runtime, url string, opener *ProcessInfo) (*browser.BrowserConfig, error) {
 	resolvedURL, err := shorturl.ResolveURL(url)
+	vm.Set("originalUrl", url)
+
 	if err != nil {
 		// Continue with original URL if resolution fails
-		slog.Info("Failed to resolve short URL", "error", err)
-
-	} else {
-		url = resolvedURL
+		slog.Info("Failed to resolve short URL", "error", err, "url", url, "using", resolvedURL)
 	}
+
+	url = resolvedURL
 
 	vm.Set("url", resolvedURL)
 
@@ -313,7 +352,7 @@ func evaluateURL(vm *goja.Runtime, url string, opener *ProcessInfo) (*browser.Br
 		slog.Debug("No opener detected")
 	}
 
-	openResult, err := vm.RunString("finickyConfigAPI.openUrl(url, opener, finalConfig)")
+	openResult, err := vm.RunString("finickyConfigAPI.openUrl(url, opener, originalUrl, finalConfig)")
 	if err != nil {
 		return nil, fmt.Errorf("failed to evaluate URL in config: %v", err)
 	}
@@ -427,11 +466,11 @@ func tearDown() {
 }
 
 func setupVM(cfw *config.ConfigFileWatcher, embeddedFS embed.FS, namespace string) (*config.VM, error) {
-	shouldLogToFile := true
+	logRequests := true
 	var err error
 
 	defer func() {
-		err = logger.SetupFile(shouldLogToFile)
+		err = logger.SetupFile(logRequests)
 		if err != nil {
 			slog.Warn("Failed to setup file logging", "error", err)
 		}
@@ -444,13 +483,11 @@ func setupVM(cfw *config.ConfigFileWatcher, embeddedFS embed.FS, namespace strin
 	}
 
 	if currentBundlePath != "" {
-		vm, err := config.New(embeddedFS, namespace, currentBundlePath)
+		vm, err = config.New(embeddedFS, namespace, currentBundlePath)
+
 		if err != nil {
 			return nil, fmt.Errorf("failed to setup VM: %v", err)
 		}
-
-		// Update logging preference based on VM if available
-		shouldLogToFile = vm.ShouldLogToFile(false)
 
 		currentConfigState = vm.GetConfigState()
 
@@ -461,47 +498,25 @@ func setupVM(cfw *config.ConfigFileWatcher, embeddedFS embed.FS, namespace strin
 				DefaultBrowser: currentConfigState.DefaultBrowser,
 				ConfigPath:     configPath,
 			}
-
-			keepRunning := getKeepRunning()
-			hideIcon := getHideIcon()
-			
-			// Get logRequests option
-			logRequests := false
-			if logRequestsVal, err := vm.Runtime().RunString("finickyConfigAPI.getOption('logRequests', finalConfig, false)"); err == nil {
-				logRequests = logRequestsVal.ToBoolean()
-			}
-			
-			// Get checkForUpdate option
-			checkForUpdate := true
-			if checkForUpdateVal, err := vm.Runtime().RunString("finickyConfigAPI.getOption('checkForUpdate', finalConfig, true)"); err == nil {
-				checkForUpdate = checkForUpdateVal.ToBoolean()
-			}
-
-			window.SendMessageToWebView("config", map[string]interface{}{
-				"handlers":         configInfo.Handlers,
-				"rewrites":         configInfo.Rewrites,
-				"defaultBrowser":   configInfo.DefaultBrowser,
-				"configPath":       configInfo.ConfigPath,
-				"keepRunning":      keepRunning,
-				"hideIcon":         hideIcon,
-				"logRequests":      logRequests,
-				"checkForUpdate":   checkForUpdate,
-			})
-		} else if configInfo != nil {
-			keepRunning := getKeepRunning()
-			hideIcon := getHideIcon()
-			
-			window.SendMessageToWebView("config", map[string]interface{}{
-				"handlers":         0,
-				"rewrites":         0,
-				"defaultBrowser":   "",
-				"configPath":       configInfo.ConfigPath,
-				"keepRunning":      keepRunning,
-				"hideIcon":         hideIcon,
-				"logRequests":      false,
-				"checkForUpdate":   true,
-			})
 		}
+
+		keepRunning := getConfigOption("keepRunning", true)
+		hideIcon := getConfigOption("hideIcon", false)
+		logRequests = getConfigOption("logRequests", false)
+		checkForUpdates := getConfigOption("checkForUpdates", true)
+
+		window.SendMessageToWebView("config", map[string]interface{}{
+			"handlers":       configInfo.Handlers,
+			"rewrites":       configInfo.Rewrites,
+			"defaultBrowser": configInfo.DefaultBrowser,
+			"configPath":     configInfo.ConfigPath,
+			"options": map[string]interface{}{
+				"keepRunning":     keepRunning,
+				"hideIcon":        hideIcon,
+				"logRequests":     logRequests,
+				"checkForUpdates": checkForUpdates,
+			},
+		})
 
 		return vm, nil
 	}
