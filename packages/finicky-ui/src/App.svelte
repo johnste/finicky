@@ -10,13 +10,6 @@
 
   let version = "v0.0.0";
   let buildInfo = "dev";
-  let isDevMode = false;
-
-  function activateDevMode() {
-    isDevMode = !isDevMode;
-    localStorage.setItem("finicky-dev-mode", JSON.stringify(isDevMode));
-    console.log("Dev mode toggled globally! 🚀");
-  }
 
   // Configuration state
   let hasConfig = false;
@@ -59,23 +52,12 @@
     }
   }
 
-  // Handle debug messages from the DebugMessageToggle
-  function handleDebugMessage(message: LogEntry) {
-    messageBuffer = [...messageBuffer, message];
-  }
-
   // Clear all logs
   function clearAllLogs() {
     messageBuffer = [];
   }
 
   onMount(() => {
-    // Load dev mode state from localStorage
-    isDevMode = localStorage.getItem("finicky-dev-mode") === "true";
-    if (isDevMode) {
-      console.log("Dev mode restored from localStorage! 🚀");
-    }
-
     // Set up the bridge between native app and web UI
     window.finicky = {
       sendMessage: (msg: any) => {
@@ -116,9 +98,6 @@
           <Route path="/about">
             <About
               {version}
-              {isDevMode}
-              toggleDevMode={activateDevMode}
-              addMessage={handleDebugMessage}
             />
           </Route>
         </div>
@@ -135,9 +114,6 @@
       <span class="spacer"></span>
       {#if updateInfo && updateInfo.updateCheckEnabled && !updateInfo.hasUpdate}
         <span class="up-to-date">✓ Up to date</span>
-      {/if}
-      {#if isDevMode}
-        <span class="dev-mode">DEV MODE</span>
       {/if}
     </div>
   </main>
@@ -191,13 +167,6 @@
 
   .content {
     flex: 1;
-  }
-
-  .dev-mode {
-    color: #b654ff;
-    font-weight: bold;
-    font-size: 0.8em;
-    opacity: 0.8;
   }
 
   .spacer {
