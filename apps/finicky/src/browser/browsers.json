@@ -58,5 +58,23 @@
     "id": "ai.perplexity.comet",
     "type": "Chromium",
     "app_name": "Comet"
+  },
+  {
+    "config_dir_relative": "Yandex/YandexBrowser",
+    "id": "ru.yandex.desktop.yandex-browser",
+    "type": "Chromium",
+    "app_name": "Yandex"
+  },
+  {
+    "config_dir_relative": "com.operasoftware.Opera",
+    "id": "com.operasoftware.Opera",
+    "type": "Chromium",
+    "app_name": "Opera"
+  },
+  {
+    "config_dir_relative": "com.operasoftware.OperaGX",
+    "id": "com.operasoftware.OperaGX",
+    "type": "Chromium",
+    "app_name": "Opera GX"
   }
 ]
