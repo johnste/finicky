@@ -76,5 +76,15 @@
     "id": "com.operasoftware.OperaGX",
     "type": "Chromium",
     "app_name": "Opera GX"
+  },
+  {
+    "id": "org.mozilla.firefoxdeveloperedition",
+    "type": "Firefox",
+    "app_name": "Firefox Developer Edition"
+  },
+  {
+    "id": "org.mozilla.firefox",
+    "type": "Firefox",
+    "app_name": "Firefox"
   }
 ]
