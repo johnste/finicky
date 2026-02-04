@@ -75,26 +75,28 @@ func LaunchBrowser(config BrowserConfig, dryRun bool, openInBackgroundByDefault 
 		openArgs = append(openArgs, "-n")
 	}
 
-	// Add URL before --args (required by macOS open command syntax)
-	// The URL must come before --args, as everything after --args is passed to the application
-	if !hasCustomArgs {
-		openArgs = append(openArgs, config.URL)
-	}
-
-	// Add --args if we have profile args or custom args
+	// When using profiles or custom args, everything must come after --args
+	// This ensures Chrome receives the profile argument even when already running
 	if ok || hasCustomArgs {
 		if ! slices.Contains(config.Args, "--args") {
 			openArgs = append(openArgs, "--args")
 		}
+
 		// Add profile argument first if present
 		if ok {
 			openArgs = append(openArgs, profileArgument)
 		}
 
-		// Add custom args (if URL is not already added)
+		// Add custom args or URL after the profile argument
 		if hasCustomArgs {
 			openArgs = append(openArgs, config.Args...)
+		} else {
+			// When using a profile, URL must come after --args for Chrome to respect the profile
+			openArgs = append(openArgs, config.URL)
 		}
+	} else {
+		// No profile or custom args - add URL in standard position
+		openArgs = append(openArgs, config.URL)
 	}
 
 	cmd := exec.Command("open", openArgs...)
