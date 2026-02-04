@@ -1,6 +1,7 @@
 #include "main.h"
 #include "util/info.h"
 #import <Cocoa/Cocoa.h>
+#import <ApplicationServices/ApplicationServices.h>
 #import <stdlib.h>
 #import <unistd.h>
 
@@ -114,7 +115,7 @@
     NSString *urlString = [fileURL absoluteString];
 
     // Handle the file URL the same way we handle other URLs
-    HandleURL((char*)[urlString UTF8String], NULL, NULL, NULL, false);
+    HandleURL((char*)[urlString UTF8String], NULL, NULL, NULL, NULL, false);
 
     return true;
 }
@@ -138,6 +139,8 @@
     // to detect if Finicky was launched in the background
     bool finickyIsInFront =  !self.keepRunning || [frontApp isEqual:[NSRunningApplication currentApplication]];
 
+    char *windowTitle = NULL;
+
     if (application) {
         NSString *appName = [application localizedName];
         NSString *appBundleID = [application bundleIdentifier];
@@ -146,12 +149,31 @@
         name = [appName UTF8String];
         bundleId = [appBundleID UTF8String];
         path = [appPath UTF8String];
+
+        // Try to get the focused window title via Accessibility API
+        AXUIElementRef appElement = AXUIElementCreateApplication(pid);
+        if (appElement) {
+            AXUIElementRef focusedWindow = NULL;
+            AXError err = AXUIElementCopyAttributeValue(appElement, kAXFocusedWindowAttribute, (CFTypeRef *)&focusedWindow);
+            if (err == kAXErrorSuccess && focusedWindow) {
+                CFTypeRef titleValue = NULL;
+                AXError titleErr = AXUIElementCopyAttributeValue(focusedWindow, kAXTitleAttribute, &titleValue);
+                if (titleErr == kAXErrorSuccess && titleValue && CFGetTypeID(titleValue) == CFStringGetTypeID()) {
+                    // strdup to keep a copy alive after CFRelease (no ARC in this project)
+                    windowTitle = strdup([(NSString *)titleValue UTF8String]);
+                }
+                if (titleValue) CFRelease(titleValue);
+                CFRelease(focusedWindow);
+            }
+            CFRelease(appElement);
+        }
     } else {
         NSLog(@"No running application found with PID: %d", pid);
     }
 
     // If Finicky isn't frontmost, we take that to mean that the browser should, by default, be opened in the background
-    HandleURL((char*)url, (char*)name, (char*)bundleId, (char*)path, !finickyIsInFront);
+    HandleURL((char*)url, (char*)name, (char*)bundleId, (char*)path, windowTitle, !finickyIsInFront);
+    free(windowTitle);
 }
 
 - (bool)application:(NSApplication *)application willContinueUserActivityWithType:(NSString *)userActivityType {
@@ -168,7 +190,7 @@
         return false;
     }
 
-    HandleURL((char*)[[url absoluteString] UTF8String], NULL, NULL, NULL, false);
+    HandleURL((char*)[[url absoluteString] UTF8String], NULL, NULL, NULL, NULL, false);
     return true;
 }
 
