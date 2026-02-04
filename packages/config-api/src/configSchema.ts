@@ -31,6 +31,7 @@ const ProcessInfoSchema = z
     name: z.string(),
     bundleId: z.string(),
     path: z.string(),
+    windowTitle: z.string().optional(),
   })
   .identifier("ProcessInfo");
 
