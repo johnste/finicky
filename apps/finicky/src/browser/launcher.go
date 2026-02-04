@@ -75,6 +75,12 @@ func LaunchBrowser(config BrowserConfig, dryRun bool, openInBackgroundByDefault 
 		openArgs = append(openArgs, "-n")
 	}
 
+	// Add URL before --args (required by macOS open command syntax)
+	// The URL must come before --args, as everything after --args is passed to the application
+	if !hasCustomArgs {
+		openArgs = append(openArgs, config.URL)
+	}
+
 	// Add --args if we have profile args or custom args
 	if ok || hasCustomArgs {
 		if ! slices.Contains(config.Args, "--args") {
@@ -85,15 +91,10 @@ func LaunchBrowser(config BrowserConfig, dryRun bool, openInBackgroundByDefault 
 			openArgs = append(openArgs, profileArgument)
 		}
 
-		// Add custom args or URL
+		// Add custom args (if URL is not already added)
 		if hasCustomArgs {
 			openArgs = append(openArgs, config.Args...)
-		} else {
-			openArgs = append(openArgs, config.URL)
 		}
-	} else {
-		// No special args, just add the URL
-		openArgs = append(openArgs, config.URL)
 	}
 
 	cmd := exec.Command("open", openArgs...)
