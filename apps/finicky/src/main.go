@@ -33,9 +33,10 @@ import (
 var embeddedFiles embed.FS
 
 type ProcessInfo struct {
-	Name     string `json:"name"`
-	BundleID string `json:"bundleId"`
-	Path     string `json:"path"`
+	Name        string `json:"name"`
+	BundleID    string `json:"bundleId"`
+	Path        string `json:"path"`
+	WindowTitle string `json:"windowTitle,omitempty"`
 }
 
 type UpdateInfo struct {
@@ -254,7 +255,7 @@ func getConfigOption(optionName string, defaultValue bool) bool {
 }
 
 //export HandleURL
-func HandleURL(url *C.char, name *C.char, bundleId *C.char, path *C.char, openInBackground C.bool) {
+func HandleURL(url *C.char, name *C.char, bundleId *C.char, path *C.char, windowTitle *C.char, openInBackground C.bool) {
 	var opener ProcessInfo
 
 	if name != nil && bundleId != nil && path != nil {
@@ -262,6 +263,9 @@ func HandleURL(url *C.char, name *C.char, bundleId *C.char, path *C.char, openIn
 			Name:     C.GoString(name),
 			BundleID: C.GoString(bundleId),
 			Path:     C.GoString(path),
+		}
+		if windowTitle != nil {
+			opener.WindowTitle = C.GoString(windowTitle)
 		}
 	}
 
@@ -341,12 +345,16 @@ func evaluateURL(vm *goja.Runtime, url string, opener *ProcessInfo) (*browser.Br
 	vm.Set("url", resolvedURL)
 
 	if opener != nil {
-		vm.Set("opener", map[string]interface{}{
+		openerMap := map[string]interface{}{
 			"name":     opener.Name,
 			"bundleId": opener.BundleID,
 			"path":     opener.Path,
-		})
-		slog.Debug("Setting opener", "name", opener.Name, "bundleId", opener.BundleID, "path", opener.Path)
+		}
+		if opener.WindowTitle != "" {
+			openerMap["windowTitle"] = opener.WindowTitle
+		}
+		vm.Set("opener", openerMap)
+		slog.Debug("Setting opener", "name", opener.Name, "bundleId", opener.BundleID, "path", opener.Path, "windowTitle", opener.WindowTitle)
 	} else {
 		vm.Set("opener", nil)
 		slog.Debug("No opener detected")
