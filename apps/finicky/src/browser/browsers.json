@@ -84,6 +84,12 @@
     "app_name": "Firefox"
   },
   {
+    "config_dir_relative": "Firefox",
+    "id": "org.mozilla.firefoxdeveloperedition",
+    "type": "Firefox",
+    "app_name": "Firefox Developer Edition"
+  },
+  {
     "config_dir_relative": "zen",
     "id": "app.zen-browser.zen",
     "type": "Firefox",
