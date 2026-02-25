@@ -76,5 +76,17 @@
     "id": "com.operasoftware.OperaGX",
     "type": "Chromium",
     "app_name": "Opera GX"
+  },
+  {
+    "config_dir_relative": "Firefox",
+    "id": "org.mozilla.firefox",
+    "type": "Firefox",
+    "app_name": "Firefox"
+  },
+  {
+    "config_dir_relative": "zen",
+    "id": "app.zen-browser.zen",
+    "type": "Firefox",
+    "app_name": "Zen"
   }
 ]

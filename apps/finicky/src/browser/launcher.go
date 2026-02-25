@@ -82,7 +82,13 @@ func LaunchBrowser(config BrowserConfig, dryRun bool, openInBackgroundByDefault 
 		}
 		// Add profile argument first if present
 		if ok {
-			openArgs = append(openArgs, profileArgument)
+			if strings.HasPrefix(profileArgument, "--") {
+				// Chromium-style: single arg like --profile-directory=Profile
+				openArgs = append(openArgs, profileArgument)
+			} else {
+				// Firefox-style: multi-arg like -P ProfileName
+				openArgs = append(openArgs, strings.Fields(profileArgument)...)
+			}
 		}
 
 		// Add custom args or URL
@@ -183,11 +189,45 @@ func resolveBrowserProfileArgument(identifier string, profile string) (string, b
 			if ok {
 				return "--profile-directory=" + profilePath, true
 			}
+		case "Firefox":
+			homeDir, err := util.UserHomeDir()
+			if err != nil {
+				slog.Info("Error getting home directory", "error", err)
+				return "", false
+			}
+
+			profilesIniPath := filepath.Join(homeDir, "Library/Application Support", matchedBrowser.ConfigDirRelative, "profiles.ini")
+			profileName, ok := parseFirefoxProfiles(profilesIniPath, profile)
+			if ok {
+				return "-P " + profileName, true
+			}
 		default:
-			slog.Info("Browser is not a Chromium browser, skipping profile detection", "identifier", identifier)
+			slog.Info("Browser is not a supported browser type, skipping profile detection", "identifier", identifier)
 		}
 	}
 
+	return "", false
+}
+
+func parseFirefoxProfiles(profilesIniPath string, profile string) (string, bool) {
+	data, err := os.ReadFile(profilesIniPath)
+	if err != nil {
+		slog.Info("Error reading profiles.ini", "path", profilesIniPath, "error", err)
+		return "", false
+	}
+
+	var profileNames []string
+	for _, line := range strings.Split(string(data), "\n") {
+		line = strings.TrimSpace(line)
+		if name, ok := strings.CutPrefix(line, "Name="); ok {
+			profileNames = append(profileNames, name)
+			if name == profile {
+				return name, true
+			}
+		}
+	}
+
+	slog.Warn("Could not find profile in Firefox profiles.", "Expected profile", profile, "Available profiles", strings.Join(profileNames, ", "))
 	return "", false
 }
 
