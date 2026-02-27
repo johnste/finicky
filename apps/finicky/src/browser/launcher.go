@@ -12,8 +12,9 @@ import (
 	"strings"
 	"slices"
 
-	"al.essio.dev/pkg/shellescape"
 	"finicky/util"
+
+	"al.essio.dev/pkg/shellescape"
 )
 
 //go:embed browsers.json
@@ -171,6 +172,8 @@ func resolveBrowserProfileArgument(identifier string, profile string) (string, b
 
 	if profile != "" {
 		switch matchedBrowser.Type {
+		case "Firefox":
+			return "-P=" + shellescape.Quote(profile), true
 		case "Chromium":
 			homeDir, err := util.UserHomeDir()
 			if err != nil {
