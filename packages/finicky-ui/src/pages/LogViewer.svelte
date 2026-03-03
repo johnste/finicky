@@ -117,20 +117,6 @@
     box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
   }
 
-  button.active {
-    background: var(--log-debug);
-    color: white;
-    border-color: var(--log-debug);
-    opacity: 1;
-  }
-
-  button.copied {
-    background: var(--log-success);
-    color: white;
-    border-color: var(--log-success);
-    opacity: 1;
-  }
-
   .checkbox-label {
     display: flex;
     align-items: center;

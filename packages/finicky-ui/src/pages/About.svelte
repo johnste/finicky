@@ -146,12 +146,6 @@
     opacity: 0.8;
   }
 
-  .repo-link svg {
-    opacity: 0.7;
-    width: 14px;
-    height: 14px;
-  }
-
   a {
     color: var(--accent-color);
     text-decoration: none;

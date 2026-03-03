@@ -230,7 +230,4 @@
     text-decoration: underline;
   }
 
-  .config-link svg {
-    opacity: 0.7;
-  }
 </style>

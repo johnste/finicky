@@ -176,10 +176,6 @@
     border-radius: 50%;
   }
 
-  .warning h3::before {
-    background: #ffc107;
-  }
-
   .error h3::before {
     background: #f44336;
   }
@@ -194,10 +190,6 @@
     gap: 4px;
   }
 
-  .external-link svg {
-    opacity: 0.7;
-  }
-
   .no-config-message {
     margin: -12px 0 0 12px;
     color: var(--text-secondary);
@@ -207,13 +199,6 @@
 
   .config-options {
     margin: 0;
-  }
-
-  .options-description {
-    color: var(--text-secondary);
-    font-size: 0.9em;
-    margin: -4px 0 12px 12px;
-    opacity: 0.8;
   }
 
   .options-grid {
