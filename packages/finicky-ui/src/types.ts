@@ -11,6 +11,8 @@ declare global {
     finicky: {
       sendMessage: (msg: any) => void;
       receiveMessage: (msg: any) => void;
+      /** Stub queue populated by the WKUserScript before the Svelte app is ready */
+      _queue?: any[];
     };
     webkit?: {
       messageHandlers?: {

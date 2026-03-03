@@ -84,6 +84,23 @@ void SetFileContentWithLength(const char* path, const char* content, size_t leng
     [config.userContentController addScriptMessageHandler:self name:@"finicky"];
     [config setURLSchemeHandler:self forURLScheme:@"finicky-assets"];
 
+    // Inject a stub window.finicky at document start so the native side can
+    // safely call finicky.receiveMessage() before the Svelte app has mounted.
+    // Messages are buffered in _queue and drained by App.svelte at module scope.
+    NSString *stubScript = @""
+        "window.finicky = {"
+        "  _queue: [],"
+        "  receiveMessage: function(msg) { this._queue.push(msg); },"
+        "  sendMessage: function(msg) {"
+        "    window.webkit?.messageHandlers?.finicky?.postMessage(JSON.stringify(msg));"
+        "  }"
+        "};";
+    WKUserScript *stubUserScript = [[WKUserScript alloc]
+        initWithSource:stubScript
+         injectionTime:WKUserScriptInjectionTimeAtDocumentStart
+      forMainFrameOnly:YES];
+    [config.userContentController addUserScript:stubUserScript];
+
     // Create WKWebView
     webView = [[WKWebView alloc] initWithFrame:window.contentView.bounds configuration:config];
     webView.autoresizingMask = NSViewWidthSizable | NSViewHeightSizable;

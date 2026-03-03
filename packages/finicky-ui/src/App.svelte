@@ -1,5 +1,4 @@
 <script lang="ts">
-  import { onMount } from "svelte";
   import { Router, Route } from "svelte-routing";
   import LogViewer from "./pages/LogViewer.svelte";
   import StartPage from "./pages/StartPage.svelte";
@@ -63,19 +62,23 @@
     messageBuffer = [];
   }
 
-  onMount(() => {
-    // Set up the bridge between native app and web UI
-    window.finicky = {
-      sendMessage: (msg: any) => {
-        window.webkit?.messageHandlers?.finicky?.postMessage(
-          JSON.stringify(msg)
-        );
-      },
-      receiveMessage: handleMessage,
-    };
+  // Capture any messages buffered by the WKUserScript stub before Svelte loaded.
+  const _preloadQueue: any[] = window.finicky._queue ?? [];
 
-    // Listen for path changes
-  });
+  // Replace the stub with the real implementation.
+  window.finicky = {
+    sendMessage: (msg: any) => {
+      window.webkit?.messageHandlers?.finicky?.postMessage(
+        JSON.stringify(msg)
+      );
+    },
+    receiveMessage: handleMessage,
+  };
+
+  // Drain messages that arrived before the Svelte app was ready.
+  for (const msg of _preloadQueue) {
+    handleMessage(msg);
+  }
 </script>
 
 <Router>
