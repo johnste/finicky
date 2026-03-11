@@ -23,7 +23,7 @@ Finicky is a macOS application that allows you to set up rules that decide which
 
 - [Installation](#installation)
 - [Basic configuration](#basic-configuration)
-- [Configuration](#documentation)
+- [Configuration](#configuration)
 - [Migrating from Finicky 3](#migrating-from-finicky-3)
 
 ## Installation
