@@ -23,31 +23,37 @@ type ConfigState struct {
 }
 
 func New(embeddedFiles embed.FS, namespace string, bundlePath string) (*VM, error) {
+	var content []byte
+	if bundlePath != "" {
+		var err error
+		content, err = os.ReadFile(bundlePath)
+		if err != nil {
+			return nil, fmt.Errorf("failed to read file: %v", err)
+		}
+	}
+	return newFromContent(embeddedFiles, namespace, content)
+}
+
+// NewFromScript creates a VM from an inline JavaScript config string.
+func NewFromScript(embeddedFiles embed.FS, namespace string, script string) (*VM, error) {
+	return newFromContent(embeddedFiles, namespace, []byte(script))
+}
+
+func newFromContent(embeddedFiles embed.FS, namespace string, content []byte) (*VM, error) {
 	vm := &VM{
 		runtime:   goja.New(),
 		namespace: namespace,
 	}
-
-	err := vm.setup(embeddedFiles, bundlePath)
-	if err != nil {
+	if err := vm.setup(embeddedFiles, content); err != nil {
 		return nil, err
 	}
-
 	return vm, nil
 }
 
-func (vm *VM) setup(embeddedFiles embed.FS, bundlePath string) error {
+func (vm *VM) setup(embeddedFiles embed.FS, content []byte) error {
 	apiContent, err := embeddedFiles.ReadFile("assets/finickyConfigAPI.js")
 	if err != nil {
 		return fmt.Errorf("failed to read bundled file: %v", err)
-	}
-
-	var content []byte
-	if bundlePath != "" {
-		content, err = os.ReadFile(bundlePath)
-		if err != nil {
-			return fmt.Errorf("failed to read file: %v", err)
-		}
 	}
 
 	vm.runtime.Set("self", vm.runtime.GlobalObject())
@@ -73,7 +79,7 @@ func (vm *VM) setup(embeddedFiles embed.FS, bundlePath string) error {
 
 	vm.runtime.Set("finicky", finicky)
 
-	if content != nil {
+	if len(content) > 0 {
 		if _, err = vm.runtime.RunString(string(content)); err != nil {
 			return fmt.Errorf("error while running config script: %v", err)
 		}

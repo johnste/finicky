@@ -4,6 +4,7 @@
   import TestIcon from "./icons/Test.svelte";
   import LogsIcon from "./icons/Logs.svelte";
   import AboutIcon from "./icons/About.svelte";
+  import RulesIcon from "./icons/Rules.svelte";
 
   export let numErrors: number = 0;
 
@@ -12,6 +13,11 @@
       path: "/",
       label: "Preferences",
       component: PreferencesIcon,
+    },
+    {
+      path: "/rules",
+      label: "Rules",
+      component: RulesIcon,
     },
     {
       path: "/test",

@@ -1,3 +1,15 @@
+export interface Rule {
+  match: string;
+  browser: string;
+  profile?: string;
+}
+
+export interface RulesFile {
+  defaultBrowser: string;
+  defaultProfile?: string;
+  rules: Rule[];
+}
+
 export interface LogEntry {
   level: string;
   msg: string;

@@ -78,6 +78,12 @@
     "app_name": "Opera GX"
   },
   {
+    "config_dir_relative": "",
+    "id": "com.apple.Safari",
+    "type": "",
+    "app_name": "Safari"
+  },
+  {
     "config_dir_relative": "Firefox",
     "id": "org.mozilla.firefox",
     "type": "Firefox",

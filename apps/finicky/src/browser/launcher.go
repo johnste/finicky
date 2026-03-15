@@ -203,50 +203,95 @@ func resolveBrowserProfileArgs(identifier string, profile string) ([]string, boo
 	return nil, false
 }
 
-func parseFirefoxProfiles(profilesIniPath string, profile string) (string, bool) {
+func readFirefoxProfileNames(profilesIniPath string) []string {
 	data, err := os.ReadFile(profilesIniPath)
 	if err != nil {
 		slog.Info("Error reading profiles.ini", "path", profilesIniPath, "error", err)
-		return "", false
+		return nil
 	}
 
-	var profileNames []string
+	var names []string
 	for _, line := range strings.Split(string(data), "\n") {
 		line = strings.TrimSpace(line)
 		if name, ok := strings.CutPrefix(line, "Name="); ok {
-			profileNames = append(profileNames, name)
-			if name == profile {
-				return name, true
-			}
+			names = append(names, name)
 		}
 	}
+	return names
+}
 
-	slog.Warn("Could not find profile in Firefox profiles.", "Expected profile", profile, "Available profiles", strings.Join(profileNames, ", "))
+func getAllFirefoxProfiles(profilesIniPath string) []string {
+	names := readFirefoxProfileNames(profilesIniPath)
+	if names == nil {
+		return []string{}
+	}
+	return names
+}
+
+func parseFirefoxProfiles(profilesIniPath string, profile string) (string, bool) {
+	names := readFirefoxProfileNames(profilesIniPath)
+	for _, name := range names {
+		if name == profile {
+			return name, true
+		}
+	}
+	slog.Warn("Could not find profile in Firefox profiles.", "Expected profile", profile, "Available profiles", strings.Join(names, ", "))
 	return "", false
 }
 
-func parseProfiles(localStatePath string, profile string) (string, bool) {
+func chromiumInfoCache(localStatePath string) (map[string]interface{}, bool) {
 	data, err := os.ReadFile(localStatePath)
 	if err != nil {
 		slog.Info("Error reading Local State file", "path", localStatePath, "error", err)
-		return "", false
+		return nil, false
 	}
 
 	var localState map[string]interface{}
 	if err := json.Unmarshal(data, &localState); err != nil {
 		slog.Info("Error parsing Local State JSON", "error", err)
-		return "", false
+		return nil, false
 	}
 
 	profiles, ok := localState["profile"].(map[string]interface{})
 	if !ok {
 		slog.Info("Could not find profile section in Local State")
-		return "", false
+		return nil, false
 	}
 
 	infoCache, ok := profiles["info_cache"].(map[string]interface{})
 	if !ok {
 		slog.Info("Could not find info_cache in profile section")
+		return nil, false
+	}
+
+	return infoCache, true
+}
+
+func getAllChromiumProfiles(localStatePath string) []string {
+	cache, ok := chromiumInfoCache(localStatePath)
+	if !ok {
+		return []string{}
+	}
+
+	var names []string
+	for _, info := range cache {
+		profileInfo, ok := info.(map[string]interface{})
+		if !ok {
+			continue
+		}
+		name, ok := profileInfo["name"].(string)
+		if !ok {
+			continue
+		}
+		names = append(names, name)
+	}
+	slices.Sort(names)
+	return names
+}
+
+func parseProfiles(localStatePath string, profile string) (string, bool) {
+	infoCache, ok := chromiumInfoCache(localStatePath)
+	if !ok {
 		return "", false
 	}
 
@@ -299,6 +344,45 @@ func parseProfiles(localStatePath string, profile string) (string, bool) {
 	slog.Warn("Could not find profile in browser profiles.", "Expected profile", profile, "Available profiles", strings.Join(profileNames, ", "))
 
 	return "", false
+}
+
+// GetProfilesForBrowser returns available profile names for a given browser app name or bundle ID.
+// Returns empty slice if browser not in browsers.json, not supported, or profile files are unreadable.
+func GetProfilesForBrowser(identifier string) []string {
+	var browsersJson []browserInfo
+	if err := json.Unmarshal(browsersJsonData, &browsersJson); err != nil {
+		slog.Info("Error parsing browsers.json", "error", err)
+		return []string{}
+	}
+
+	var matchedBrowser *browserInfo
+	for i := range browsersJson {
+		if browsersJson[i].ID == identifier || browsersJson[i].AppName == identifier {
+			matchedBrowser = &browsersJson[i]
+			break
+		}
+	}
+
+	if matchedBrowser == nil {
+		return []string{}
+	}
+
+	homeDir, err := util.UserHomeDir()
+	if err != nil {
+		slog.Info("Error getting home directory", "error", err)
+		return []string{}
+	}
+
+	switch matchedBrowser.Type {
+	case "Chromium":
+		localStatePath := filepath.Join(homeDir, "Library/Application Support", matchedBrowser.ConfigDirRelative, "Local State")
+		return getAllChromiumProfiles(localStatePath)
+	case "Firefox":
+		profilesIniPath := filepath.Join(homeDir, "Library/Application Support", matchedBrowser.ConfigDirRelative, "profiles.ini")
+		return getAllFirefoxProfiles(profilesIniPath)
+	default:
+		return []string{}
+	}
 }
 
 // formatCommand returns a properly shell-escaped string representation of the command
