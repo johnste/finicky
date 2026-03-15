@@ -29,13 +29,17 @@ func GetPath() (string, error) {
 	return filepath.Join(configDir, "Finicky", "rules.json"), nil
 }
 
-// Load reads the rules file from disk. Returns an empty RulesFile if it doesn't exist.
+// Load reads the rules file from the default path. Returns an empty RulesFile if it doesn't exist.
 func Load() (RulesFile, error) {
 	path, err := GetPath()
 	if err != nil {
 		return RulesFile{}, err
 	}
+	return LoadFromPath(path)
+}
 
+// LoadFromPath reads a rules file from the given path. Returns an empty RulesFile if it doesn't exist.
+func LoadFromPath(path string) (RulesFile, error) {
 	data, err := os.ReadFile(path)
 	if os.IsNotExist(err) {
 		return RulesFile{Rules: []Rule{}}, nil
@@ -54,13 +58,17 @@ func Load() (RulesFile, error) {
 	return rf, nil
 }
 
-// Save writes the rules file to disk, creating the directory if needed.
+// Save writes the rules file to the default path, creating the directory if needed.
 func Save(rf RulesFile) error {
 	path, err := GetPath()
 	if err != nil {
 		return err
 	}
+	return SaveToPath(rf, path)
+}
 
+// SaveToPath writes the rules file to the given path, creating the directory if needed.
+func SaveToPath(rf RulesFile, path string) error {
 	if err := os.MkdirAll(filepath.Dir(path), 0755); err != nil {
 		return err
 	}
