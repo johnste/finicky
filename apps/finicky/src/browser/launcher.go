@@ -207,23 +207,15 @@ func readFirefoxProfileNames(profilesIniPath string) []string {
 	data, err := os.ReadFile(profilesIniPath)
 	if err != nil {
 		slog.Info("Error reading profiles.ini", "path", profilesIniPath, "error", err)
-		return nil
+		return []string{}
 	}
 
-	var names []string
+	names := []string{}
 	for _, line := range strings.Split(string(data), "\n") {
 		line = strings.TrimSpace(line)
 		if name, ok := strings.CutPrefix(line, "Name="); ok {
 			names = append(names, name)
 		}
-	}
-	return names
-}
-
-func getAllFirefoxProfiles(profilesIniPath string) []string {
-	names := readFirefoxProfileNames(profilesIniPath)
-	if names == nil {
-		return []string{}
 	}
 	return names
 }
@@ -379,7 +371,7 @@ func GetProfilesForBrowser(identifier string) []string {
 		return getAllChromiumProfiles(localStatePath)
 	case "Firefox":
 		profilesIniPath := filepath.Join(homeDir, "Library/Application Support", matchedBrowser.ConfigDirRelative, "profiles.ini")
-		return getAllFirefoxProfiles(profilesIniPath)
+		return readFirefoxProfileNames(profilesIniPath)
 	default:
 		return []string{}
 	}
