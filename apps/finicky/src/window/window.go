@@ -12,6 +12,7 @@ import (
 	"finicky/assets"
 	"finicky/browser"
 	"finicky/rules"
+	"finicky/util"
 	"finicky/version"
 	"fmt"
 	"io/fs"
@@ -216,7 +217,7 @@ func handleGetRules() {
 		rules.RulesFile
 		Path string `json:"path,omitempty"`
 	}
-	SendMessageToWebView("rules", rulesResponse{RulesFile: rf, Path: rulesPath})
+	SendMessageToWebView("rules", rulesResponse{RulesFile: rf, Path: util.ShortenPath(rulesPath)})
 }
 
 func handleSaveRules(msg map[string]interface{}) {
@@ -244,6 +245,14 @@ func handleSaveRules(msg map[string]interface{}) {
 	}
 
 	slog.Debug("Rules saved", "rules", len(rf.Rules))
+
+	// Send the path back so the UI badge appears if the file was just created.
+	path, _ := rules.GetPath()
+	type rulesResponse struct {
+		rules.RulesFile
+		Path string `json:"path,omitempty"`
+	}
+	SendMessageToWebView("rules", rulesResponse{RulesFile: rf, Path: util.ShortenPath(path)})
 
 	if SaveRulesHandler != nil {
 		SaveRulesHandler(rf)

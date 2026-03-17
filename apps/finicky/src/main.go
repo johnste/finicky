@@ -16,6 +16,7 @@ import (
 	"finicky/logger"
 	"finicky/resolver"
 	"finicky/rules"
+	"finicky/util"
 	"finicky/version"
 	"finicky/window"
 	"flag"
@@ -58,6 +59,7 @@ var forceWindowOpen bool = false
 var queueWindowOpen chan bool = make(chan bool)
 var lastError error
 var dryRun bool = false
+var skipJSConfig bool = false
 var updateInfo UpdateInfo
 var configInfo *ConfigInfo
 var shouldKeepRunning bool = true
@@ -68,7 +70,9 @@ func main() {
 	runtime.LockOSThread()
 
 	// Define command line flags
-	configPathPtr := flag.String("config", "", "Path to custom configuration file")
+	configPathPtr := flag.String("config", "", "Path to custom JS configuration file")
+	rulesPathPtr := flag.String("rules", "", "Path to custom rules JSON file")
+	noConfigPtr := flag.Bool("no-config", false, "Skip JS configuration file entirely")
 	windowPtr := flag.Bool("window", false, "Force window to open")
 	dryRunPtr := flag.Bool("dry-run", false, "Simulate without actually opening browsers")
 	flag.Parse()
@@ -77,6 +81,16 @@ func main() {
 	customConfigPath := *configPathPtr
 	if customConfigPath != "" {
 		slog.Debug("Using custom config path", "path", customConfigPath)
+	}
+
+	if *rulesPathPtr != "" {
+		slog.Debug("Using custom rules path", "path", *rulesPathPtr)
+		rules.SetCustomPath(*rulesPathPtr)
+	}
+
+	if *noConfigPtr {
+		slog.Debug("Skipping JS config")
+		skipJSConfig = true
 	}
 
 	if *windowPtr {
@@ -146,6 +160,7 @@ func main() {
 			}
 			vm = newVM
 			shouldKeepRunning = vm.GetAllConfigOptions().KeepRunning
+			go checkForUpdates()
 		}
 	}
 
@@ -199,6 +214,7 @@ func main() {
 				}
 				slog.Debug("VM refresh complete", "duration", fmt.Sprintf("%.2fms", float64(time.Since(startTime).Microseconds())/1000))
 				shouldKeepRunning = vm.GetAllConfigOptions().KeepRunning
+				go checkForUpdates()
 
 			case shouldShowWindow := <-queueWindowOpen:
 				if !showingWindow && shouldShowWindow {
@@ -392,10 +408,13 @@ func setupVM(cfw *config.ConfigFileWatcher, namespace string) (*config.VM, error
 		}
 	}()
 
-	currentBundlePath, configPath, err := cfw.BundleConfig()
-
-	if err != nil {
-		return nil, fmt.Errorf("failed to read config: %v", err)
+	var currentBundlePath, configPath string
+	if !skipJSConfig {
+		var err2 error
+		currentBundlePath, configPath, err2 = cfw.BundleConfig()
+		if err2 != nil {
+			return nil, fmt.Errorf("failed to read config: %v", err2)
+		}
 	}
 
 	var newVM *config.VM
@@ -446,7 +465,7 @@ func setupVM(cfw *config.ConfigFileWatcher, namespace string) (*config.VM, error
 		"handlers":       configInfo.Handlers,
 		"rewrites":       configInfo.Rewrites,
 		"defaultBrowser": configInfo.DefaultBrowser,
-		"configPath":     configInfo.ConfigPath,
+		"configPath":     util.ShortenPath(configInfo.ConfigPath),
 		"isJSConfig":     newVM.IsJSConfig(),
 		"options": map[string]interface{}{
 			"keepRunning":     opts.KeepRunning,

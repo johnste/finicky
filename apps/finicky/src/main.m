@@ -22,12 +22,14 @@
         _showMenuItem = showMenuItem;
         _keepRunning = keepRunning;
         _receivedURL = false;
+        _didFinishLaunching = false;
     }
     return self;
 }
 
 // Use bool for openWindow and related logic
 - (void)applicationDidFinishLaunching:(NSNotification *)notification {
+    self.didFinishLaunching = true;
     bool openWindow = self.forceOpenWindow;
     if (!openWindow) {
         // Even if we aren't forcing the window to open, we still want to open it if didn't receive a URL
@@ -108,6 +110,14 @@
 }
 
 - (bool)application:(NSApplication *)sender openFile:(NSString *)filename {
+    // macOS calls this for command-line arguments that are file paths (e.g. the
+    // --config flag value) before applicationDidFinishLaunching fires. Ignore
+    // those — they are flag values, not URLs the user wants routed through Finicky.
+    if (!self.didFinishLaunching) {
+        NSLog(@"Ignoring openFile during launch (likely a CLI flag value): %@", filename);
+        return false;
+    }
+
     NSLog(@"Opening file: %@", filename);
 
     // Convert the file path to a file:// URL

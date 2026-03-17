@@ -1,0 +1,23 @@
+{
+  "defaultBrowser": "Firefox",
+  "options": {
+    "keepRunning": true,
+    "hideIcon": false,
+    "logRequests": true,
+    "checkForUpdates": true
+  },
+  "rules": [
+    {
+      "match": "github.com/*",
+      "browser": "Safari"
+    },
+    {
+      "match": "linear.app/*",
+      "browser": "Google Chrome"
+    },
+    {
+      "match": "example.com/*",
+      "browser": "Firefox"
+    }
+  ]
+}

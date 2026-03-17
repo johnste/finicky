@@ -27,9 +27,21 @@ type RulesFile struct {
 	Rules          []Rule   `json:"rules"`
 }
 
-// GetPath returns the path to the rules JSON file:
-// ~/Library/Application Support/Finicky/rules.json
+var customPath string
+
+// SetCustomPath overrides the default rules.json location. Pass an empty
+// string to revert to the default. Intended for testing and CLI flags.
+func SetCustomPath(path string) {
+	customPath = path
+}
+
+// GetPath returns the path to the rules JSON file.
+// Returns the custom path if one was set via SetCustomPath, otherwise
+// ~/Library/Application Support/Finicky/rules.json.
 func GetPath() (string, error) {
+	if customPath != "" {
+		return customPath, nil
+	}
 	configDir, err := os.UserConfigDir()
 	if err != nil {
 		return "", err
