@@ -7,7 +7,14 @@ export interface Rule {
 export interface RulesFile {
   defaultBrowser: string;
   defaultProfile?: string;
+  options?: {
+    keepRunning?: boolean;
+    hideIcon?: boolean;
+    logRequests?: boolean;
+    checkForUpdates?: boolean;
+  };
   rules: Rule[];
+  path?: string;
 }
 
 export interface LogEntry {
@@ -53,6 +60,7 @@ export interface ConfigOptions {
 
 export interface ConfigInfo {
   configPath: string;
+  isJSConfig?: boolean;
   handlers?: number;
   rewrites?: number;
   defaultBrowser?: string;

@@ -6,10 +6,12 @@
     rulesFile = { defaultBrowser: "", rules: [] },
     installedBrowsers = [],
     profilesByBrowser = {},
+    isJSConfig = false,
   }: {
     rulesFile: RulesFile;
     installedBrowsers: string[];
     profilesByBrowser: Record<string, string[]>;
+    isJSConfig: boolean;
   } = $props();
 
   const CUSTOM = "__custom__";
@@ -213,8 +215,14 @@
 
 <PageContainer
   title="Rules"
-  description="Rules are checked before your JS config. The first matching rule wins."
+  description="The first matching rule wins."
 >
+  {#if isJSConfig}
+    <div class="js-config-notice">
+      <span class="notice-icon">🔒</span>
+      <span>These rules are checked <em>after</em> your JavaScript config file. JS config handlers take priority.</span>
+    </div>
+  {/if}
   <!-- Default browser -->
   <div class="section">
     <div class="section-header">
@@ -406,6 +414,22 @@
 </PageContainer>
 
 <style>
+  .js-config-notice {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 10px 14px;
+    background: rgba(255, 193, 7, 0.08);
+    border: 1px solid rgba(255, 193, 7, 0.25);
+    border-radius: 8px;
+    color: var(--text-secondary);
+    font-size: 0.85em;
+  }
+
+  .notice-icon {
+    flex-shrink: 0;
+  }
+
   .section {
     background: rgba(0, 0, 0, 0.1);
     border-radius: 12px;

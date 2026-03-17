@@ -10,6 +10,15 @@
   import ExternalIcon from "./components/icons/External.svelte";
   import type { LogEntry, UpdateInfo, ConfigInfo, RulesFile } from "./types";
   import { testUrlResult } from "./lib/testUrlStore";
+  import { toast } from "./lib/toast";
+
+  function basename(path: string): string {
+    return path.split("/").pop() || path;
+  }
+
+  function showPathToast(label: string, description: string, path: string) {
+    toast.show(label, "info", `${description}\n${path}`, 5000);
+  }
 
   let version = "v0.0.0";
   let buildInfo = "dev";
@@ -92,6 +101,9 @@
   for (const msg of _preloadQueue) {
     handleMessage(msg);
   }
+
+  // Request rules file info on startup so the footer badge appears immediately.
+  window.finicky.sendMessage({ type: "getRules" });
 </script>
 
 <Router>
@@ -106,6 +118,8 @@
               {updateInfo}
               {config}
               {numErrors}
+              {rulesFile}
+              isJSConfig={config.isJSConfig ?? false}
             />
           </Route>
 
@@ -124,16 +138,25 @@
           </Route>
 
           <Route path="/rules">
-            <Rules {rulesFile} {installedBrowsers} {profilesByBrowser} />
+            <Rules {rulesFile} {installedBrowsers} {profilesByBrowser} isJSConfig={config.isJSConfig ?? false} />
           </Route>
         </div>
       </div>
     </div>
     <div class="footer">
       <span class="version">{version}</span>
-      {#if hasConfig}
-        <span class="config-label">Loaded config:</span>
-        <span class="config-path" title={config.configPath}>{config.configPath || "Not set"}</span>
+      {#if hasConfig || rulesFile.path}
+        <span class="config-label">Config loaded:</span>
+        {#if hasConfig}
+          <button class="config-badge" on:click={() => showPathToast(basename(config.configPath), "Configuration loaded from", config.configPath)}>
+            ✓ {basename(config.configPath)}
+          </button>
+        {/if}
+        {#if rulesFile.path && rulesFile.path !== config.configPath}
+          <button class="config-badge" on:click={() => showPathToast(basename(rulesFile.path!), "Configuration loaded from", rulesFile.path!)}>
+            ✓ {basename(rulesFile.path)}
+          </button>
+        {/if}
       {:else}
         <span class="config-status warning">No config</span>
         <a href="https://github.com/johnste/finicky/wiki/Getting-started" target="_blank" rel="noopener noreferrer" class="config-link">
@@ -206,25 +229,29 @@
     opacity: 0.9;
   }
 
-  .config-path {
-    color: var(--text-secondary);
-    font-size: 0.8em;
-    font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
-    opacity: 0.8;
-    white-space: nowrap;
-    overflow: hidden;
-    text-overflow: ellipsis;
-    max-width: 500px;
-    flex-shrink: 1;
-    background: rgba(0, 0, 0, 0.2);
-    padding: 2px 6px;
-    border-radius: 3px;
-  }
-
   .config-label {
     color: var(--text-secondary);
     font-size: 0.8em;
     opacity: 0.8;
+  }
+
+  .config-badge {
+    font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+    font-size: 0.75em;
+    padding: 2px 8px;
+    border-radius: 4px;
+    background: rgba(0, 0, 0, 0.2);
+    border: 1px solid var(--border-color);
+    color: var(--text-secondary);
+    cursor: pointer;
+    white-space: nowrap;
+    flex-shrink: 0;
+    transition: background 0.15s ease;
+  }
+
+  .config-badge:hover {
+    background: rgba(0, 0, 0, 0.35);
+    color: var(--text-primary);
   }
 
   .config-status {

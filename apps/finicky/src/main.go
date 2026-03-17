@@ -145,6 +145,7 @@ func main() {
 				return
 			}
 			vm = newVM
+			shouldKeepRunning = vm.GetAllConfigOptions().KeepRunning
 		}
 	}
 
@@ -446,6 +447,7 @@ func setupVM(cfw *config.ConfigFileWatcher, namespace string) (*config.VM, error
 		"rewrites":       configInfo.Rewrites,
 		"defaultBrowser": configInfo.DefaultBrowser,
 		"configPath":     configInfo.ConfigPath,
+		"isJSConfig":     newVM.IsJSConfig(),
 		"options": map[string]interface{}{
 			"keepRunning":     opts.KeepRunning,
 			"hideIcon":        opts.HideIcon,

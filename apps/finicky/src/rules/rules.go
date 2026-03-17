@@ -13,10 +13,18 @@ type Rule struct {
 	Profile string `json:"profile,omitempty"`
 }
 
+type Options struct {
+	KeepRunning     *bool `json:"keepRunning,omitempty"`
+	HideIcon        *bool `json:"hideIcon,omitempty"`
+	LogRequests     *bool `json:"logRequests,omitempty"`
+	CheckForUpdates *bool `json:"checkForUpdates,omitempty"`
+}
+
 type RulesFile struct {
-	DefaultBrowser string `json:"defaultBrowser"`
-	DefaultProfile string `json:"defaultProfile,omitempty"`
-	Rules          []Rule `json:"rules"`
+	DefaultBrowser string   `json:"defaultBrowser"`
+	DefaultProfile string   `json:"defaultProfile,omitempty"`
+	Options        *Options `json:"options,omitempty"`
+	Rules          []Rule   `json:"rules"`
 }
 
 // GetPath returns the path to the rules JSON file:
@@ -121,6 +129,30 @@ func ToJSConfigScript(rf RulesFile, namespace string) (string, error) {
 		return "", fmt.Errorf("failed to marshal handlers: %v", err)
 	}
 
-	return fmt.Sprintf("var %s = {defaultBrowser: %s, handlers: %s};",
-		namespace, string(defaultBrowserJSON), string(handlersJSON)), nil
+	if rf.Options == nil {
+		return fmt.Sprintf("var %s = {defaultBrowser: %s, handlers: %s};",
+			namespace, string(defaultBrowserJSON), string(handlersJSON)), nil
+	}
+
+	opts := make(map[string]interface{})
+	if rf.Options.KeepRunning != nil {
+		opts["keepRunning"] = *rf.Options.KeepRunning
+	}
+	if rf.Options.HideIcon != nil {
+		opts["hideIcon"] = *rf.Options.HideIcon
+	}
+	if rf.Options.LogRequests != nil {
+		opts["logRequests"] = *rf.Options.LogRequests
+	}
+	if rf.Options.CheckForUpdates != nil {
+		opts["checkForUpdates"] = *rf.Options.CheckForUpdates
+	}
+
+	optsJSON, err := json.Marshal(opts)
+	if err != nil {
+		return "", fmt.Errorf("failed to marshal options: %v", err)
+	}
+
+	return fmt.Sprintf("var %s = {defaultBrowser: %s, handlers: %s, options: %s};",
+		namespace, string(defaultBrowserJSON), string(handlersJSON), string(optsJSON)), nil
 }

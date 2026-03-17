@@ -1,13 +1,46 @@
 <script lang="ts">
   import { Link } from "svelte-routing";
   import PageContainer from "../components/PageContainer.svelte";
-  import type { UpdateInfo, ConfigInfo } from "../types";
+  import type { UpdateInfo, ConfigInfo, RulesFile } from "../types";
   import ExternalIcon from "../components/icons/External.svelte";
 
   export let hasConfig: boolean;
   export let numErrors: number;
   export let config: ConfigInfo;
   export let updateInfo: UpdateInfo | null;
+  export let rulesFile: RulesFile;
+  export let isJSConfig: boolean;
+
+  const SAVE_DEBOUNCE = 500;
+  let saveTimer: ReturnType<typeof setTimeout>;
+
+  // Local editable state, seeded from rules.json overrides then JS config then defaults
+  let keepRunning = rulesFile.options?.keepRunning ?? config.options?.keepRunning ?? true;
+  let hideIcon = rulesFile.options?.hideIcon ?? config.options?.hideIcon ?? false;
+  let logRequests = rulesFile.options?.logRequests ?? config.options?.logRequests ?? false;
+  let checkForUpdates = rulesFile.options?.checkForUpdates ?? config.options?.checkForUpdates ?? true;
+
+  // Sync when the rulesFile prop is updated from the backend
+  $: {
+    keepRunning = rulesFile.options?.keepRunning ?? config.options?.keepRunning ?? true;
+    hideIcon = rulesFile.options?.hideIcon ?? config.options?.hideIcon ?? false;
+    logRequests = rulesFile.options?.logRequests ?? config.options?.logRequests ?? false;
+    checkForUpdates = rulesFile.options?.checkForUpdates ?? config.options?.checkForUpdates ?? true;
+  }
+
+  function scheduleSave() {
+    if (isJSConfig) return;
+    clearTimeout(saveTimer);
+    saveTimer = setTimeout(() => {
+      window.finicky.sendMessage({
+        type: "saveRules",
+        payload: {
+          ...rulesFile,
+          options: { keepRunning, hideIcon, logRequests, checkForUpdates },
+        },
+      });
+    }, SAVE_DEBOUNCE);
+  }
 </script>
 
 <PageContainer
@@ -30,7 +63,14 @@
     </div>
   {/if}
 
-  <div class="config-options">
+  {#if isJSConfig}
+    <div class="readonly-notice">
+      <span class="readonly-icon">🔒</span>
+      <span>These settings are defined in your JavaScript config file and cannot be changed here.</span>
+    </div>
+  {/if}
+
+  <div class="config-options" class:readonly={isJSConfig}>
     <div class="options-grid">
       <div class="option-row">
         <div class="option-info">
@@ -41,8 +81,9 @@
           <label class="toggle">
             <input
               type="checkbox"
-              checked={config.options?.keepRunning ?? true}
-              disabled
+              bind:checked={keepRunning}
+              on:change={scheduleSave}
+              disabled={isJSConfig}
             />
             <span class="toggle-slider"></span>
           </label>
@@ -57,8 +98,9 @@
           <label class="toggle">
             <input
               type="checkbox"
-              checked={config.options?.hideIcon ?? false}
-              disabled
+              bind:checked={hideIcon}
+              on:change={scheduleSave}
+              disabled={isJSConfig}
             />
             <span class="toggle-slider"></span>
           </label>
@@ -73,8 +115,9 @@
           <label class="toggle">
             <input
               type="checkbox"
-              checked={config.options?.logRequests ?? false}
-              disabled
+              bind:checked={logRequests}
+              on:change={scheduleSave}
+              disabled={isJSConfig}
             />
             <span class="toggle-slider"></span>
           </label>
@@ -84,14 +127,14 @@
         <div class="option-info">
           <div class="option-text">
             <span class="option-label">Check for updates</span>
-            <span class="option-hint">Automatically check for new versions</span
-            >
+            <span class="option-hint">Automatically check for new versions</span>
           </div>
           <label class="toggle">
             <input
               type="checkbox"
-              checked={config.options?.checkForUpdates ?? true}
-              disabled
+              bind:checked={checkForUpdates}
+              on:change={scheduleSave}
+              disabled={isJSConfig}
             />
             <span class="toggle-slider"></span>
           </label>
@@ -197,8 +240,30 @@
     opacity: 0.8;
   }
 
+  .readonly-notice {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 10px 14px;
+    background: rgba(255, 193, 7, 0.08);
+    border: 1px solid rgba(255, 193, 7, 0.25);
+    border-radius: 8px;
+    color: var(--text-secondary);
+    font-size: 0.85em;
+  }
+
+  .readonly-icon {
+    flex-shrink: 0;
+    font-size: 1em;
+  }
+
   .config-options {
     margin: 0;
+  }
+
+  .config-options.readonly {
+    opacity: 0.55;
+    pointer-events: none;
   }
 
   .options-grid {
@@ -252,7 +317,7 @@
     display: inline-block;
     width: 44px;
     height: 24px;
-    cursor: not-allowed;
+    cursor: pointer;
   }
 
   .toggle input {
@@ -263,7 +328,7 @@
 
   .toggle-slider {
     position: absolute;
-    cursor: not-allowed;
+    cursor: pointer;
     top: 0;
     left: 0;
     right: 0;

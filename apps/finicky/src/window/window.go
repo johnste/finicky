@@ -17,6 +17,7 @@ import (
 	"io/fs"
 	"log/slog"
 	"net/http"
+	"os"
 	"path/filepath"
 	"strings"
 	"sync"
@@ -204,7 +205,18 @@ func handleGetRules() {
 		})
 		return
 	}
-	SendMessageToWebView("rules", rf)
+
+	path, _ := rules.GetPath()
+	var rulesPath string
+	if _, statErr := os.Stat(path); statErr == nil {
+		rulesPath = path
+	}
+
+	type rulesResponse struct {
+		rules.RulesFile
+		Path string `json:"path,omitempty"`
+	}
+	SendMessageToWebView("rules", rulesResponse{RulesFile: rf, Path: rulesPath})
 }
 
 func handleSaveRules(msg map[string]interface{}) {
