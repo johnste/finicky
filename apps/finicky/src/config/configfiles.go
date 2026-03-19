@@ -8,6 +8,7 @@ import (
 	"os"
 	"path/filepath"
 	"strings"
+	"sync"
 	"time"
 
 	"github.com/evanw/esbuild/pkg/api"
@@ -24,6 +25,10 @@ type ConfigFileWatcher struct {
 
 	// Cache manager
 	cache *ConfigCache
+
+	// Debounce rapid file-change events (e.g. editors that write twice)
+	debounceMu    sync.Mutex
+	debounceTimer *time.Timer
 }
 
 // NewConfigFileWatcher creates a new file watcher for configuration files
@@ -357,9 +362,16 @@ func (cfw *ConfigFileWatcher) handleConfigFileEvent(event fsnotify.Event) error 
 		return fmt.Errorf("configuration file removed")
 	}
 
-	// Add a small delay to avoid rapid reloading
-	time.Sleep(500 * time.Millisecond)
-	cfw.configChangeNotify <- struct{}{}
+	// Debounce: reset the timer so only the last event in a burst fires.
+	cfw.debounceMu.Lock()
+	if cfw.debounceTimer != nil {
+		cfw.debounceTimer.Stop()
+	}
+	notify := cfw.configChangeNotify
+	cfw.debounceTimer = time.AfterFunc(500*time.Millisecond, func() {
+		notify <- struct{}{}
+	})
+	cfw.debounceMu.Unlock()
 	return nil
 }
 

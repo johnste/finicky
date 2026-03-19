@@ -10,6 +10,8 @@ import "C"
 import (
 	"encoding/json"
 	"finicky/assets"
+	"finicky/browser"
+	"finicky/rules"
 	"finicky/version"
 	"fmt"
 	"io/fs"
@@ -22,10 +24,11 @@ import (
 )
 
 var (
-	messageQueue []string
-	queueMutex   sync.Mutex
-	windowReady  bool
-	TestUrlHandler func(string)
+	messageQueue     []string
+	queueMutex       sync.Mutex
+	windowReady      bool
+	TestUrlHandler   func(string)
+	SaveRulesHandler func(rules.RulesFile)
 )
 
 //export WindowIsReady
@@ -159,6 +162,14 @@ func HandleWebViewMessage(messagePtr *C.char) {
 	switch messageType {
 	case "testUrl":
 		handleTestUrl(msg)
+	case "getRules":
+		handleGetRules()
+	case "saveRules":
+		handleSaveRules(msg)
+	case "getInstalledBrowsers":
+		handleGetInstalledBrowsers()
+	case "getBrowserProfiles":
+		handleGetBrowserProfiles(msg)
 	default:
 		slog.Debug("Unknown message type", "type", messageType)
 	}
@@ -181,4 +192,62 @@ func handleTestUrl(msg map[string]interface{}) {
 			"error": "Test handler not initialized",
 		})
 	}
+}
+
+func handleGetRules() {
+	rf, err := rules.Load()
+	if err != nil {
+		slog.Error("Failed to load rules", "error", err)
+		SendMessageToWebView("rules", map[string]interface{}{
+			"defaultBrowser": "",
+			"rules":          []interface{}{},
+		})
+		return
+	}
+	SendMessageToWebView("rules", rf)
+}
+
+func handleSaveRules(msg map[string]interface{}) {
+	payload, ok := msg["payload"]
+	if !ok {
+		slog.Error("saveRules message missing payload field")
+		return
+	}
+
+	payloadBytes, err := json.Marshal(payload)
+	if err != nil {
+		slog.Error("Failed to marshal saveRules payload", "error", err)
+		return
+	}
+
+	var rf rules.RulesFile
+	if err := json.Unmarshal(payloadBytes, &rf); err != nil {
+		slog.Error("Failed to parse saveRules payload", "error", err)
+		return
+	}
+
+	if err := rules.Save(rf); err != nil {
+		slog.Error("Failed to save rules", "error", err)
+		return
+	}
+
+	slog.Debug("Rules saved", "rules", len(rf.Rules))
+
+	if SaveRulesHandler != nil {
+		SaveRulesHandler(rf)
+	}
+}
+
+func handleGetInstalledBrowsers() {
+	installed := browser.GetInstalledBrowsers()
+	SendMessageToWebView("installedBrowsers", installed)
+}
+
+func handleGetBrowserProfiles(msg map[string]interface{}) {
+	browserName, _ := msg["browser"].(string)
+	profiles := browser.GetProfilesForBrowser(browserName)
+	SendMessageToWebView("browserProfiles", map[string]interface{}{
+		"browser":  browserName,
+		"profiles": profiles,
+	})
 }

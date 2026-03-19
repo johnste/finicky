@@ -5,9 +5,10 @@
   import TabBar from "./components/TabBar.svelte";
   import About from "./pages/About.svelte";
   import TestUrl from "./pages/TestUrl.svelte";
+  import Rules from "./pages/Rules.svelte";
   import ToastContainer from "./components/ToastContainer.svelte";
   import ExternalIcon from "./components/icons/External.svelte";
-  import type { LogEntry, UpdateInfo, ConfigInfo } from "./types";
+  import type { LogEntry, UpdateInfo, ConfigInfo, RulesFile } from "./types";
   import { testUrlResult } from "./lib/testUrlStore";
 
   let version = "v0.0.0";
@@ -19,6 +20,9 @@
   // Initialize message buffer
   let messageBuffer: LogEntry[] = [];
   let updateInfo: UpdateInfo | null = null;
+  let rulesFile: RulesFile = { defaultBrowser: "", rules: [] };
+  let installedBrowsers: string[] = [];
+  let profilesByBrowser: Record<string, string[]> = {};
 
   // Reactive declaration to count errors in messageBuffer
   $: numErrors = messageBuffer.filter(
@@ -48,6 +52,15 @@
         break;
       case "testUrlResult":
         testUrlResult.set(parsedMsg.message);
+        break;
+      case "rules":
+        rulesFile = parsedMsg.message;
+        break;
+      case "installedBrowsers":
+        installedBrowsers = parsedMsg.message;
+        break;
+      case "browserProfiles":
+        profilesByBrowser = { ...profilesByBrowser, [parsedMsg.message.browser]: parsedMsg.message.profiles };
         break;
       default:
         const newMessage = parsedMsg.message
@@ -108,6 +121,10 @@
             <About
               {version}
             />
+          </Route>
+
+          <Route path="/rules">
+            <Rules {rulesFile} {installedBrowsers} {profilesByBrowser} />
           </Route>
         </div>
       </div>
