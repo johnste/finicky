@@ -8,3 +8,4 @@ export interface TestUrlResult {
 }
 
 export const testUrlResult = writable<TestUrlResult | null>(null);
+export const testUrlInput = writable<string>('');

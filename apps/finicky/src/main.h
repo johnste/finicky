@@ -18,7 +18,6 @@ extern char* GetCurrentConfigPath();
 @interface BrowseAppDelegate: NSObject<NSApplicationDelegate>
     @property (nonatomic) bool forceOpenWindow;
     @property (nonatomic) bool receivedURL;
-    @property (nonatomic) bool didFinishLaunching;
     @property (nonatomic) bool keepRunning;
     @property (nonatomic) bool showMenuItem;
     - (instancetype)initWithForceOpenWindow:(bool)forceOpenWindow initShow:(bool)showMenuItem keepRunning:(bool)keepRunning;

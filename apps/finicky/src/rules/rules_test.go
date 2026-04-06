@@ -3,6 +3,7 @@ package rules_test
 import (
 	"os"
 	"path/filepath"
+	"reflect"
 	"strings"
 	"testing"
 
@@ -20,9 +21,9 @@ func TestToJSHandlers_Empty(t *testing.T) {
 
 func TestToJSHandlers_SkipsIncompleteRules(t *testing.T) {
 	rules := []Rule{
-		{Match: "", Browser: "Firefox"},  // no match
-		{Match: "example.com", Browser: ""}, // no browser
-		{Match: "example.com", Browser: "Safari"}, // valid
+		{Match: []string{""}, Browser: "Firefox"},         // no match
+		{Match: []string{"example.com"}, Browser: ""},     // no browser
+		{Match: []string{"example.com"}, Browser: "Safari"}, // valid
 	}
 	result := ToJSHandlers(rules)
 	if len(result) != 1 {
@@ -32,7 +33,7 @@ func TestToJSHandlers_SkipsIncompleteRules(t *testing.T) {
 
 func TestToJSHandlers_StringBrowser(t *testing.T) {
 	rules := []Rule{
-		{Match: "*github.com/*", Browser: "Firefox"},
+		{Match: []string{"*github.com/*"}, Browser: "Firefox"},
 	}
 	result := ToJSHandlers(rules)
 	if len(result) != 1 {
@@ -49,7 +50,7 @@ func TestToJSHandlers_StringBrowser(t *testing.T) {
 
 func TestToJSHandlers_WithProfile(t *testing.T) {
 	rules := []Rule{
-		{Match: "*github.com/*", Browser: "Google Chrome", Profile: "Work"},
+		{Match: []string{"*github.com/*"}, Browser: "Google Chrome", Profile: "Work"},
 	}
 	result := ToJSHandlers(rules)
 	if len(result) != 1 {
@@ -69,9 +70,9 @@ func TestToJSHandlers_WithProfile(t *testing.T) {
 
 func TestToJSHandlers_MultipleRules(t *testing.T) {
 	rules := []Rule{
-		{Match: "*github.com/*", Browser: "Firefox"},
-		{Match: "https://linear.app/*", Browser: "Google Chrome", Profile: "Work"},
-		{Match: "example.com", Browser: "Safari"},
+		{Match: []string{"*github.com/*"}, Browser: "Firefox"},
+		{Match: []string{"https://linear.app/*"}, Browser: "Google Chrome", Profile: "Work"},
+		{Match: []string{"example.com"}, Browser: "Safari"},
 	}
 	result := ToJSHandlers(rules)
 	if len(result) != 3 {
@@ -86,7 +87,7 @@ func TestToJSHandlers_MultipleRules(t *testing.T) {
 // ---- ToJSConfigScript ----
 
 func TestToJSConfigScript_DefaultBrowserFallback(t *testing.T) {
-	rf := RulesFile{Rules: []Rule{{Match: "example.com", Browser: "Firefox"}}}
+	rf := RulesFile{Rules: []Rule{{Match: []string{"example.com"}, Browser: "Firefox"}}}
 	script, err := ToJSConfigScript(rf, "finickyConfig")
 	if err != nil {
 		t.Fatal(err)
@@ -133,8 +134,8 @@ func TestLoadSave_RoundTrip(t *testing.T) {
 		DefaultBrowser: "Firefox",
 		DefaultProfile: "Work",
 		Rules: []Rule{
-			{Match: "*github.com/*", Browser: "Google Chrome", Profile: "Personal"},
-			{Match: "https://linear.app/*", Browser: "Safari"},
+			{Match: []string{"*github.com/*"}, Browser: "Google Chrome", Profile: "Personal"},
+			{Match: []string{"https://linear.app/*"}, Browser: "Safari"},
 		},
 	}
 
@@ -158,7 +159,7 @@ func TestLoadSave_RoundTrip(t *testing.T) {
 	}
 	for i, r := range original.Rules {
 		got := loaded.Rules[i]
-		if got.Match != r.Match || got.Browser != r.Browser || got.Profile != r.Profile {
+		if !reflect.DeepEqual(got.Match, r.Match) || got.Browser != r.Browser || got.Profile != r.Profile {
 			t.Errorf("Rule[%d]: got %+v, want %+v", i, got, r)
 		}
 	}

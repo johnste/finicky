@@ -3,9 +3,9 @@
   import LinkIcon from "../components/icons/Link.svelte";
   import InfoIcon from "../components/icons/Info.svelte";
   import SpinnerIcon from "../components/icons/Spinner.svelte";
-  import { testUrlResult } from "../lib/testUrlStore";
+  import { testUrlResult, testUrlInput } from "../lib/testUrlStore";
 
-  let testUrl = "";
+  let testUrl = $testUrlInput;
   let loading = false;
 
   // Debounce timer
@@ -66,16 +66,14 @@
 
   // Reactive statement to test URL whenever it changes
   $: if (testUrl !== undefined) {
+    testUrlInput.set(testUrl);
     testUrlAutomatically();
   }
 </script>
 
-<PageContainer
-  title="Test"
-  description="Test how Finicky will handle a URL based on your current configuration"
->
-  <div class="test-card">
-    <div class="input-section">
+<PageContainer title="Test">
+  {#snippet description()}Test how Finicky will handle a URL based on your current configuration{/snippet}
+  <div class="input-section">
       <label for="url-input" class="input-label">
         Enter URL
         {#if loading}
@@ -135,19 +133,9 @@
         <p>Enter a URL above to test your configuration</p>
       </div>
     {/if}
-  </div>
 </PageContainer>
 
 <style>
-  .test-card {
-    background: rgba(0, 0, 0, 0.1);
-    border-radius: 12px;
-    padding: 24px;
-    display: flex;
-    flex-direction: column;
-    gap: 24px;
-  }
-
   .input-section {
     display: flex;
     flex-direction: column;
@@ -182,8 +170,8 @@
   .url-input {
     padding: 14px 16px;
     font-size: 1em;
-    background: rgba(0, 0, 0, 0.2);
-    border: 2px solid var(--border-color);
+    background: var(--input-bg);
+    border: 1px solid var(--border-color);
     border-radius: 8px;
     color: var(--text-primary);
     transition: all 0.2s ease;
@@ -194,7 +182,7 @@
   .url-input:focus {
     outline: none;
     border-color: var(--accent-color);
-    background: rgba(0, 0, 0, 0.3);
+    background: var(--input-bg);
   }
 
   .url-input::placeholder {
@@ -223,8 +211,8 @@
     align-items: center;
     gap: 10px;
     padding: 12px 16px;
-    background: rgba(180, 84, 255, 0.08);
-    border: 1px solid rgba(180, 84, 255, 0.2);
+    background: rgba(245, 188, 28, 0.06);
+    border: 1px solid rgba(245, 188, 28, 0.25);
     border-radius: 8px;
     color: var(--text-secondary);
     font-size: 0.9em;
@@ -261,7 +249,7 @@
     flex-direction: column;
     gap: 6px;
     padding: 12px;
-    background: rgba(0, 0, 0, 0.2);
+    background: var(--inset-bg);
     border-radius: 8px;
   }
 
@@ -272,8 +260,6 @@
   .result-label {
     color: var(--text-secondary);
     font-size: 0.8em;
-    text-transform: uppercase;
-    letter-spacing: 0.5px;
     font-weight: 500;
   }
 

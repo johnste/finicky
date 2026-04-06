@@ -24,6 +24,9 @@
       label: "Test",
       component: TestIcon,
     },
+  ];
+
+  const bottomTabs = [
     {
       path: "/troubleshoot",
       label: "Logs",
@@ -45,53 +48,53 @@
         <div class:active class="tab-content">
           <div class="icon-container">
             <svelte:component this={tab.component} />
-            {#if tab.showErrors && numErrors > 0}
-              <div class="error-badge">{numErrors}</div>
-            {/if}
           </div>
-          <span>
-            {tab.label}
-          </span>
+          <span>{tab.label}</span>
         </div>
       </Link>
     {/each}
+    <div class="spacer"></div>
+    <div class="bottom-tabs">
+      {#each bottomTabs as tab}
+        <Link to={tab.path} let:active>
+          <div class:active class="tab-content tab-small">
+            <div class="icon-container">
+              <svelte:component this={tab.component} />
+              {#if tab.showErrors && numErrors > 0}
+                <div class="error-badge">{numErrors}</div>
+              {/if}
+            </div>
+            <span>{tab.label}</span>
+          </div>
+        </Link>
+      {/each}
+    </div>
   </nav>
 </div>
 
 <style>
-  @property --gradient-start {
-    syntax: "<color>";
-    initial-value: rgba(98, 98, 98, 0.3);
-    inherits: false;
-  }
-
-  @property --gradient-end {
-    syntax: "<color>";
-    initial-value: rgba(111, 111, 111, 0.3);
-    inherits: false;
-  }
-
   .tab-container {
-    width: 190px;
-    background: var(--bg-primary);
+    width: 210px;
+    background: var(--bg-nav);
     position: sticky;
     top: 0;
     z-index: 10;
-    padding: 1rem 0.5rem;
+    padding: 0.75rem 0.625rem;
     display: flex;
     flex: 0 0 auto;
     flex-direction: column;
     align-items: stretch;
     justify-content: flex-start;
     border-right: 1px solid var(--border-color);
-    border-bottom: none;
+    height: 100%;
+    box-sizing: border-box;
   }
 
   .tab-bar {
     display: flex;
     flex-direction: column;
-    gap: 0.5rem;
-    justify-content: flex-start;
+    gap: 2px;
+    flex: 1;
     background: transparent;
     padding: 0;
     margin: 0;
@@ -100,58 +103,59 @@
     }
   }
 
-  .tab-content {
-    --gradient-start: rgba(98, 98, 98, 0.1);
-    --gradient-end: rgba(111, 111, 111, 0.1);
+  .spacer {
+    flex: 1;
+  }
 
+  .bottom-tabs {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+    padding-top: 6px;
+    border-top: 1px solid var(--border-color);
+  }
+
+  .tab-content {
     user-select: none;
-    padding: 0.75rem 1rem;
+    padding: 0.6rem 0.875rem;
     border-radius: 0.5rem;
     display: flex;
-    align-items: flex-start;
+    align-items: center;
     flex-direction: row;
-    gap: 12px;
-    color: var(--text-primary);
-    background: radial-gradient(
-      circle at center,
-      var(--gradient-start),
-      var(--gradient-end)
-    );
-    background-size: 200% 200%;
-    transition:
-      --gradient-start 0.3s ease,
-      --gradient-end 0.3s ease;
-    animation: gradient 3s ease 1;
+    gap: 10px;
+    color: var(--nav-text);
+    background: transparent;
+    transition: background 0.1s ease;
     width: 100%;
     text-align: left;
+    font-size: 0.925em;
+    font-weight: 400;
 
     &:hover {
-      --gradient-start: rgba(98, 98, 98, 0.4);
-      --gradient-end: rgba(111, 111, 111, 0.4);
+      background: var(--nav-hover);
     }
 
     &.active {
-      --gradient-start: rgba(180, 84, 255, 0.3);
-      --gradient-end: rgba(65, 50, 255, 0.3);
+      background: var(--nav-active);
+      color: var(--nav-active-text);
+      font-weight: 500;
     }
-  }
 
-  @keyframes gradient {
-    0% {
-      background-position: 0% 50%;
-    }
-    50% {
-      background-position: 100% 50%;
-    }
-    100% {
-      background-position: 0% 50%;
+    &.tab-small {
+      font-size: 0.78em;
+      padding: 0.35rem 0.75rem;
+      color: var(--nav-text-secondary);
+
+      &.active {
+        color: var(--nav-active-text);
+      }
     }
   }
 
   .icon-container {
     position: relative;
     display: flex;
-    align-items: flex-start;
+    align-items: center;
     justify-content: flex-start;
   }
 
@@ -170,6 +174,6 @@
     font-size: 12px;
     font-weight: bold;
     padding: 0 4px;
-    border: 2px solid var(--bg-primary);
+    border: 2px solid var(--bg-nav);
   }
 </style>

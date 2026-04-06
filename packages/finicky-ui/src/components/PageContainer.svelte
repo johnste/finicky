@@ -10,7 +10,7 @@
     children: Snippet;
     center?: boolean;
     title?: string;
-    description?: string;
+    description?: Snippet;
   } = $props();
 </script>
 
@@ -19,7 +19,7 @@
     <div class="header-section">
       <h2>{title}</h2>
       {#if description}
-        <p class="page-description">{description}</p>
+        <p class="page-description">{@render description()}</p>
       {/if}
     </div>
   {/if}
@@ -28,12 +28,11 @@
 
 <style>
   .page-container {
-    max-width: 700px;
-    margin: 0 auto;
-    padding: 0px;
+    max-width: 680px;
+    padding: 0;
     display: flex;
     flex-direction: column;
-    gap: 24px;
+    gap: 16px;
   }
 
   .page-container.center {
@@ -43,20 +42,29 @@
   .header-section {
     display: flex;
     flex-direction: column;
-    gap: 8px;
+    gap: 4px;
+    padding-bottom: 4px;
   }
 
   h2 {
-    margin: 0 0 8px 0;
-    padding-left: 12px;
+    margin: 0;
     color: var(--text-primary);
     font-size: 1.1em;
+    font-weight: 600;
+    letter-spacing: -0.01em;
   }
 
   .page-description {
     color: var(--text-secondary);
-    margin: -4px 0 0 12px;
+    margin: 0;
+    font-size: 0.85em;
+  }
+
+  .page-description :global(code) {
+    font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
     font-size: 0.9em;
-    opacity: 0.8;
+    background: var(--inset-bg);
+    padding: 1px 4px;
+    border-radius: 3px;
   }
 </style>

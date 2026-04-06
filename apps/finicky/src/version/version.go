@@ -236,6 +236,16 @@ func checkForUpdates() (releaseInfo *ReleaseInfo) {
 
 // CheckForUpdatesIfEnabled checks if updates should be performed based on VM configuration
 func CheckForUpdatesIfEnabled(vm *goja.Runtime) (releaseInfo *ReleaseInfo, updateCheckEnabled bool, err error) {
+	if mockVersion := os.Getenv("FINICKY_MOCK_UPDATE"); mockVersion != "" {
+		slog.Info("FINICKY_MOCK_UPDATE set, returning mock update", "version", mockVersion)
+		mockTag := strings.TrimPrefix(mockVersion, "v")
+		return &ReleaseInfo{
+			HasUpdate:     true,
+			LatestVersion: mockVersion,
+			DownloadUrl:   fmt.Sprintf("https://github.com/johnste/finicky/releases/tag/v%s", mockTag),
+			ReleaseUrl:    fmt.Sprintf("https://github.com/johnste/finicky/releases/tag/v%s", mockTag),
+		}, true, nil
+	}
 
 	if vm == nil {
 		// Check for updates if we don't have a VM

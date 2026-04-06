@@ -1,18 +1,20 @@
 export interface Rule {
-  match: string;
+  match: string[];
   browser: string;
   profile?: string;
+}
+
+export interface ConfigOptions {
+  keepRunning: boolean;
+  hideIcon: boolean;
+  logRequests: boolean;
+  checkForUpdates: boolean;
 }
 
 export interface RulesFile {
   defaultBrowser: string;
   defaultProfile?: string;
-  options?: {
-    keepRunning?: boolean;
-    hideIcon?: boolean;
-    logRequests?: boolean;
-    checkForUpdates?: boolean;
-  };
+  options?: Partial<ConfigOptions>;
   rules: Rule[];
   path?: string;
 }
@@ -51,23 +53,11 @@ export interface UpdateInfo {
   releaseUrl: string;
 }
 
-export interface ConfigOptions {
-  keepRunning: boolean;
-  hideIcon: boolean;
-  logRequests: boolean;
-  checkForUpdates: boolean;
-}
-
 export interface ConfigInfo {
   configPath: string;
   isJSConfig?: boolean;
   handlers?: number;
   rewrites?: number;
   defaultBrowser?: string;
-  options?: {
-    keepRunning?: boolean;
-    hideIcon?: boolean;
-    logRequests?: boolean;
-    checkForUpdates?: boolean;
-  };
+  options?: Partial<ConfigOptions>;
 }

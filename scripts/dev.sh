@@ -5,10 +5,14 @@
 #   ./scripts/dev.sh [scenario]
 #
 # Scenarios:
-#   1  none   No JS config, no rules.json
-#   2  js     JS config only
-#   3  json   rules.json only
-#   4  both   JS config + rules.json (default)
+#   0  normal  Auto-detect configs
+#   1  none    No JS config, no rules.json
+#   2  js      JS config only
+#   3  json    rules.json only
+#   4  both    JS config + rules.json
+#
+# Environment variables:
+#   FINICKY_MOCK_UPDATE=1.99.0  Show update banner with given version
 
 set -e
 
@@ -17,7 +21,26 @@ JS_CONFIG="$(pwd)/testdata/config.js"
 JSON_RULES="$(pwd)/testdata/rules.json"
 NO_RULES="/tmp/finicky-dev-no-rules-$(date +%s).json"  # unique per run, intentionally absent
 
-case "$1" in
+if [[ -n "$FINICKY_MOCK_UPDATE" ]]; then
+  echo "Mock update enabled: v$FINICKY_MOCK_UPDATE"
+fi
+
+SCENARIO="${1}"
+if [[ -z "$SCENARIO" ]]; then
+  echo "Usage: $0 <scenario>"
+  echo ""
+  echo "  0  normal  Auto-detect configs"
+  echo "  1  none    No JS config, no rules.json"
+  echo "  2  js      JS config only  ($JS_CONFIG)"
+  echo "  3  json    rules.json only ($JSON_RULES)"
+  echo "  4  both    JS config + rules.json"
+  echo ""
+  echo "Environment variables:"
+  echo "  FINICKY_MOCK_UPDATE=1.99.0  Show update banner with given version"
+  exit 0
+fi
+
+case "$SCENARIO" in
   0|normal)
     echo "Scenario 0: normal (auto-detect configs)"
     "$BINARY" --window
@@ -39,13 +62,13 @@ case "$1" in
     "$BINARY" --window --config "$JS_CONFIG" --rules "$JSON_RULES"
     ;;
   *)
-    echo "Usage: $0 <scenario>"
+    echo "Unknown scenario: $SCENARIO"
     echo ""
-    echo "  0  normal  Auto-detect configs (default behavior)"
+    echo "  0  normal  Auto-detect configs"
     echo "  1  none    No JS config, no rules.json"
     echo "  2  js      JS config only  ($JS_CONFIG)"
     echo "  3  json    rules.json only ($JSON_RULES)"
     echo "  4  both    JS config + rules.json"
-    exit 0
+    exit 1
     ;;
 esac

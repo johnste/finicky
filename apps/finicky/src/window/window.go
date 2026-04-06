@@ -241,6 +241,7 @@ func handleSaveRules(msg map[string]interface{}) {
 
 	if err := rules.Save(rf); err != nil {
 		slog.Error("Failed to save rules", "error", err)
+		SendMessageToWebView("saveRulesError", map[string]interface{}{"error": err.Error()})
 		return
 	}
 

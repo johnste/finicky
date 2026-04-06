@@ -95,8 +95,8 @@ func TestResolveURL_JSONRulesOnly(t *testing.T) {
 	rf := rules.RulesFile{
 		DefaultBrowser: "Firefox",
 		Rules: []rules.Rule{
-			{Match: "*github.com/*", Browser: "Google Chrome"},
-			{Match: "https://linear.app/*", Browser: "Safari"},
+			{Match: []string{"*github.com/*"}, Browser: "Google Chrome"},
+			{Match: []string{"https://linear.app/*"}, Browser: "Safari"},
 		},
 	}
 	vm := rulesVM(t, rf)
@@ -126,7 +126,7 @@ func TestResolveURL_JSONRulesWithProfile(t *testing.T) {
 	rf := rules.RulesFile{
 		DefaultBrowser: "Safari",
 		Rules: []rules.Rule{
-			{Match: "*github.com/*", Browser: "Google Chrome", Profile: "Work"},
+			{Match: []string{"*github.com/*"}, Browser: "Google Chrome", Profile: "Work"},
 		},
 	}
 	vm := rulesVM(t, rf)
@@ -162,6 +162,47 @@ func TestResolveURL_MergedJSAndJSON(t *testing.T) {
 	}{
 		{"https://github.com/foo", "Firefox"}, // matched by JS handler
 		{"https://example.com", "Safari"},     // falls through to JS default
+	}
+	for _, tt := range tests {
+		t.Run(tt.url, func(t *testing.T) {
+			result, err := ResolveURL(jsConfig, tt.url, nil, false)
+			if err != nil {
+				t.Fatal(err)
+			}
+			if result.Name != tt.browser {
+				t.Errorf("got %q, want %q", result.Name, tt.browser)
+			}
+		})
+	}
+}
+
+// TestResolveURL_MergedJSAndJSON_WithCachedRules verifies that JSON rules are
+// applied when a JS config is present and cached rules have been seeded
+// (simulating the fix for the startup bug where SetCachedRules was not called
+// when a JS config existed).
+func TestResolveURL_MergedJSAndJSON_WithCachedRules(t *testing.T) {
+	jsConfig := jsVM(t, `({
+		defaultBrowser: "Safari",
+		handlers: [
+			{ match: "*github.com/*", browser: "Firefox" }
+		]
+	})`)
+
+	SetCachedRules(rules.RulesFile{
+		DefaultBrowser: "Safari",
+		Rules: []rules.Rule{
+			{Match: []string{"linear.app/*"}, Browser: "Google Chrome"},
+		},
+	})
+	t.Cleanup(func() { SetCachedRules(rules.RulesFile{}) })
+
+	tests := []struct {
+		url     string
+		browser string
+	}{
+		{"https://github.com/foo", "Firefox"},          // JS handler wins
+		{"https://linear.app/team/issue/1", "Google Chrome"}, // JSON rule applies
+		{"https://example.com", "Safari"},              // JS default
 	}
 	for _, tt := range tests {
 		t.Run(tt.url, func(t *testing.T) {

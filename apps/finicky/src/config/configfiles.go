@@ -358,7 +358,10 @@ func (cfw *ConfigFileWatcher) handleConfigFileEvent(event fsnotify.Event) error 
 		slog.Debug("Configuration file removed", "path", event.Name)
 		// Clear the cache when config is removed
 		cfw.cache.Clear()
-		cfw.configChangeNotify <- struct{}{}
+		select {
+		case cfw.configChangeNotify <- struct{}{}:
+		default:
+		}
 		return fmt.Errorf("configuration file removed")
 	}
 
@@ -369,7 +372,10 @@ func (cfw *ConfigFileWatcher) handleConfigFileEvent(event fsnotify.Event) error 
 	}
 	notify := cfw.configChangeNotify
 	cfw.debounceTimer = time.AfterFunc(500*time.Millisecond, func() {
-		notify <- struct{}{}
+		select {
+		case notify <- struct{}{}:
+		default: // drop if a notification is already pending
+		}
 	})
 	cfw.debounceMu.Unlock()
 	return nil

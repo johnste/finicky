@@ -10,7 +10,7 @@ export type TextPart = {
  * @param text The input text to process
  * @returns Array of text and URL parts
  */
-export function splitTextAndUrls(text: string): TextPart[] {
+function splitTextAndUrls(text: string): TextPart[] {
   const urlRegex = /((https?|file):\/\/[^\s]+)/g;
   const parts: TextPart[] = [];
   let lastIndex = 0;

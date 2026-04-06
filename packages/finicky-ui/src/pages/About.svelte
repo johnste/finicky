@@ -10,136 +10,124 @@
 </script>
 
 <PageContainer>
-  <div class="pixel-bg"></div>
-
-  <div class="about-content">
-    <div class="logo-container">
-      <picture>
-        <source
-          media="(prefers-color-scheme: dark)"
-          srcset="/finicky-logo.png"
-        />
-        <img
-          alt="Finicky icon"
-          src="/finicky-logo-light.png"
-          class="icon"
-        />
-      </picture>
-      <p class="version">Version {version}</p>
+  <div class="logo-section">
+    <div class="app-info">
+      <span class="app-name">Finicky</span>
+      <span class="version">Version {version}</span>
     </div>
+  </div>
 
-    <div class="section">
-      <h2>About</h2>
-      <p>Finicky is a macOS application that lets you set up rules to decide which browser to open for every link.</p>
-      <a href="https://github.com/johnste/finicky" target="_blank" rel="noopener noreferrer" class="repo-link">
-        View on GitHub <ExternalIcon />
-      </a>
-    </div>
+  <div class="section">
+    <p>
+      Finicky is a macOS application that lets you set up rules to decide which
+      browser to open for every link.
+    </p>
+    <a
+      href="https://github.com/johnste/finicky"
+      target="_blank"
+      rel="noopener noreferrer"
+      class="repo-link"
+    >
+      View on GitHub <ExternalIcon />
+    </a>
+  </div>
 
-    <div class="section">
-      <h2>Credits</h2>
-      <p>Created by <a href="https://github.com/johnste" target="_blank" rel="noopener noreferrer">John Sterling</a></p>
-      <p>Icon designed by <a href="https://github.com/uetchy" target="_blank" rel="noopener noreferrer">@uetchy</a></p>
-      <p><a href="https://github.com/johnste/finicky/graphs/contributors" target="_blank" rel="noopener noreferrer">View all contributors</a></p>
-    </div>
+  <div class="section">
+    <h2>Credits</h2>
+    <p>
+      Created by <a
+        href="https://github.com/johnste"
+        target="_blank"
+        rel="noopener noreferrer">John Sterling</a
+      >
+    </p>
+    <p>
+      Icon designed by <a
+        href="https://github.com/uetchy"
+        target="_blank"
+        rel="noopener noreferrer">@uetchy</a
+      >
+    </p>
+    <p>
+      <a
+        href="https://github.com/johnste/finicky/graphs/contributors"
+        target="_blank"
+        rel="noopener noreferrer">View all contributors</a
+      >
+    </p>
+  </div>
 
-    <div class="section">
-      <h2>Support Development</h2>
-      <p>If you find Finicky useful, consider <a href="https://github.com/sponsors/johnste" target="_blank" rel="noopener noreferrer" class="sponsor-link">sponsoring the project</a>.</p>
-    </div>
+  <div class="section">
+    <p>
+      If you find Finicky useful, consider <a
+        href="https://github.com/sponsors/johnste"
+        target="_blank"
+        rel="noopener noreferrer">sponsoring the project</a
+      >.
+    </p>
   </div>
 </PageContainer>
 
 <style>
-  .pixel-bg {
-    position: fixed;
-    top: 0;
-    left: 0;
-    width: 100%;
-    height: 100%;
-    pointer-events: none;
-    z-index: 0;
-    opacity: 0.03;
-    background-image:
-      repeating-linear-gradient(
-        0deg,
-        transparent,
-        transparent 8px,
-        rgba(0, 0, 0, 0.1) 8px,
-        rgba(0, 0, 0, 0.1) 9px
-      ),
-      repeating-linear-gradient(
-        90deg,
-        transparent,
-        transparent 8px,
-        rgba(0, 0, 0, 0.1) 8px,
-        rgba(0, 0, 0, 0.1) 9px
-      );
-    background-size: 9px 9px;
+  .logo-section {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    padding: 4px 0;
   }
 
-  .about-content {
-    position: relative;
-    z-index: 1;
-    max-width: 600px;
-  }
-
-  .logo-container {
+  .app-info {
     display: flex;
     flex-direction: column;
-    align-items: center;
-    margin-bottom: 32px;
+    gap: 3px;
   }
 
-  .icon {
-    height: 64px;
-    opacity: 0.9;
-    image-rendering: pixelated;
-    image-rendering: -moz-crisp-edges;
-    image-rendering: crisp-edges;
-    margin-bottom: 8px;
+  .app-name {
+    font-size: 1.4em;
+    font-weight: 600;
+    color: var(--text-primary);
+    line-height: 1.2;
   }
 
   .version {
     color: var(--text-secondary);
-    font-size: 0.95em;
-    margin: 0;
+    font-size: 0.85em;
   }
 
   .section {
-    margin-bottom: 32px;
-    padding: 20px;
-    background: rgba(0, 0, 0, 0.1);
-    border-radius: 8px;
-    transition: background 0.2s ease;
-  }
-
-  .section:hover {
-    background: rgba(0, 0, 0, 0.15);
+    padding: 16px 20px;
+    background: var(--card-bg);
+    border: 1px solid var(--card-border);
+    border-radius: 12px;
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
   }
 
   .section h2 {
-    font-size: 1.2em;
-    font-weight: 500;
-    margin: 0 0 12px 0;
-    color: var(--text-primary);
+    font-size: 0.8em;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    color: var(--text-secondary);
+    margin: 0 0 6px 0;
   }
 
   .section p {
-    margin: 8px 0;
+    margin: 0;
     line-height: 1.6;
     color: var(--text-secondary);
+    font-size: 0.9em;
   }
 
   .repo-link {
     display: inline-flex;
     align-items: center;
-    gap: 6px;
+    gap: 5px;
     color: var(--accent-color);
     text-decoration: none;
-    font-size: 0.95em;
-    margin-top: 8px;
-    transition: opacity 0.2s ease;
+    font-size: 0.9em;
+    margin-top: 6px;
   }
 
   .repo-link:hover {
@@ -149,14 +137,9 @@
   a {
     color: var(--accent-color);
     text-decoration: none;
-    transition: opacity 0.2s ease;
   }
 
   a:hover {
     opacity: 0.8;
-  }
-
-  .sponsor-link {
-    font-weight: 500;
   }
 </style>

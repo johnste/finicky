@@ -8,9 +8,48 @@ import (
 )
 
 type Rule struct {
-	Match   string `json:"match"`
-	Browser string `json:"browser"`
-	Profile string `json:"profile,omitempty"`
+	Match   []string `json:"match"`
+	Browser string   `json:"browser"`
+	Profile string   `json:"profile,omitempty"`
+}
+
+// UnmarshalJSON accepts both a single string and an array for the match field.
+func (r *Rule) UnmarshalJSON(data []byte) error {
+	var raw struct {
+		Match   json.RawMessage `json:"match"`
+		Browser string          `json:"browser"`
+		Profile string          `json:"profile,omitempty"`
+	}
+	if err := json.Unmarshal(data, &raw); err != nil {
+		return err
+	}
+	r.Browser = raw.Browser
+	r.Profile = raw.Profile
+	if raw.Match != nil {
+		var s string
+		if err := json.Unmarshal(raw.Match, &s); err == nil {
+			r.Match = []string{s}
+			return nil
+		}
+		return json.Unmarshal(raw.Match, &r.Match)
+	}
+	return nil
+}
+
+// MarshalJSON serializes match as a plain string when there is only one entry.
+func (r Rule) MarshalJSON() ([]byte, error) {
+	type RuleAlias struct {
+		Match   interface{} `json:"match"`
+		Browser string      `json:"browser"`
+		Profile string      `json:"profile,omitempty"`
+	}
+	var match interface{}
+	if len(r.Match) == 1 {
+		match = r.Match[0]
+	} else {
+		match = r.Match
+	}
+	return json.Marshal(RuleAlias{Match: match, Browser: r.Browser, Profile: r.Profile})
 }
 
 type Options struct {
@@ -106,8 +145,21 @@ func SaveToPath(rf RulesFile, path string) error {
 func ToJSHandlers(rules []Rule) []map[string]interface{} {
 	handlers := make([]map[string]interface{}, 0, len(rules))
 	for _, r := range rules {
-		if r.Match == "" || r.Browser == "" {
+		// Filter out empty patterns
+		matches := make([]string, 0, len(r.Match))
+		for _, m := range r.Match {
+			if m != "" {
+				matches = append(matches, m)
+			}
+		}
+		if len(matches) == 0 || r.Browser == "" {
 			continue
+		}
+		var matchVal interface{}
+		if len(matches) == 1 {
+			matchVal = matches[0]
+		} else {
+			matchVal = matches
 		}
 		var browser interface{}
 		if r.Profile != "" {
@@ -116,7 +168,7 @@ func ToJSHandlers(rules []Rule) []map[string]interface{} {
 			browser = r.Browser
 		}
 		handlers = append(handlers, map[string]interface{}{
-			"match":   r.Match,
+			"match":   matchVal,
 			"browser": browser,
 		})
 	}
@@ -142,7 +194,7 @@ func ToJSConfigScript(rf RulesFile, namespace string) (string, error) {
 	}
 
 	if rf.Options == nil {
-		return fmt.Sprintf("var %s = {defaultBrowser: %s, handlers: %s};",
+		return fmt.Sprintf("var %s = {default: {defaultBrowser: %s, handlers: %s}};",
 			namespace, string(defaultBrowserJSON), string(handlersJSON)), nil
 	}
 
@@ -165,6 +217,6 @@ func ToJSConfigScript(rf RulesFile, namespace string) (string, error) {
 		return "", fmt.Errorf("failed to marshal options: %v", err)
 	}
 
-	return fmt.Sprintf("var %s = {defaultBrowser: %s, handlers: %s, options: %s};",
+	return fmt.Sprintf("var %s = {default: {defaultBrowser: %s, handlers: %s, options: %s}};",
 		namespace, string(defaultBrowserJSON), string(handlersJSON), string(optsJSON)), nil
 }

@@ -1,8 +1,18 @@
 <script lang="ts">
   import { Link } from "svelte-routing";
   import PageContainer from "../components/PageContainer.svelte";
+  import BrowserProfileSelector from "../components/BrowserProfileSelector.svelte";
+  import OptionRow from "../components/OptionRow.svelte";
   import type { UpdateInfo, ConfigInfo, RulesFile } from "../types";
   import ExternalIcon from "../components/icons/External.svelte";
+  import LockIcon from "../components/icons/Lock.svelte";
+  import WarningIcon from "../components/icons/Warning.svelte";
+  import Tooltip from "../components/Tooltip.svelte";
+  import { toast } from "../lib/toast";
+
+  function onLockedClick() {
+    toast.show("JS config is active", "info", "These settings are managed by your JavaScript config file and can't be changed here.");
+  }
 
   export let hasConfig: boolean;
   export let numErrors: number;
@@ -10,6 +20,8 @@
   export let updateInfo: UpdateInfo | null;
   export let rulesFile: RulesFile;
   export let isJSConfig: boolean;
+  export let installedBrowsers: string[] = [];
+  export let profilesByBrowser: Record<string, string[]> = {};
 
   const SAVE_DEBOUNCE = 500;
   let saveTimer: ReturnType<typeof setTimeout>;
@@ -20,12 +32,40 @@
   let logRequests = rulesFile.options?.logRequests ?? config.options?.logRequests ?? false;
   let checkForUpdates = rulesFile.options?.checkForUpdates ?? config.options?.checkForUpdates ?? true;
 
-  // Sync when the rulesFile prop is updated from the backend
+  const SAFARI = "Safari";
+
+  let defaultBrowser = isJSConfig ? (config.defaultBrowser ?? "") : (rulesFile.defaultBrowser || SAFARI);
+  let defaultProfile = rulesFile.defaultProfile ?? "";
+  let defaultBrowserIsCustom = false;
+  let defaultProfileIsCustom = false;
+
+  // Sync when the rulesFile prop is updated from the backend.
+  // Does NOT read profilesByBrowser — keeps profile fetches from resetting local edits.
   $: {
     keepRunning = rulesFile.options?.keepRunning ?? config.options?.keepRunning ?? true;
     hideIcon = rulesFile.options?.hideIcon ?? config.options?.hideIcon ?? false;
     logRequests = rulesFile.options?.logRequests ?? config.options?.logRequests ?? false;
     checkForUpdates = rulesFile.options?.checkForUpdates ?? config.options?.checkForUpdates ?? true;
+    defaultBrowser = isJSConfig ? (config.defaultBrowser ?? "") : (rulesFile.defaultBrowser || SAFARI);
+    defaultProfile = rulesFile.defaultProfile ?? "";
+  }
+  // Separate statements so browser/profile list updates only affect these derived
+  // flags, not defaultBrowser/defaultProfile values above.
+  $: defaultBrowserIsCustom = defaultBrowser !== "" && !installedBrowsers.includes(defaultBrowser);
+  $: defaultProfileIsCustom = defaultProfile !== "" && !(profilesByBrowser[defaultBrowser] ?? []).includes(defaultProfile);
+
+  function save() {
+    if (isJSConfig) return;
+    clearTimeout(saveTimer);
+    window.finicky.sendMessage({
+      type: "saveRules",
+      payload: {
+        ...rulesFile,
+        defaultBrowser,
+        defaultProfile,
+        options: { keepRunning, hideIcon, logRequests, checkForUpdates },
+      },
+    });
   }
 
   function scheduleSave() {
@@ -36,19 +76,20 @@
         type: "saveRules",
         payload: {
           ...rulesFile,
+          defaultBrowser,
+          defaultProfile,
           options: { keepRunning, hideIcon, logRequests, checkForUpdates },
         },
       });
     }, SAVE_DEBOUNCE);
   }
+
 </script>
 
-<PageContainer
-  title={hasConfig ? "Configuration" : "No Configuration Found"}
-  description={hasConfig
-    ? "Current settings from your configuration file"
-    : undefined}
->
+<PageContainer title={hasConfig ? "Configuration" : "No Configuration Found"}>
+  {#if hasConfig}
+    {#snippet description()}Current settings from your configuration file{/snippet}
+  {/if}
   {#if !hasConfig}
     <div class="no-config-message">
       <a
@@ -63,83 +104,77 @@
     </div>
   {/if}
 
-  {#if isJSConfig}
-    <div class="readonly-notice">
-      <span class="readonly-icon">🔒</span>
-      <span>These settings are defined in your JavaScript config file and cannot be changed here.</span>
+  <!-- Default browser -->
+  <div class="section" class:readonly={isJSConfig}>
+    <div class="section-header">
+      <span class="section-label">Default browser</span>
+      {#if isJSConfig}
+        <Tooltip text="JS config is active — these settings can't be changed here">
+          <span class="lock-inline"><LockIcon /></span>
+        </Tooltip>
+      {:else}
+        <span class="section-hint">Used when no rule matches</span>
+      {/if}
     </div>
-  {/if}
+    <BrowserProfileSelector
+      browser={defaultBrowser}
+      profile={defaultProfile}
+      isCustom={defaultBrowserIsCustom}
+      isProfileCustom={defaultProfileIsCustom}
+      {installedBrowsers}
+      {profilesByBrowser}
+      disabled={isJSConfig}
+      browserPlaceholder="System default"
+      onBrowserChange={(browser, profile, isCustom) => {
+        defaultBrowser = browser;
+        defaultProfile = profile;
+        defaultBrowserIsCustom = isCustom;
+        defaultProfileIsCustom = false;
+      }}
+      onProfileChange={(profile, isProfileCustom) => {
+        defaultProfile = profile;
+        defaultProfileIsCustom = isProfileCustom;
+      }}
+      onRequestProfiles={(b) => window.finicky.sendMessage({ type: "getBrowserProfiles", browser: b })}
+      onSave={save}
+      onInput={scheduleSave}
+    />
+  </div>
 
-  <div class="config-options" class:readonly={isJSConfig}>
+  <div class="config-options">
     <div class="options-grid">
-      <div class="option-row">
-        <div class="option-info">
-          <div class="option-text">
-            <span class="option-label">Keep running</span>
-            <span class="option-hint">App stays open in the background</span>
-          </div>
-          <label class="toggle">
-            <input
-              type="checkbox"
-              bind:checked={keepRunning}
-              on:change={scheduleSave}
-              disabled={isJSConfig}
-            />
-            <span class="toggle-slider"></span>
-          </label>
-        </div>
-      </div>
-      <div class="option-row">
-        <div class="option-info">
-          <div class="option-text">
-            <span class="option-label">Hide icon</span>
-            <span class="option-hint">Hide menu bar icon</span>
-          </div>
-          <label class="toggle">
-            <input
-              type="checkbox"
-              bind:checked={hideIcon}
-              on:change={scheduleSave}
-              disabled={isJSConfig}
-            />
-            <span class="toggle-slider"></span>
-          </label>
-        </div>
-      </div>
-      <div class="option-row">
-        <div class="option-info">
-          <div class="option-text">
-            <span class="option-label">Log requests</span>
-            <span class="option-hint">Log all URL handling to file</span>
-          </div>
-          <label class="toggle">
-            <input
-              type="checkbox"
-              bind:checked={logRequests}
-              on:change={scheduleSave}
-              disabled={isJSConfig}
-            />
-            <span class="toggle-slider"></span>
-          </label>
-        </div>
-      </div>
-      <div class="option-row">
-        <div class="option-info">
-          <div class="option-text">
-            <span class="option-label">Check for updates</span>
-            <span class="option-hint">Automatically check for new versions</span>
-          </div>
-          <label class="toggle">
-            <input
-              type="checkbox"
-              bind:checked={checkForUpdates}
-              on:change={scheduleSave}
-              disabled={isJSConfig}
-            />
-            <span class="toggle-slider"></span>
-          </label>
-        </div>
-      </div>
+      <OptionRow
+        label="Keep running"
+        hint="App stays open in the background"
+        bind:checked={keepRunning}
+        locked={isJSConfig}
+        onLockedClick={onLockedClick}
+        onchange={scheduleSave}
+      />
+      <OptionRow
+        label="Hide icon"
+        hint="Hide menu bar icon"
+        bind:checked={hideIcon}
+        locked={isJSConfig}
+        onLockedClick={onLockedClick}
+        onchange={scheduleSave}
+      />
+      <OptionRow
+        label="Log requests"
+        hint="Log all URL handling to file"
+        bind:checked={logRequests}
+        locked={isJSConfig}
+        onLockedClick={onLockedClick}
+        onchange={scheduleSave}
+      />
+      <OptionRow
+        label="Check for updates"
+        hint="Automatically check for new versions"
+        bind:checked={checkForUpdates}
+        locked={isJSConfig}
+        onLockedClick={onLockedClick}
+        onchange={scheduleSave}
+      />
     </div>
   </div>
 
@@ -156,35 +191,70 @@
   {#if updateInfo}
     {#if updateInfo.hasUpdate}
       <div class="status-card info">
-        <h3>New Version Available</h3>
-        <p>
-          A new version "{updateInfo.version}" of Finicky is available to
-          download.
-        </p>
-        <p>
-          <a href={updateInfo.releaseUrl} target="_blank">
-            View release notes
+        <div class="update-header">
+          <h3>New Version Available</h3>
+          <span class="update-version">{updateInfo.version}</span>
+        </div>
+        <div class="update-actions">
+          <a href={updateInfo.downloadUrl} target="_blank" rel="noopener noreferrer" class="download-btn">
+            Download {updateInfo.version}
           </a>
-          <br />
-          <a href={updateInfo.downloadUrl} target="_blank">
-            Download the latest version
+          <a href={updateInfo.releaseUrl} target="_blank" rel="noopener noreferrer" class="release-link">
+            Release notes
           </a>
-        </p>
+        </div>
       </div>
     {:else if !updateInfo.updateCheckEnabled}
       <div class="status-card info">
         <h3>Update check is disabled</h3>
-        <a href="https://github.com/johnste/finicky/releases" target="_blank">
-          Check releases
-        </a>
+        <a href="https://github.com/johnste/finicky/releases" target="_blank">Check releases</a>
       </div>
     {/if}
   {/if}
-
-  <!-- <Configuration /> -->
 </PageContainer>
 
 <style>
+  .section {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    background: var(--card-bg);
+    border-radius: 12px;
+    padding: 16px;
+    border: 1px solid var(--card-border);
+  }
+
+  .section.readonly {
+    cursor: default;
+  }
+
+.section-header {
+    display: flex;
+    align-items: baseline;
+    gap: 10px;
+  }
+
+  .section-label {
+    color: var(--text-primary);
+    font-size: 0.9em;
+    font-weight: 600;
+  }
+
+  .section-hint {
+    color: var(--text-secondary);
+    font-size: 0.82em;
+    opacity: 0.7;
+  }
+
+  .lock-inline {
+    display: inline-flex;
+    align-items: center;
+    opacity: 0.6;
+    color: var(--text-secondary);
+    flex-shrink: 0;
+    cursor: help;
+  }
+
   .status-card {
     display: flex;
     flex-direction: column;
@@ -194,9 +264,7 @@
     text-align: left;
     background: var(--log-bg);
     box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
-    transition:
-      transform 0.2s ease,
-      box-shadow 0.2s ease;
+    transition: transform 0.2s ease, box-shadow 0.2s ease;
   }
 
   .status-card:hover {
@@ -219,12 +287,55 @@
     border-radius: 50%;
   }
 
-  .error h3::before {
-    background: #f44336;
+  .error h3::before { background: #f44336; }
+  .info h3::before { background: #2196f3; }
+
+  .update-header {
+    display: flex;
+    align-items: center;
+    gap: 8px;
   }
 
-  .info h3::before {
-    background: #2196f3;
+  .update-version {
+    font-size: 0.78em;
+    color: var(--text-secondary);
+    background: var(--inset-bg);
+    border-radius: 4px;
+    padding: 2px 6px;
+  }
+
+  .update-actions {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+  }
+
+  .download-btn {
+    display: inline-flex;
+    align-items: center;
+    padding: 7px 16px;
+    background: var(--accent-color);
+    color: #fff;
+    border-radius: 8px;
+    font-size: 0.88em;
+    font-weight: 500;
+    text-decoration: none;
+    transition: opacity 0.15s;
+  }
+
+  .download-btn:hover {
+    opacity: 0.85;
+  }
+
+  .release-link {
+    font-size: 0.85em;
+    color: var(--text-secondary);
+    text-decoration: none;
+    opacity: 0.7;
+  }
+
+  .release-link:hover {
+    opacity: 1;
   }
 
   .external-link {
@@ -234,36 +345,8 @@
   }
 
   .no-config-message {
-    margin: -12px 0 0 12px;
     color: var(--text-secondary);
     font-size: 0.9em;
-    opacity: 0.8;
-  }
-
-  .readonly-notice {
-    display: flex;
-    align-items: center;
-    gap: 8px;
-    padding: 10px 14px;
-    background: rgba(255, 193, 7, 0.08);
-    border: 1px solid rgba(255, 193, 7, 0.25);
-    border-radius: 8px;
-    color: var(--text-secondary);
-    font-size: 0.85em;
-  }
-
-  .readonly-icon {
-    flex-shrink: 0;
-    font-size: 1em;
-  }
-
-  .config-options {
-    margin: 0;
-  }
-
-  .config-options.readonly {
-    opacity: 0.55;
-    pointer-events: none;
   }
 
   .options-grid {
@@ -272,90 +355,4 @@
     gap: 12px;
   }
 
-  .option-row {
-    display: flex;
-    flex-direction: column;
-    gap: 8px;
-    padding: 12px;
-    background: rgba(0, 0, 0, 0.1);
-    border-radius: 8px;
-    transition: background 0.2s ease;
-  }
-
-  .option-row:hover {
-    background: rgba(0, 0, 0, 0.15);
-  }
-
-  .option-info {
-    display: flex;
-    align-items: flex-start;
-    justify-content: space-between;
-    gap: 8px;
-  }
-
-  .option-text {
-    display: flex;
-    flex-direction: column;
-    gap: 2px;
-  }
-
-  .option-label {
-    color: var(--text-primary);
-    font-size: 0.95em;
-    font-weight: 500;
-  }
-
-  .option-hint {
-    color: var(--text-secondary);
-    font-size: 0.85em;
-    opacity: 0.7;
-  }
-
-  /* Toggle Switch Styles */
-  .toggle {
-    position: relative;
-    display: inline-block;
-    width: 44px;
-    height: 24px;
-    cursor: pointer;
-  }
-
-  .toggle input {
-    opacity: 0;
-    width: 0;
-    height: 0;
-  }
-
-  .toggle-slider {
-    position: absolute;
-    cursor: pointer;
-    top: 0;
-    left: 0;
-    right: 0;
-    bottom: 0;
-    background-color: #666;
-    transition: 0.3s;
-    border-radius: 24px;
-  }
-
-  .toggle-slider:before {
-    position: absolute;
-    content: "";
-    height: 18px;
-    width: 18px;
-    left: 3px;
-    bottom: 3px;
-    background-color: #ddd;
-    transition: 0.3s;
-    border-radius: 50%;
-  }
-
-  .toggle input:checked + .toggle-slider {
-    background-color: var(--log-success);
-  }
-
-  .toggle input:checked + .toggle-slider:before {
-    transform: translateX(20px);
-    background-color: white;
-  }
 </style>

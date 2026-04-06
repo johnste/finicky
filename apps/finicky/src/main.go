@@ -116,7 +116,7 @@ func main() {
 	}()
 
 	namespace := "finickyConfig"
-	configChange := make(chan struct{})
+	configChange := make(chan struct{}, 1)
 	cfw, err := config.NewConfigFileWatcher(customConfigPath, namespace, configChange)
 
 	if err != nil {
@@ -144,7 +144,7 @@ func main() {
 		slog.Debug("Rules updated", "count", len(rf.Rules))
 		resolver.SetCachedRules(rf)
 		if vm == nil || !vm.IsJSConfig() {
-			if rf.DefaultBrowser == "" && len(rf.Rules) == 0 {
+			if rf.DefaultBrowser == "" && len(rf.Rules) == 0 && rf.Options == nil {
 				vm = nil
 				return
 			}
@@ -251,7 +251,6 @@ func handleRuntimeError(err error) {
 	go QueueWindowDisplay(1)
 }
 
-
 //export HandleURL
 func HandleURL(url *C.char, name *C.char, bundleId *C.char, path *C.char, windowTitle *C.char, openInBackground C.bool) {
 	var opener resolver.OpenerInfo
@@ -313,7 +312,6 @@ func TestURLInternal(urlString string) {
 		"args":             config.Args,
 	})
 }
-
 
 func handleFatalError(errorMessage string) {
 	slog.Error("Fatal error", "msg", errorMessage)
@@ -415,6 +413,14 @@ func setupVM(cfw *config.ConfigFileWatcher, namespace string) (*config.VM, error
 		if err2 != nil {
 			return nil, fmt.Errorf("failed to read config: %v", err2)
 		}
+	}
+
+	// Always seed the cached rules from disk so JSON rules are applied
+	// immediately on startup, even when a JS config is also present.
+	if rf, rulesErr := rules.Load(); rulesErr != nil {
+		slog.Warn("Failed to pre-load rules cache", "error", rulesErr)
+	} else {
+		resolver.SetCachedRules(rf)
 	}
 
 	var newVM *config.VM

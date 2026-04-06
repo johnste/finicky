@@ -71,11 +71,15 @@
       case "browserProfiles":
         profilesByBrowser = { ...profilesByBrowser, [parsedMsg.message.browser]: parsedMsg.message.profiles };
         break;
-      default:
+      case "saveRulesError":
+        toast.show("Failed to save rules", "error", parsedMsg.message?.error ?? "Unknown error");
+        break;
+      default: {
         const newMessage = parsedMsg.message
           ? JSON.parse(parsedMsg.message)
           : parsedMsg;
         messageBuffer = [...messageBuffer, newMessage];
+      }
     }
   }
 
@@ -104,6 +108,7 @@
 
   // Request rules file info on startup so the footer badge appears immediately.
   window.finicky.sendMessage({ type: "getRules" });
+  window.finicky.sendMessage({ type: "getInstalledBrowsers" });
 </script>
 
 <Router>
@@ -119,6 +124,8 @@
               {config}
               {numErrors}
               {rulesFile}
+              {installedBrowsers}
+              {profilesByBrowser}
               isJSConfig={config.isJSConfig ?? false}
             />
           </Route>
@@ -144,7 +151,6 @@
       </div>
     </div>
     <div class="footer">
-      <span class="version">{version}</span>
       {#if hasConfig || rulesFile.path}
         <span class="config-label">Config loaded:</span>
         {#if hasConfig}
@@ -168,6 +174,7 @@
       {#if updateInfo && updateInfo.updateCheckEnabled && !updateInfo.hasUpdate}
         <span class="up-to-date">✓ Up to date</span>
       {/if}
+      <span class="version">{version}</span>
     </div>
   </main>
 </Router>
@@ -189,7 +196,7 @@
   }
 
   .container {
-    padding: 1rem;
+    padding: 1.25rem 1.25rem;
     max-width: 100%;
     box-sizing: border-box;
     display: flex;
@@ -203,16 +210,18 @@
     display: flex;
     flex: 0 0 auto;
     align-items: center;
-    gap: 0.5rem;
-    padding: 0.5rem;
-    background: var(--background);
+    gap: 0.6rem;
+    padding: 0.4rem 0.75rem;
+    background: var(--bg-nav);
     border-top: 1px solid var(--border-color);
     overflow: hidden;
   }
 
   .version {
     color: var(--text-secondary);
-    font-size: 0.9em;
+    font-size: 0.75em;
+    font-variant-numeric: tabular-nums;
+    letter-spacing: 0.02em;
   }
 
   .content {
@@ -225,42 +234,40 @@
 
   .up-to-date {
     color: var(--log-success);
-    font-size: 0.8em;
-    opacity: 0.9;
+    font-size: 0.75em;
   }
 
   .config-label {
     color: var(--text-secondary);
-    font-size: 0.8em;
-    opacity: 0.8;
+    font-size: 0.75em;
   }
 
   .config-badge {
     font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
-    font-size: 0.75em;
+    font-size: 0.72em;
     padding: 2px 8px;
-    border-radius: 4px;
-    background: rgba(0, 0, 0, 0.2);
-    border: 1px solid var(--border-color);
+    border-radius: 3px;
+    background: transparent;
+    border: none;
     color: var(--text-secondary);
     cursor: pointer;
     white-space: nowrap;
     flex-shrink: 0;
-    transition: background 0.15s ease;
+    transition: background 0.15s ease, color 0.15s ease;
   }
 
   .config-badge:hover {
-    background: rgba(0, 0, 0, 0.35);
+    background: var(--button-hover);
     color: var(--text-primary);
   }
 
   .config-status {
-    font-size: 0.8em;
-    opacity: 0.8;
+    font-size: 0.75em;
+    color: var(--text-secondary);
   }
 
   .config-status.warning {
-    color: #ffc107;
+    color: var(--log-warning);
   }
 
   .config-link {
