@@ -70,6 +70,10 @@
     }, SAVE_DEBOUNCE);
   }
 
+  onDestroy(() => {
+    clearTimeout(saveTimer);
+  });
+
   function onRowMatchInput(i: number, j: number, e: Event) {
     const newMatch = [...rules[i].match];
     newMatch[j] = (e.target as HTMLInputElement).value;
@@ -173,6 +177,7 @@
           window.finicky.sendMessage({ type: "getBrowserProfiles", browser: b });
         }
       }
+    });
   });
 
   // Once profile lists arrive, correct any rowProfileIsCustom entries that were
@@ -185,7 +190,6 @@
       if (profiles === undefined) return; // still loading
       rowProfileIsCustom[i] = !profiles.includes(profile);
     });
-  });
   });
 </script>
 

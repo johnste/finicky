@@ -1,5 +1,6 @@
 <script lang="ts">
   import { Link } from "svelte-routing";
+  import { onDestroy } from "svelte";
   import PageContainer from "../components/PageContainer.svelte";
   import BrowserProfileSelector from "../components/BrowserProfileSelector.svelte";
   import OptionRow from "../components/OptionRow.svelte";
@@ -83,6 +84,10 @@
       });
     }, SAVE_DEBOUNCE);
   }
+
+  onDestroy(() => {
+    clearTimeout(saveTimer);
+  });
 
 </script>
 

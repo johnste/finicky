@@ -183,7 +183,14 @@ func ToJSConfigScript(rf RulesFile, namespace string) (string, error) {
 		defaultBrowser = "com.apple.Safari"
 	}
 
-	defaultBrowserJSON, err := json.Marshal(defaultBrowser)
+	var defaultBrowserObj interface{}
+	if rf.DefaultProfile != "" {
+		defaultBrowserObj = map[string]string{"name": defaultBrowser, "profile": rf.DefaultProfile}
+	} else {
+		defaultBrowserObj = defaultBrowser
+	}
+
+	defaultBrowserJSON, err := json.Marshal(defaultBrowserObj)
 	if err != nil {
 		return "", fmt.Errorf("failed to marshal defaultBrowser: %v", err)
 	}

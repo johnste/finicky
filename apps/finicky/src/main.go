@@ -159,8 +159,10 @@ func main() {
 				return
 			}
 			vm = newVM
-			shouldKeepRunning = vm.GetAllConfigOptions().KeepRunning
-			go checkForUpdates()
+			if vm != nil {
+				shouldKeepRunning = vm.GetAllConfigOptions().KeepRunning
+				go checkForUpdates()
+			}
 		}
 	}
 
@@ -170,7 +172,9 @@ func main() {
 	timeoutChan := time.After(1 * time.Second)
 	updateChan := time.After(oneDay)
 
-	shouldKeepRunning = vm.GetAllConfigOptions().KeepRunning
+	if vm != nil {
+		shouldKeepRunning = vm.GetAllConfigOptions().KeepRunning
+	}
 	if shouldKeepRunning {
 		timeoutChan = nil
 	}
@@ -213,8 +217,10 @@ func main() {
 					handleRuntimeError(setupErr)
 				}
 				slog.Debug("VM refresh complete", "duration", fmt.Sprintf("%.2fms", float64(time.Since(startTime).Microseconds())/1000))
-				shouldKeepRunning = vm.GetAllConfigOptions().KeepRunning
-				go checkForUpdates()
+				if vm != nil {
+					shouldKeepRunning = vm.GetAllConfigOptions().KeepRunning
+					go checkForUpdates()
+				}
 
 			case shouldShowWindow := <-queueWindowOpen:
 				if !showingWindow && shouldShowWindow {
@@ -242,7 +248,11 @@ func main() {
 		}
 	}()
 
-	C.RunApp(C.bool(forceWindowOpen), C.bool(!vm.GetAllConfigOptions().HideIcon), C.bool(shouldKeepRunning))
+	shouldHideIcon := false
+	if vm != nil {
+		shouldHideIcon = vm.GetAllConfigOptions().HideIcon
+	}
+	C.RunApp(C.bool(forceWindowOpen), C.bool(!shouldHideIcon), C.bool(shouldKeepRunning))
 }
 
 func handleRuntimeError(err error) {
