@@ -28,6 +28,8 @@
 
 // Use bool for openWindow and related logic
 - (void)applicationDidFinishLaunching:(NSNotification *)notification {
+    [self terminateOtherInstances];
+
     bool openWindow = self.forceOpenWindow;
     if (!openWindow) {
         // Even if we aren't forcing the window to open, we still want to open it if didn't receive a URL
@@ -42,6 +44,33 @@
     }
 
     QueueWindowDisplay(openWindow);
+}
+
+// Ensure only one Finicky process is running. macOS's Launch Services normally
+// routes GetURL events to an already-running instance, but that routing can fail
+// (stale LS registration after app moves/updates, different bundle paths, SSO
+// agents launching from another context) and silently spawn a second process
+// that proceeds to create its own status bar icon. Without a guard, duplicates
+// accumulate in the menu bar over time. Terminate any other instances we find
+// with the same bundle identifier so we're the single surviving process.
+- (void)terminateOtherInstances {
+    NSString *selfBundleID = [[NSBundle mainBundle] bundleIdentifier];
+    if (!selfBundleID) {
+        return;
+    }
+
+    NSArray<NSRunningApplication *> *instances = [NSRunningApplication runningApplicationsWithBundleIdentifier:selfBundleID];
+    pid_t myPID = [[NSRunningApplication currentApplication] processIdentifier];
+
+    for (NSRunningApplication *app in instances) {
+        if ([app processIdentifier] == myPID) continue;
+        if ([app isTerminated]) continue;
+
+        NSLog(@"Terminating duplicate Finicky instance (pid %d)", [app processIdentifier]);
+        if (![app terminate]) {
+            [app forceTerminate];
+        }
+    }
 }
 
 - (BOOL)applicationShouldHandleReopen:(NSApplication *)sender hasVisibleWindows:(BOOL)flag {
