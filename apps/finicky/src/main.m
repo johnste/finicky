@@ -62,14 +62,42 @@
     NSArray<NSRunningApplication *> *instances = [NSRunningApplication runningApplicationsWithBundleIdentifier:selfBundleID];
     pid_t myPID = [[NSRunningApplication currentApplication] processIdentifier];
 
+    NSMutableArray<NSRunningApplication *> *duplicates = [NSMutableArray array];
     for (NSRunningApplication *app in instances) {
         if ([app processIdentifier] == myPID) continue;
         if ([app isTerminated]) continue;
+        [duplicates addObject:app];
+    }
 
+    if (duplicates.count == 0) {
+        return;
+    }
+
+    // -[NSRunningApplication terminate] returning YES only means the request was
+    // sent, not that the target has exited. Fire all requests in parallel, then
+    // share a single deadline across the poll so 16 hung duplicates don't cost
+    // 16x the wait budget.
+    for (NSRunningApplication *app in duplicates) {
         NSLog(@"Terminating duplicate Finicky instance (pid %d)", [app processIdentifier]);
-        if (![app terminate]) {
-            [app forceTerminate];
+        [app terminate];
+    }
+
+    NSDate *deadline = [NSDate dateWithTimeIntervalSinceNow:1.0];
+    while ([deadline timeIntervalSinceNow] > 0) {
+        BOOL anyAlive = NO;
+        for (NSRunningApplication *app in duplicates) {
+            if (![app isTerminated]) { anyAlive = YES; break; }
         }
+        if (!anyAlive) return;
+
+        [[NSRunLoop currentRunLoop] runMode:NSDefaultRunLoopMode
+                                 beforeDate:[NSDate dateWithTimeIntervalSinceNow:0.05]];
+    }
+
+    for (NSRunningApplication *app in duplicates) {
+        if ([app isTerminated]) continue;
+        NSLog(@"Duplicate Finicky instance (pid %d) did not exit within 1s; force-terminating", [app processIdentifier]);
+        [app forceTerminate];
     }
 }
 
