@@ -1,17 +1,21 @@
 package util
 
 /*
+#include <stdlib.h>
 #include "info.h"
 */
 import "C"
 import (
 	"fmt"
 	"strings"
+	"unsafe"
 )
 
 // UserHomeDir returns the user's home directory using NSHomeDirectory
 func UserHomeDir() (string, error) {
-	dir := C.GoString(C.getNSHomeDirectory())
+	cDir := C.getNSHomeDirectory()
+	defer C.free(unsafe.Pointer(cDir))
+	dir := C.GoString(cDir)
 	if dir == "" {
 		return "", fmt.Errorf("failed to get user home directory")
 	}
@@ -32,7 +36,12 @@ func ShortenPath(path string) string {
 
 // UserCacheDir returns the user's cache directory using NSSearchPathForDirectoriesInDomains
 func UserCacheDir() (string, error) {
-	dir := C.GoString(C.getNSCacheDirectory())
+	cDir := C.getNSCacheDirectory()
+	if cDir == nil {
+		return "", fmt.Errorf("failed to get user cache directory")
+	}
+	defer C.free(unsafe.Pointer(cDir))
+	dir := C.GoString(cDir)
 	if dir == "" {
 		return "", fmt.Errorf("failed to get user cache directory")
 	}

@@ -24,8 +24,8 @@ SystemInfo getSystemInfo() {
     NSString *nameStr = [currentHost name] ?: @"";
 
     SystemInfo info = {
-        .localizedName = [localizedNameStr UTF8String],
-        .name = [nameStr UTF8String]
+        .localizedName = strdup([localizedNameStr UTF8String]),
+        .name = strdup([nameStr UTF8String])
     };
     return info;
 }
@@ -119,14 +119,14 @@ _Bool isAppRunning(const char* identifier) {
 
 const char* getNSHomeDirectory(void) {
     NSString *homeDirString = NSHomeDirectory();
-    return [homeDirString UTF8String];
+    return strdup([homeDirString UTF8String]);
 }
 
 const char* getNSCacheDirectory(void) {
     NSArray *paths = NSSearchPathForDirectoriesInDomains(NSCachesDirectory, NSUserDomainMask, true);
     if (paths.count > 0) {
         NSString *cacheDirString = [paths objectAtIndex:0];
-        return [cacheDirString UTF8String];
+        return strdup([cacheDirString UTF8String]);
     }
     return NULL;
 }

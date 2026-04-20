@@ -24,10 +24,10 @@ typedef struct {
 } PowerInfo;
 
 ModifierKeys getModifierKeys(void);
-SystemInfo getSystemInfo(void);
+SystemInfo getSystemInfo(void); /* caller must free localizedName and name */
 PowerInfo getPowerInfo(void);
 _Bool isAppRunning(const char* identifier);
-const char* getNSHomeDirectory(void);
-const char* getNSCacheDirectory(void);
+const char* getNSHomeDirectory(void);  /* caller must free */
+const char* getNSCacheDirectory(void); /* caller must free; may return NULL */
 
 #endif /* INFO_H */

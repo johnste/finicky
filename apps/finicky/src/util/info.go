@@ -39,6 +39,8 @@ func GetModifierKeys() map[string]bool {
 // GetSystemInfo returns system information
 func GetSystemInfo() map[string]string {
 	info := C.getSystemInfo()
+	defer C.free(unsafe.Pointer(info.localizedName))
+	defer C.free(unsafe.Pointer(info.name))
 	return map[string]string{
 		"localizedName": C.GoString(info.localizedName),
 		"name":          C.GoString(info.name),
