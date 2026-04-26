@@ -1,12 +1,16 @@
 let isIntercepting = false;
 
 window.addEventListener("keydown", (event) => {
+  if (!event.isTrusted) return;
+
   if (event.key.toLowerCase() === "alt") {
     isIntercepting = true;
   }
 });
 
 window.addEventListener("keyup", (event) => {
+  if (!event.isTrusted) return;
+
   if (event.key.toLowerCase() === "alt") {
     isIntercepting = false;
   }
@@ -53,6 +57,8 @@ window.addEventListener(
 );
 
 function capture(event) {
+  if (!event.isTrusted) return;
+
   if (!isIntercepting) return;    
 
   const anchor = getAnchor(event.target);
