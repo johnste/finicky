@@ -2,87 +2,151 @@
 <html lang="en">
   <head>
     <meta charset="utf-8" />
-    <meta name="theme-color" content="#ffffff" />
+    <meta name="theme-color" content="#0a0a18" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <meta name="description" content="Finicky - Browser control for macOS" />
+    <meta name="description" content="Finicky - Choose which browser opens every link on your Mac." />
     <link rel="stylesheet" type="text/css" href="stylesheet.css" />
     <link rel="stylesheet" type="text/css" href="font/hack-subset.css" />
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-    <link
-      href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap"
-      rel="stylesheet"
-    />
-    <title>Finicky | Browser Control for macOS</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
+    <title>Finicky - Browser router for macOS</title>
   </head>
-
   <body>
-    <div id="container">
-      <div class="inner">
-        <header>
-          <img src="finicky-icon.png" alt="Finicky logo" height="120" />
-          <h1>Finicky</h1>
-        </header>
 
-        <section>
-          <h2>Control which browser opens links</h2>
-          <p>
-            Route links to specific browsers based on URL patterns and
-            Javascript
-          </p>
-        </section>
-
-        <!-- <section class="config-example">
-          <h3>Example Config</h3>
-          <p class="file-path">~/.finicky.js</p>
-          <pre><code class="javascript"><span class="line">export default {</span>
-<span class="line">  defaultBrowser: "Google Chrome",</span>
-<span class="line">  handlers: [</span>
-<span class="line">    {</span>
-<span class="line">      // Open apple.com and example.com urls in Safari</span>
-<span class="line">      match: ["apple.com*", "example.com*"],</span>
-<span class="line">      browser: "Safari",</span>
-<span class="line">    },</span>
-<span class="line">    {</span>
-<span class="line">      // Open any url that includes the string "workplace" in Firefox</span>
-<span class="line">      match: "*workplace*",</span>
-<span class="line">      browser: "Firefox",</span>
-<span class="line">    }</span>
-<span class="line">  ],</span>
-<span class="line">};</span></code></pre>
-          <div class="version-hint">For Finicky v4+</div>
-        </section> -->
-
-
-        <section class="code">
-          <label>Stars</label><br />
-          <strong class="star-count">-</strong>
-          <hr noshade />
-
-          <table class="download-count">
-            <thead>
-              <tr>
-                <th>Version</th>
-                <th>Downloads</th>
-              </tr>
-            </thead>
-            <tbody>
-              <tr>
-                <td>-</td>
-                <td>-</td>
-              </tr>
-            </tbody>
-          </table>
-        </section>
-
-                <footer>
-          <a href="https://github.com/johnste/finicky/releases">Download</a>
-          <a href="https://github.com/johnste/finicky">GitHub</a>
-          <a href="https://bsky.app/profile/mejkarsense.se">Bluesky</a>
-        </footer>
-
+    <!-- HERO -->
+    <section class="hero">
+      <div class="container">
+        <img src="finicky-icon.png" alt="Finicky icon" class="hero-icon" />
+        <h1>Finicky</h1>
+        <p class="hero-tagline">Choose which browser opens every link.</p>
+        <p class="hero-sub">A free macOS app that sends URLs to the right browser based on rules you set up - by pattern, by app, or whatever you need.</p>
+        <div class="hero-actions">
+          <a href="https://github.com/johnste/finicky/releases/latest" class="btn btn-primary" target="_blank" rel="noopener">
+            Download for macOS
+          </a>
+          <a href="https://github.com/johnste/finicky" class="btn btn-secondary" target="_blank" rel="noopener">
+            View on GitHub
+          </a>
+        </div>
+        <p class="hero-note">Free &amp; open source &middot; macOS 12+</p>
       </div>
-    </div>
+    </section>
+
+    <!-- FEATURES -->
+    <section class="features">
+      <div class="container">
+        <h2 class="section-title">What it does</h2>
+        <div class="feature-grid">
+          <div class="feature-card feature-card--primary">
+            <div class="feature-icon">&#9881;</div>
+            <h3>Configure rules in the app</h3>
+            <p>Add URL routing rules directly in the app.</p>
+            <span class="feature-badge">Recommended</span>
+          </div>
+          <div class="feature-card">
+            <div class="feature-icon">&#128279;</div>
+            <h3>Route by URL pattern</h3>
+            <p>Match URLs with wildcards and send them to the right browser. Works for http, https, and custom schemes.</p>
+          </div>
+          <div class="feature-card">
+            <div class="feature-icon">&#128196;</div>
+            <h3>JS/TS config for power users</h3>
+            <p>Write a <code>~/.finicky.js</code> or <code>~/.finicky.ts</code> for full programmatic control - match functions, conditions, rewrites, and whatever else you can think of.</p>
+          </div>
+          <div class="feature-card">
+            <div class="feature-icon">&#128065;</div>
+            <h3>Route by window context</h3>
+            <p>Open links differently depending on which app they came from.</p>
+          </div>
+          <div class="feature-card">
+            <div class="feature-icon">&#128100;</div>
+            <h3>Browser profiles</h3>
+            <p>Target a specific Firefox or Chrome profile, not just a browser. E.g. keep work and personal browser separate.</p>
+          </div>
+          <div class="feature-card">
+            <div class="feature-icon">&#128270;</div>
+            <h3>Built-in URL tester</h3>
+            <p>Paste a URL into the app and see which rule matches.</p>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- HOW IT WORKS -->
+    <section class="how-it-works">
+      <div class="container">
+        <h2 class="section-title">How it works</h2>
+        <div class="steps">
+          <div class="step">
+            <div class="step-number">1</div>
+            <h3>Install Finicky</h3>
+            <p>Download and move it to your Applications folder.</p>
+          </div>
+          <div class="step-arrow">&#8594;</div>
+          <div class="step">
+            <div class="step-number">2</div>
+            <h3>Set as default browser</h3>
+            <p>Finicky will ask. Click "Use Finicky" and it handles everything from there.</p>
+          </div>
+          <div class="step-arrow">&#8594;</div>
+          <div class="step">
+            <div class="step-number">3</div>
+            <h3>Add your rules</h3>
+            <p>Open the app and set up which URLs go to which browser.</p>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- SCREENSHOTS -->
+    <section class="screenshots">
+      <div class="container">
+        <h2 class="section-title">Screenshots</h2>
+        <div class="screenshot-grid">
+          <figure class="screenshot-item">
+            <img src="rules.png" alt="Rules editor" />
+            <figcaption>Rules editor</figcaption>
+          </figure>
+          <figure class="screenshot-item">
+            <img src="prefs.png" alt="Preferences" />
+            <figcaption>Preferences</figcaption>
+          </figure>
+        </div>
+      </div>
+    </section>
+
+    <!-- CONFIG EXAMPLE -->
+    <section class="config-section">
+      <div class="container">
+        <div class="config-intro">
+          <div class="config-badge">For power users</div>
+          <h2>Full control with JavaScript or TypeScript</h2>
+          <p>Drop a <code>~/.finicky.js</code> or <code>~/.finicky.ts</code> in your home directory for programmatic routing - match functions, which app triggered the link, window title, and more.</p>
+        </div>
+        <div class="config-example">
+          <p class="file-path">~/.finicky.js</p>
+          <pre><code class="javascript"><span class="line"><span class="kw">export default</span> {</span><span class="line">  <span class="key">defaultBrowser</span>: <span class="str">"Safari"</span>,</span><span class="line">  <span class="key">rewrite</span>: [</span><span class="line">    {</span><span class="line">      <span class="comment">// Redirect x.com to xcancel.com</span></span><span class="line">      <span class="key">match</span>: <span class="str">"x.com/*"</span>,</span><span class="line">      <span class="key">url</span>: ({ <span class="key">url</span> }) =&gt; ({ ...url, <span class="key">host</span>: <span class="str">"xcancel.com"</span> }),</span><span class="line">    },</span><span class="line">    {</span><span class="line">      <span class="comment">// Strip tracking parameters from all URLs</span></span><span class="line">      <span class="key">match</span>: () =&gt; <span class="kw">true</span>,</span><span class="line">      <span class="key">url</span>: ({ <span class="key">url</span> }) =&gt; {</span><span class="line">        [...url.search.keys()].filter(p =&gt; p.startsWith(<span class="str">"utm_"</span>)).forEach(p =&gt; url.search.delete(p));</span><span class="line">        <span class="kw">return</span> url;</span><span class="line">      },</span><span class="line">    },</span><span class="line">  ],</span><span class="line">  <span class="key">handlers</span>: [</span><span class="line">    {</span><span class="line">      <span class="comment">// Open work links in Chrome</span></span><span class="line">      <span class="key">match</span>: [<span class="str">"*.work.example.com*"</span>, <span class="str">"*jira*"</span>],</span><span class="line">      <span class="key">browser</span>: <span class="str">"Google Chrome"</span>,</span><span class="line">    },</span><span class="line">    {</span><span class="line">      <span class="comment">// Route by window title - e.g. which Slack workspace</span></span><span class="line">      <span class="key">match</span>: ({ <span class="key">opener</span> }) =&gt; opener?.windowTitle?.includes(<span class="str">"Work"</span>),</span><span class="line">      <span class="key">browser</span>: <span class="str">"Google Chrome"</span>,</span><span class="line">    },</span><span class="line">    {</span><span class="line">      <span class="comment">// Open with a specific Firefox profile</span></span><span class="line">      <span class="key">match</span>: <span class="str">"*.mozilla.org*"</span>,</span><span class="line">      <span class="key">browser</span>: { <span class="key">name</span>: <span class="str">"Firefox"</span>, <span class="key">profile</span>: <span class="str">"work"</span> },</span><span class="line">    },</span><span class="line">  ],</span><span class="line">};</span></code></pre>
+        </div>
+      </div>
+    </section>
+
+    <!-- FOOTER -->
+    <footer>
+      <div class="container">
+        <div class="footer-links">
+          <a href="https://github.com/johnste/finicky/releases/latest" target="_blank" rel="noopener" class="btn btn-primary">Download</a>
+          <a href="https://github.com/johnste/finicky" target="_blank" rel="noopener" class="btn btn-secondary">GitHub</a>
+          <a href="https://bsky.app/profile/mejkarsense.se" target="_blank" rel="noopener" class="btn btn-secondary">Bluesky</a>
+        </div>
+        <p class="footer-meta">
+          Made by <a href="https://bsky.app/profile/mejkarsense.se" class="footer-link" target="_blank" rel="noopener">John Sterling</a>
+          &middot;
+          <a href="stats.html" class="footer-link">Stats</a>
+        </p>
+      </div>
+    </footer>
+
     <script src="script.js" defer></script>
   </body>
 </html>

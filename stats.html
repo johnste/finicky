@@ -1,0 +1,43 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="theme-color" content="#0a0a18" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="description" content="Finicky project stats — downloads, stars, and activity." />
+    <link rel="stylesheet" type="text/css" href="stylesheet.css" />
+    <link rel="stylesheet" type="text/css" href="font/hack-subset.css" />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
+    <title>Finicky — Stats</title>
+  </head>
+  <body>
+    <div class="stats-page">
+      <a href="index.html" class="stats-back">&larr; Back to johnste.github.io/finicky</a>
+      <h1>Stats</h1>
+
+      <div class="stats-card">
+        <label>GitHub Stars</label>
+        <strong class="star-count">—</strong>
+      </div>
+
+      <div class="stats-card">
+        <label>Downloads by version</label>
+        <table class="download-count">
+          <thead>
+            <tr>
+              <th>Version</th>
+              <th>Downloads</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr><td colspan="2" style="color:#475569">Loading…</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <script src="stats.js" defer></script>
+  </body>
+</html>
