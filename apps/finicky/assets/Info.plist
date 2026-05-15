@@ -40,6 +40,15 @@
         <array>
           <string>http</string>
           <string>https</string>
+        </array>
+      </dict>
+      <dict>
+        <key>CFBundleTypeRole</key>
+        <string>Viewer</string>
+        <key>CFBundleURLName</key>
+        <string>Finicky URL</string>
+        <key>CFBundleURLSchemes</key>
+        <array>
           <string>finicky</string>
         </array>
       </dict>

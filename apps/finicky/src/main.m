@@ -33,7 +33,17 @@
     }
 
     self.requests[request.UUID] = request;
-    HandleURL((char *)[[request.URL absoluteString] UTF8String], NULL, NULL, NULL, NULL, false);
+
+    // AuthenticationServices does not expose the requesting app here, and
+    // Finicky cannot transfer the ASWebAuthenticationSessionRequest to the
+    // browser it chooses. Treat this as a normal URL routing request with a
+    // stable synthetic opener so rules can target SSO/OAuth flows explicitly.
+    HandleURL((char *)[[request.URL absoluteString] UTF8String],
+              "AuthenticationServices",
+              "com.apple.AuthenticationServices",
+              "",
+              NULL,
+              false);
 }
 
 - (void)cancelWebAuthenticationSessionRequest:(ASWebAuthenticationSessionRequest *)request {
@@ -47,7 +57,10 @@
 
     for (NSUUID *uuid in [self.requests allKeys]) {
         ASWebAuthenticationSessionRequest *request = self.requests[uuid];
+#pragma clang diagnostic push
+#pragma clang diagnostic ignored "-Wdeprecated-declarations"
         NSString *callbackURLScheme = request.callbackURLScheme;
+#pragma clang diagnostic pop
         if (callbackURLScheme.length == 0) {
             continue;
         }
@@ -67,10 +80,19 @@
 
 @end
 
+static FinickyAuthenticationSessionHandler *sharedAuthenticationSessionHandler;
+
+void InstallAuthenticationSessionHandler(void) {
+    if (!sharedAuthenticationSessionHandler) {
+        sharedAuthenticationSessionHandler = [[FinickyAuthenticationSessionHandler alloc] init];
+    }
+
+    [ASWebAuthenticationSessionWebBrowserSessionManager sharedManager].sessionHandler = sharedAuthenticationSessionHandler;
+}
+
 // Extend BrowseAppDelegate to hold a status item and declare menu action
 @interface BrowseAppDelegate ()
 @property (nonatomic, strong) NSStatusItem *statusItem;
-@property (nonatomic, strong) FinickyAuthenticationSessionHandler *authenticationSessionHandler;
 - (void)showWindowAction:(id)sender;
 @end
 
@@ -225,8 +247,7 @@
                     andSelector:@selector(handleGetURLEvent:withReplyEvent:)
                     forEventClass:kInternetEventClass andEventID:kAEGetURL];
 
-    self.authenticationSessionHandler = [[FinickyAuthenticationSessionHandler alloc] init];
-    [ASWebAuthenticationSessionWebBrowserSessionManager sharedManager].sessionHandler = self.authenticationSessionHandler;
+    InstallAuthenticationSessionHandler();
 }
 
 - (bool)application:(NSApplication *)sender openFile:(NSString *)filename {
@@ -259,7 +280,7 @@
     self.receivedURL = true;
 
     NSURL *eventURL = [NSURL URLWithString:urlString];
-    if ([self.authenticationSessionHandler completeRequestWithCallbackURL:eventURL]) {
+    if ([sharedAuthenticationSessionHandler completeRequestWithCallbackURL:eventURL]) {
         return;
     }
 
@@ -320,7 +341,7 @@
         return false;
     }
 
-    if ([self.authenticationSessionHandler completeRequestWithCallbackURL:url]) {
+    if ([sharedAuthenticationSessionHandler completeRequestWithCallbackURL:url]) {
         return true;
     }
 

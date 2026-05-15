@@ -68,6 +68,7 @@ func main() {
 	startTime := time.Now()
 	logger.Setup()
 	runtime.LockOSThread()
+	C.InstallAuthenticationSessionHandler()
 
 	// Define command line flags
 	configPathPtr := flag.String("config", "", "Path to custom JS configuration file")
