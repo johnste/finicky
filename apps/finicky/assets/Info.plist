@@ -22,6 +22,13 @@
     <string>4.4.0-alpha</string>
     <key>CFBundleIconFile</key>
     <string>finicky.icns</string>
+    <key>ASWebAuthenticationSessionWebBrowserSupportCapabilities</key>
+    <dict>
+      <key>IsSupported</key>
+      <true/>
+      <key>CallbackURLMatchingIsSupported</key>
+      <true/>
+    </dict>
     <key>LSUIElement</key>
     <true/>
     <key>CFBundleURLTypes</key>
@@ -35,6 +42,15 @@
         <array>
           <string>http</string>
           <string>https</string>
+        </array>
+      </dict>
+      <dict>
+        <key>CFBundleTypeRole</key>
+        <string>Viewer</string>
+        <key>CFBundleURLName</key>
+        <string>Finicky URL</string>
+        <key>CFBundleURLSchemes</key>
+        <array>
           <string>finicky</string>
         </array>
       </dict>

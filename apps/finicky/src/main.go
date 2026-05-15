@@ -2,7 +2,7 @@ package main
 
 /*
 #cgo CFLAGS: -x objective-c
-#cgo LDFLAGS: -framework Cocoa -framework CoreServices
+#cgo LDFLAGS: -framework Cocoa -framework CoreServices -framework AuthenticationServices
 #include <stdlib.h>
 #include "main.h"
 */
@@ -68,6 +68,7 @@ func main() {
 	startTime := time.Now()
 	logger.Setup()
 	runtime.LockOSThread()
+	C.InstallAuthenticationSessionHandler()
 
 	// Define command line flags
 	configPathPtr := flag.String("config", "", "Path to custom JS configuration file")
