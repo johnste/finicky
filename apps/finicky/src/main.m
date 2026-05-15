@@ -55,6 +55,9 @@
         return NO;
     }
 
+    // Callback matching is best-effort: Finicky can complete callbacks that
+    // re-enter Finicky, but it cannot observe navigations after forwarding the
+    // auth URL to the concrete browser selected by the user's rules.
     for (NSUUID *uuid in [self.requests allKeys]) {
         ASWebAuthenticationSessionRequest *request = self.requests[uuid];
 #pragma clang diagnostic push

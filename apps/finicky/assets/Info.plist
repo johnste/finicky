@@ -26,6 +26,8 @@
     <dict>
       <key>IsSupported</key>
       <true/>
+      <key>CallbackURLMatchingIsSupported</key>
+      <true/>
     </dict>
     <key>LSUIElement</key>
     <true/>
