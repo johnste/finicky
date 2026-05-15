@@ -22,6 +22,11 @@
     <string>4.4.0-alpha</string>
     <key>CFBundleIconFile</key>
     <string>finicky.icns</string>
+    <key>ASWebAuthenticationSessionWebBrowserSupportCapabilities</key>
+    <dict>
+      <key>IsSupported</key>
+      <true/>
+    </dict>
     <key>LSUIElement</key>
     <true/>
     <key>CFBundleURLTypes</key>

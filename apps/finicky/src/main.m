@@ -2,14 +2,75 @@
 #include "util/info.h"
 #import <Cocoa/Cocoa.h>
 #import <ApplicationServices/ApplicationServices.h>
+#import <AuthenticationServices/AuthenticationServices.h>
 #import <stdlib.h>
 #import <unistd.h>
 
 #import "window/window.h"  // For ShowWindow()
 
+@interface FinickyAuthenticationSessionHandler : NSObject<ASWebAuthenticationSessionWebBrowserSessionHandling>
+@property (nonatomic, strong) NSMutableDictionary<NSUUID *, ASWebAuthenticationSessionRequest *> *requests;
+- (BOOL)completeRequestWithCallbackURL:(NSURL *)url;
+@end
+
+@implementation FinickyAuthenticationSessionHandler
+
+- (instancetype)init {
+    self = [super init];
+    if (self) {
+        _requests = [[NSMutableDictionary alloc] init];
+    }
+    return self;
+}
+
+- (void)beginHandlingWebAuthenticationSessionRequest:(ASWebAuthenticationSessionRequest *)request {
+    if (!request.URL) {
+        NSError *error = [NSError errorWithDomain:@"se.johnste.finicky.authentication"
+                                             code:1
+                                         userInfo:@{NSLocalizedDescriptionKey: @"Authentication request did not include a URL"}];
+        [request cancelWithError:error];
+        return;
+    }
+
+    self.requests[request.UUID] = request;
+    HandleURL((char *)[[request.URL absoluteString] UTF8String], NULL, NULL, NULL, NULL, false);
+}
+
+- (void)cancelWebAuthenticationSessionRequest:(ASWebAuthenticationSessionRequest *)request {
+    [self.requests removeObjectForKey:request.UUID];
+}
+
+- (BOOL)completeRequestWithCallbackURL:(NSURL *)url {
+    if (!url.scheme) {
+        return NO;
+    }
+
+    for (NSUUID *uuid in [self.requests allKeys]) {
+        ASWebAuthenticationSessionRequest *request = self.requests[uuid];
+        NSString *callbackURLScheme = request.callbackURLScheme;
+        if (callbackURLScheme.length == 0) {
+            continue;
+        }
+        if ([callbackURLScheme caseInsensitiveCompare:@"http"] == NSOrderedSame ||
+            [callbackURLScheme caseInsensitiveCompare:@"https"] == NSOrderedSame) {
+            continue;
+        }
+        if ([url.scheme caseInsensitiveCompare:callbackURLScheme] == NSOrderedSame) {
+            [request completeWithCallbackURL:url];
+            [self.requests removeObjectForKey:uuid];
+            return YES;
+        }
+    }
+
+    return NO;
+}
+
+@end
+
 // Extend BrowseAppDelegate to hold a status item and declare menu action
 @interface BrowseAppDelegate ()
 @property (nonatomic, strong) NSStatusItem *statusItem;
+@property (nonatomic, strong) FinickyAuthenticationSessionHandler *authenticationSessionHandler;
 - (void)showWindowAction:(id)sender;
 @end
 
@@ -30,16 +91,17 @@
 - (void)applicationDidFinishLaunching:(NSNotification *)notification {
     [self terminateOtherInstances];
 
+    bool launchedByAuthenticationServices = [ASWebAuthenticationSessionWebBrowserSessionManager sharedManager].wasLaunchedByAuthenticationServices;
     bool openWindow = self.forceOpenWindow;
     if (!openWindow) {
         // Even if we aren't forcing the window to open, we still want to open it if didn't receive a URL
-        openWindow = !self.receivedURL;
+        openWindow = !self.receivedURL && !launchedByAuthenticationServices;
     }
 
     // Only show menu item if the option is enabled, and we either didn't receive a URL or we are keeping
     // the application running. We don't want to show the icon if Finicky is just receiving a url to open
     // and is expected to exit after
-    if (self.showMenuItem && (self.keepRunning || !self.receivedURL)) {
+    if (self.showMenuItem && (self.keepRunning || (!self.receivedURL && !launchedByAuthenticationServices))) {
         [self createStatusItem];
     }
 
@@ -162,6 +224,9 @@
     [appleEventManager setEventHandler:self
                     andSelector:@selector(handleGetURLEvent:withReplyEvent:)
                     forEventClass:kInternetEventClass andEventID:kAEGetURL];
+
+    self.authenticationSessionHandler = [[FinickyAuthenticationSessionHandler alloc] init];
+    [ASWebAuthenticationSessionWebBrowserSessionManager sharedManager].sessionHandler = self.authenticationSessionHandler;
 }
 
 - (bool)application:(NSApplication *)sender openFile:(NSString *)filename {
@@ -185,12 +250,18 @@
     // Get the application that opened the URL, if available
     int32_t pid = [[event attributeDescriptorForKeyword:keySenderPIDAttr] int32Value];
     NSRunningApplication *application = [NSRunningApplication runningApplicationWithProcessIdentifier:pid];
-    const char *url = [[[event paramDescriptorForKeyword:keyDirectObject] stringValue] UTF8String];
+    NSString *urlString = [[event paramDescriptorForKeyword:keyDirectObject] stringValue];
+    const char *url = [urlString UTF8String];
     const char *name = NULL;
     const char *bundleId = NULL;
     const char *path = NULL;
 
     self.receivedURL = true;
+
+    NSURL *eventURL = [NSURL URLWithString:urlString];
+    if ([self.authenticationSessionHandler completeRequestWithCallbackURL:eventURL]) {
+        return;
+    }
 
     NSRunningApplication *frontApp = [[NSWorkspace sharedWorkspace] frontmostApplication];
 
@@ -247,6 +318,10 @@
     NSURL *url = userActivity.webpageURL;
     if (!url) {
         return false;
+    }
+
+    if ([self.authenticationSessionHandler completeRequestWithCallbackURL:url]) {
+        return true;
     }
 
     HandleURL((char*)[[url absoluteString] UTF8String], NULL, NULL, NULL, NULL, false);
