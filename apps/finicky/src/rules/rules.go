@@ -53,11 +53,11 @@ func (r Rule) MarshalJSON() ([]byte, error) {
 }
 
 type Options struct {
-	KeepRunning     *bool `json:"keepRunning,omitempty"`
-	HideIcon        *bool `json:"hideIcon,omitempty"`
-	SuppressWindow  *bool `json:"suppressWindow,omitempty"`
-	LogRequests     *bool `json:"logRequests,omitempty"`
-	CheckForUpdates *bool `json:"checkForUpdates,omitempty"`
+	KeepRunning       *bool `json:"keepRunning,omitempty"`
+	HideIcon          *bool `json:"hideIcon,omitempty"`
+	HideWindowOnStart *bool `json:"hideWindowOnStart,omitempty"`
+	LogRequests       *bool `json:"logRequests,omitempty"`
+	CheckForUpdates   *bool `json:"checkForUpdates,omitempty"`
 }
 
 type RulesFile struct {
@@ -213,8 +213,8 @@ func ToJSConfigScript(rf RulesFile, namespace string) (string, error) {
 	if rf.Options.HideIcon != nil {
 		opts["hideIcon"] = *rf.Options.HideIcon
 	}
-	if rf.Options.SuppressWindow != nil {
-		opts["suppressWindow"] = *rf.Options.SuppressWindow
+	if rf.Options.HideWindowOnStart != nil {
+		opts["hideWindowOnStart"] = *rf.Options.HideWindowOnStart
 	}
 	if rf.Options.LogRequests != nil {
 		opts["logRequests"] = *rf.Options.LogRequests

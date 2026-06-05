@@ -7,13 +7,6 @@
 
 #import "window/window.h"  // For ShowWindow()
 
-// On a cold launch, the GetURL/openFile Apple Event that Finicky was started to
-// handle is not guaranteed to have been delivered by the time
-// applicationDidFinishLaunching: runs. We defer the auto-open-window decision by
-// this much so a pending URL event has a chance to set receivedURL first,
-// otherwise the config window briefly flashes before the browser launches.
-static const double kWindowAutoOpenDelaySeconds = 0.2;
-
 // Extend BrowseAppDelegate to hold a status item and declare menu action
 @interface BrowseAppDelegate ()
 @property (nonatomic, strong) NSStatusItem *statusItem;
@@ -22,13 +15,13 @@ static const double kWindowAutoOpenDelaySeconds = 0.2;
 
 @implementation BrowseAppDelegate
 
-- (instancetype)initWithForceOpenWindow:(bool)forceOpenWindow initShow:(bool)showMenuItem keepRunning:(bool)keepRunning suppressWindow:(bool)suppressWindow {
+- (instancetype)initWithForceOpenWindow:(bool)forceOpenWindow initShow:(bool)showMenuItem keepRunning:(bool)keepRunning hideWindowOnStart:(bool)hideWindowOnStart {
     self = [super init];
     if (self) {
         _forceOpenWindow = forceOpenWindow;
         _showMenuItem = showMenuItem;
         _keepRunning = keepRunning;
-        _suppressWindow = suppressWindow;
+        _hideWindowOnStart = hideWindowOnStart;
         _receivedURL = false;
     }
     return self;
@@ -38,30 +31,21 @@ static const double kWindowAutoOpenDelaySeconds = 0.2;
 - (void)applicationDidFinishLaunching:(NSNotification *)notification {
     [self terminateOtherInstances];
 
-    if (self.forceOpenWindow) {
-        // The window was explicitly requested (e.g. via --window), so there's no
-        // need to wait on a possible incoming URL — show it right away.
-        if (self.showMenuItem) {
-            [self createStatusItem];
-        }
-        QueueWindowDisplay(true);
-        return;
+    bool openWindow = self.forceOpenWindow;
+    if (!openWindow) {
+        // Open the window on launch unless we received a URL to handle, or the
+        // user opted out of the automatic launch window via hideWindowOnStart.
+        openWindow = !self.receivedURL && !self.hideWindowOnStart;
     }
 
-    // Defer the auto-open decision so a URL event delivered slightly after launch
-    // suppresses the window instead of racing it (see kWindowAutoOpenDelaySeconds).
-    dispatch_after(dispatch_time(DISPATCH_TIME_NOW, (int64_t)(kWindowAutoOpenDelaySeconds * NSEC_PER_SEC)), dispatch_get_main_queue(), ^{
-        // Only show menu item if the option is enabled, and we either didn't receive a URL or we are keeping
-        // the application running. We don't want to show the icon if Finicky is just receiving a url to open
-        // and is expected to exit after
-        if (self.showMenuItem && (self.keepRunning || !self.receivedURL)) {
-            [self createStatusItem];
-        }
+    // Only show menu item if the option is enabled, and we either didn't receive a URL or we are keeping
+    // the application running. We don't want to show the icon if Finicky is just receiving a url to open
+    // and is expected to exit after
+    if (self.showMenuItem && (self.keepRunning || !self.receivedURL)) {
+        [self createStatusItem];
+    }
 
-        // Open the window only if we didn't end up receiving a URL to handle,
-        // unless the user opted out of the automatic window entirely.
-        QueueWindowDisplay(!self.receivedURL && !self.suppressWindow);
-    });
+    QueueWindowDisplay(openWindow);
 }
 
 // Ensure only one Finicky process is running. macOS's Launch Services normally
@@ -288,12 +272,12 @@ static const double kWindowAutoOpenDelaySeconds = 0.2;
 
 @end
 
-void RunApp(bool forceOpenWindow, bool showStatusItem, bool keepRunning, bool suppressWindow) {
+void RunApp(bool forceOpenWindow, bool showStatusItem, bool keepRunning, bool hideWindowOnStart) {
     @autoreleasepool {
         // Initialize on the main thread directly, not async
         [NSApplication sharedApplication];
 
-        BrowseAppDelegate *app = [[BrowseAppDelegate alloc] initWithForceOpenWindow:forceOpenWindow initShow:showStatusItem keepRunning:keepRunning suppressWindow:suppressWindow];
+        BrowseAppDelegate *app = [[BrowseAppDelegate alloc] initWithForceOpenWindow:forceOpenWindow initShow:showStatusItem keepRunning:keepRunning hideWindowOnStart:hideWindowOnStart];
         [NSApp setDelegate:app];
 
         [NSApp finishLaunching];

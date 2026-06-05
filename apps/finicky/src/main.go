@@ -249,13 +249,13 @@ func main() {
 	}()
 
 	shouldHideIcon := false
-	suppressWindow := false
+	hideWindowOnStart := false
 	if vm != nil {
 		opts := vm.GetAllConfigOptions()
 		shouldHideIcon = opts.HideIcon
-		suppressWindow = opts.SuppressWindow
+		hideWindowOnStart = opts.HideWindowOnStart
 	}
-	C.RunApp(C.bool(forceWindowOpen), C.bool(!shouldHideIcon), C.bool(shouldKeepRunning), C.bool(suppressWindow))
+	C.RunApp(C.bool(forceWindowOpen), C.bool(!shouldHideIcon), C.bool(shouldKeepRunning), C.bool(hideWindowOnStart))
 }
 
 func handleRuntimeError(err error) {
@@ -487,11 +487,11 @@ func setupVM(cfw *config.ConfigFileWatcher, namespace string) (*config.VM, error
 		"configPath":     util.ShortenPath(configInfo.ConfigPath),
 		"isJSConfig":     newVM.IsJSConfig(),
 		"options": map[string]interface{}{
-			"keepRunning":     opts.KeepRunning,
-			"hideIcon":        opts.HideIcon,
-			"suppressWindow":  opts.SuppressWindow,
-			"logRequests":     opts.LogRequests,
-			"checkForUpdates": opts.CheckForUpdates,
+			"keepRunning":       opts.KeepRunning,
+			"hideIcon":          opts.HideIcon,
+			"hideWindowOnStart": opts.HideWindowOnStart,
+			"logRequests":       opts.LogRequests,
+			"checkForUpdates":   opts.CheckForUpdates,
 		},
 	})
 

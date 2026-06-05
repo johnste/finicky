@@ -136,10 +136,10 @@ const ConfigOptionsSchema = z
     checkForUpdates: z.boolean().optional().describe("Check for updates"),
     keepRunning: z.boolean().optional().describe("Keep the app running"),
     hideIcon: z.boolean().optional().describe("Hide the app icon"),
-    suppressWindow: z
+    hideWindowOnStart: z
       .boolean()
       .optional()
-      .describe("Don't open the window automatically on launch")
+      .describe("Don't open the window when Finicky starts")
   })
   .identifier("ConfigOptions");
 
