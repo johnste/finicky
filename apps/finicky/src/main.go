@@ -489,6 +489,7 @@ func setupVM(cfw *config.ConfigFileWatcher, namespace string) (*config.VM, error
 		"options": map[string]interface{}{
 			"keepRunning":     opts.KeepRunning,
 			"hideIcon":        opts.HideIcon,
+			"suppressWindow":  opts.SuppressWindow,
 			"logRequests":     opts.LogRequests,
 			"checkForUpdates": opts.CheckForUpdates,
 		},
