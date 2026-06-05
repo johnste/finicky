@@ -7,6 +7,13 @@
 
 #import "window/window.h"  // For ShowWindow()
 
+// On a cold launch, the GetURL/openFile Apple Event that Finicky was started to
+// handle is not guaranteed to have been delivered by the time
+// applicationDidFinishLaunching: runs. We defer the auto-open-window decision by
+// this much so a pending URL event has a chance to set receivedURL first,
+// otherwise the config window briefly flashes before the browser launches.
+static const double kWindowAutoOpenDelaySeconds = 0.2;
+
 // Extend BrowseAppDelegate to hold a status item and declare menu action
 @interface BrowseAppDelegate ()
 @property (nonatomic, strong) NSStatusItem *statusItem;
@@ -30,20 +37,29 @@
 - (void)applicationDidFinishLaunching:(NSNotification *)notification {
     [self terminateOtherInstances];
 
-    bool openWindow = self.forceOpenWindow;
-    if (!openWindow) {
-        // Even if we aren't forcing the window to open, we still want to open it if didn't receive a URL
-        openWindow = !self.receivedURL;
+    if (self.forceOpenWindow) {
+        // The window was explicitly requested (e.g. via --window), so there's no
+        // need to wait on a possible incoming URL — show it right away.
+        if (self.showMenuItem) {
+            [self createStatusItem];
+        }
+        QueueWindowDisplay(true);
+        return;
     }
 
-    // Only show menu item if the option is enabled, and we either didn't receive a URL or we are keeping
-    // the application running. We don't want to show the icon if Finicky is just receiving a url to open
-    // and is expected to exit after
-    if (self.showMenuItem && (self.keepRunning || !self.receivedURL)) {
-        [self createStatusItem];
-    }
+    // Defer the auto-open decision so a URL event delivered slightly after launch
+    // suppresses the window instead of racing it (see kWindowAutoOpenDelaySeconds).
+    dispatch_after(dispatch_time(DISPATCH_TIME_NOW, (int64_t)(kWindowAutoOpenDelaySeconds * NSEC_PER_SEC)), dispatch_get_main_queue(), ^{
+        // Only show menu item if the option is enabled, and we either didn't receive a URL or we are keeping
+        // the application running. We don't want to show the icon if Finicky is just receiving a url to open
+        // and is expected to exit after
+        if (self.showMenuItem && (self.keepRunning || !self.receivedURL)) {
+            [self createStatusItem];
+        }
 
-    QueueWindowDisplay(openWindow);
+        // Open the window only if we didn't end up receiving a URL to handle.
+        QueueWindowDisplay(!self.receivedURL);
+    });
 }
 
 // Ensure only one Finicky process is running. macOS's Launch Services normally
