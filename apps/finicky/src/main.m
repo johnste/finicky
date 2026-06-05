@@ -251,6 +251,17 @@ static const double kWindowAutoOpenDelaySeconds = 0.2;
     // If Finicky isn't frontmost, we take that to mean that the browser should, by default, be opened in the background
     HandleURL((char*)url, (char*)name, (char*)bundleId, (char*)path, windowTitle, !finickyIsInFront);
     free(windowTitle);
+
+    // When routing a URL while we weren't the active app, delivering the Apple
+    // Event can pull Finicky — and any open config window — to the foreground,
+    // briefly flashing it in front of the browser we're about to open. Order the
+    // window back and hand activation back so it stays out of the way. Deferred to
+    // the next runloop turn so it runs after any system-initiated activation.
+    if (!finickyIsInFront) {
+        dispatch_async(dispatch_get_main_queue(), ^{
+            [NSApp hide:nil];
+        });
+    }
 }
 
 - (bool)application:(NSApplication *)application willContinueUserActivityWithType:(NSString *)userActivityType {
