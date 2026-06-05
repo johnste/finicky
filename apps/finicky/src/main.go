@@ -249,10 +249,13 @@ func main() {
 	}()
 
 	shouldHideIcon := false
+	suppressWindow := false
 	if vm != nil {
-		shouldHideIcon = vm.GetAllConfigOptions().HideIcon
+		opts := vm.GetAllConfigOptions()
+		shouldHideIcon = opts.HideIcon
+		suppressWindow = opts.SuppressWindow
 	}
-	C.RunApp(C.bool(forceWindowOpen), C.bool(!shouldHideIcon), C.bool(shouldKeepRunning))
+	C.RunApp(C.bool(forceWindowOpen), C.bool(!shouldHideIcon), C.bool(shouldKeepRunning), C.bool(suppressWindow))
 }
 
 func handleRuntimeError(err error) {

@@ -19,6 +19,7 @@ type VM struct {
 type ConfigOptions struct {
 	KeepRunning     bool
 	HideIcon        bool
+	SuppressWindow  bool
 	LogRequests     bool
 	CheckForUpdates bool
 }
@@ -156,6 +157,7 @@ func (vm *VM) GetAllConfigOptions() ConfigOptions {
 	defaults := ConfigOptions{
 		KeepRunning:     true,
 		HideIcon:        false,
+		SuppressWindow:  false,
 		LogRequests:     false,
 		CheckForUpdates: true,
 	}
@@ -165,6 +167,7 @@ func (vm *VM) GetAllConfigOptions() ConfigOptions {
 	script := `({
 		keepRunning:     finickyConfigAPI.getOption('keepRunning',     finalConfig, true),
 		hideIcon:        finickyConfigAPI.getOption('hideIcon',        finalConfig, false),
+		suppressWindow:  finickyConfigAPI.getOption('suppressWindow',  finalConfig, false),
 		logRequests:     finickyConfigAPI.getOption('logRequests',     finalConfig, false),
 		checkForUpdates: finickyConfigAPI.getOption('checkForUpdates', finalConfig, true)
 	})`
@@ -177,6 +180,7 @@ func (vm *VM) GetAllConfigOptions() ConfigOptions {
 	return ConfigOptions{
 		KeepRunning:     obj.Get("keepRunning").ToBoolean(),
 		HideIcon:        obj.Get("hideIcon").ToBoolean(),
+		SuppressWindow:  obj.Get("suppressWindow").ToBoolean(),
 		LogRequests:     obj.Get("logRequests").ToBoolean(),
 		CheckForUpdates: obj.Get("checkForUpdates").ToBoolean(),
 	}

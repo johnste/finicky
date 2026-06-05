@@ -20,12 +20,13 @@ extern char* GetCurrentConfigPath();
     @property (nonatomic) bool receivedURL;
     @property (nonatomic) bool keepRunning;
     @property (nonatomic) bool showMenuItem;
-    - (instancetype)initWithForceOpenWindow:(bool)forceOpenWindow initShow:(bool)showMenuItem keepRunning:(bool)keepRunning;
+    @property (nonatomic) bool suppressWindow;
+    - (instancetype)initWithForceOpenWindow:(bool)forceOpenWindow initShow:(bool)showMenuItem keepRunning:(bool)keepRunning suppressWindow:(bool)suppressWindow;
     - (void)handleGetURLEvent:(NSAppleEventDescriptor *) event withReplyEvent:(NSAppleEventDescriptor *)replyEvent;
     - (bool)application:(NSApplication *)sender openFile:(NSString *)filename;
 @end
 #endif
 
-void RunApp(bool forceOpenWindow, bool showStatusItem, bool keepRunning);
+void RunApp(bool forceOpenWindow, bool showStatusItem, bool keepRunning, bool suppressWindow);
 
 #endif /* MAIN_H */

@@ -22,12 +22,13 @@ static const double kWindowAutoOpenDelaySeconds = 0.2;
 
 @implementation BrowseAppDelegate
 
-- (instancetype)initWithForceOpenWindow:(bool)forceOpenWindow initShow:(bool)showMenuItem keepRunning:(bool)keepRunning {
+- (instancetype)initWithForceOpenWindow:(bool)forceOpenWindow initShow:(bool)showMenuItem keepRunning:(bool)keepRunning suppressWindow:(bool)suppressWindow {
     self = [super init];
     if (self) {
         _forceOpenWindow = forceOpenWindow;
         _showMenuItem = showMenuItem;
         _keepRunning = keepRunning;
+        _suppressWindow = suppressWindow;
         _receivedURL = false;
     }
     return self;
@@ -57,8 +58,9 @@ static const double kWindowAutoOpenDelaySeconds = 0.2;
             [self createStatusItem];
         }
 
-        // Open the window only if we didn't end up receiving a URL to handle.
-        QueueWindowDisplay(!self.receivedURL);
+        // Open the window only if we didn't end up receiving a URL to handle,
+        // unless the user opted out of the automatic window entirely.
+        QueueWindowDisplay(!self.receivedURL && !self.suppressWindow);
     });
 }
 
@@ -275,12 +277,12 @@ static const double kWindowAutoOpenDelaySeconds = 0.2;
 
 @end
 
-void RunApp(bool forceOpenWindow, bool showStatusItem, bool keepRunning) {
+void RunApp(bool forceOpenWindow, bool showStatusItem, bool keepRunning, bool suppressWindow) {
     @autoreleasepool {
         // Initialize on the main thread directly, not async
         [NSApplication sharedApplication];
 
-        BrowseAppDelegate *app = [[BrowseAppDelegate alloc] initWithForceOpenWindow:forceOpenWindow initShow:showStatusItem keepRunning:keepRunning];
+        BrowseAppDelegate *app = [[BrowseAppDelegate alloc] initWithForceOpenWindow:forceOpenWindow initShow:showStatusItem keepRunning:keepRunning suppressWindow:suppressWindow];
         [NSApp setDelegate:app];
 
         [NSApp finishLaunching];

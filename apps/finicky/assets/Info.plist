@@ -17,9 +17,9 @@
     <key>CFBundlePackageType</key>
     <string>APPL</string>
     <key>CFBundleShortVersionString</key>
-    <string>4.4.0-alpha</string>
+    <string>4.4.0-alpha+suppress-window</string>
     <key>CFBundleVersion</key>
-    <string>4.4.0-alpha</string>
+    <string>4.4.0-alpha+suppress-window</string>
     <key>CFBundleIconFile</key>
     <string>finicky.icns</string>
     <key>LSUIElement</key>
