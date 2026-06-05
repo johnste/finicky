@@ -449,7 +449,7 @@ func setupVM(cfw *config.ConfigFileWatcher, namespace string) (*config.VM, error
 			slog.Warn("Failed to load rules file", "error", rulesErr)
 		} else {
 			resolver.SetCachedRules(rf)
-			if rf.DefaultBrowser != "" || len(rf.Rules) > 0 {
+			if rf.DefaultBrowser != "" || len(rf.Rules) > 0 || rf.Options != nil {
 				script, scriptErr := rules.ToJSConfigScript(rf, namespace)
 				if scriptErr != nil {
 					return nil, fmt.Errorf("failed to generate config from rules: %v", scriptErr)
