@@ -147,6 +147,25 @@ func LaunchBrowser(config BrowserConfig, dryRun bool, openInBackgroundByDefault 
 	return nil
 }
 
+// findBrowserInfo locates a browser in browsers.json by bundle ID, app name, or
+// an app bundle path (e.g. "/Applications/Firefox.app"). For a path, the
+// basename without the ".app" suffix is matched against the app name, so profile
+// detection works for configs that specify the browser by path (appType
+// "path"), not just by bundle ID or app name.
+func findBrowserInfo(browsersJson []browserInfo, identifier string) *browserInfo {
+	base := identifier
+	if strings.HasSuffix(base, ".app") {
+		base = strings.TrimSuffix(filepath.Base(base), ".app")
+	}
+	for i := range browsersJson {
+		b := &browsersJson[i]
+		if b.ID == identifier || b.AppName == identifier || (base != "" && b.AppName == base) {
+			return b
+		}
+	}
+	return nil
+}
+
 func resolveBrowserProfileArgs(identifier string, profile string) ([]string, bool) {
 	var browsersJson []browserInfo
 	if err := json.Unmarshal(browsersJsonData, &browsersJson); err != nil {
@@ -154,15 +173,7 @@ func resolveBrowserProfileArgs(identifier string, profile string) ([]string, boo
 		return nil, false
 	}
 
-	// Try to find matching browser by bundle ID
-	var matchedBrowser *browserInfo
-	for _, browser := range browsersJson {
-		if browser.ID == identifier || browser.AppName == identifier {
-			matchedBrowser = &browser
-			break
-		}
-	}
-
+	matchedBrowser := findBrowserInfo(browsersJson, identifier)
 	if matchedBrowser == nil {
 		return nil, false
 	}
@@ -347,14 +358,7 @@ func GetProfilesForBrowser(identifier string) []string {
 		return []string{}
 	}
 
-	var matchedBrowser *browserInfo
-	for i := range browsersJson {
-		if browsersJson[i].ID == identifier || browsersJson[i].AppName == identifier {
-			matchedBrowser = &browsersJson[i]
-			break
-		}
-	}
-
+	matchedBrowser := findBrowserInfo(browsersJson, identifier)
 	if matchedBrowser == nil {
 		return []string{}
 	}

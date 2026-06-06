@@ -89,6 +89,9 @@ else
     APP_NAME="Finicky.app"
     # Rename arch build to plain Finicky.app
     build_arch arm64
+    # Remove any stale bundle first; otherwise mv nests the new build inside it
+    # and (with set -e) aborts before installing, silently leaving the old app.
+    rm -rf apps/finicky/build/${APP_NAME}
     mv apps/finicky/build/Finicky-arm64.app apps/finicky/build/${APP_NAME}
     copy_assets ${APP_NAME}
 
