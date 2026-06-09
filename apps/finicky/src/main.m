@@ -15,12 +15,13 @@
 
 @implementation BrowseAppDelegate
 
-- (instancetype)initWithForceOpenWindow:(bool)forceOpenWindow initShow:(bool)showMenuItem keepRunning:(bool)keepRunning {
+- (instancetype)initWithForceOpenWindow:(bool)forceOpenWindow initShow:(bool)showMenuItem keepRunning:(bool)keepRunning hideWindowOnStart:(bool)hideWindowOnStart {
     self = [super init];
     if (self) {
         _forceOpenWindow = forceOpenWindow;
         _showMenuItem = showMenuItem;
         _keepRunning = keepRunning;
+        _hideWindowOnStart = hideWindowOnStart;
         _receivedURL = false;
     }
     return self;
@@ -32,8 +33,9 @@
 
     bool openWindow = self.forceOpenWindow;
     if (!openWindow) {
-        // Even if we aren't forcing the window to open, we still want to open it if didn't receive a URL
-        openWindow = !self.receivedURL;
+        // Open the window on launch unless we received a URL to handle, or the
+        // user opted out of the automatic launch window via hideWindowOnStart.
+        openWindow = !self.receivedURL && !self.hideWindowOnStart;
     }
 
     // Only show menu item if the option is enabled, and we either didn't receive a URL or we are keeping
@@ -259,12 +261,12 @@
 
 @end
 
-void RunApp(bool forceOpenWindow, bool showStatusItem, bool keepRunning) {
+void RunApp(bool forceOpenWindow, bool showStatusItem, bool keepRunning, bool hideWindowOnStart) {
     @autoreleasepool {
         // Initialize on the main thread directly, not async
         [NSApplication sharedApplication];
 
-        BrowseAppDelegate *app = [[BrowseAppDelegate alloc] initWithForceOpenWindow:forceOpenWindow initShow:showStatusItem keepRunning:keepRunning];
+        BrowseAppDelegate *app = [[BrowseAppDelegate alloc] initWithForceOpenWindow:forceOpenWindow initShow:showStatusItem keepRunning:keepRunning hideWindowOnStart:hideWindowOnStart];
         [NSApp setDelegate:app];
 
         [NSApp finishLaunching];

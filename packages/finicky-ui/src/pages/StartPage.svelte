@@ -30,6 +30,7 @@
   // Local editable state, seeded from rules.json overrides then JS config then defaults
   let keepRunning = rulesFile.options?.keepRunning ?? config.options?.keepRunning ?? true;
   let hideIcon = rulesFile.options?.hideIcon ?? config.options?.hideIcon ?? false;
+  let hideWindowOnStart = rulesFile.options?.hideWindowOnStart ?? config.options?.hideWindowOnStart ?? false;
   let logRequests = rulesFile.options?.logRequests ?? config.options?.logRequests ?? false;
   let checkForUpdates = rulesFile.options?.checkForUpdates ?? config.options?.checkForUpdates ?? true;
 
@@ -45,6 +46,7 @@
   $: {
     keepRunning = rulesFile.options?.keepRunning ?? config.options?.keepRunning ?? true;
     hideIcon = rulesFile.options?.hideIcon ?? config.options?.hideIcon ?? false;
+    hideWindowOnStart = rulesFile.options?.hideWindowOnStart ?? config.options?.hideWindowOnStart ?? false;
     logRequests = rulesFile.options?.logRequests ?? config.options?.logRequests ?? false;
     checkForUpdates = rulesFile.options?.checkForUpdates ?? config.options?.checkForUpdates ?? true;
     defaultBrowser = isJSConfig ? (config.defaultBrowser ?? "") : (rulesFile.defaultBrowser || SAFARI);
@@ -64,7 +66,7 @@
         ...rulesFile,
         defaultBrowser,
         defaultProfile,
-        options: { keepRunning, hideIcon, logRequests, checkForUpdates },
+        options: { keepRunning, hideIcon, hideWindowOnStart, logRequests, checkForUpdates },
       },
     });
   }
@@ -79,7 +81,7 @@
           ...rulesFile,
           defaultBrowser,
           defaultProfile,
-          options: { keepRunning, hideIcon, logRequests, checkForUpdates },
+          options: { keepRunning, hideIcon, hideWindowOnStart, logRequests, checkForUpdates },
         },
       });
     }, SAVE_DEBOUNCE);
@@ -160,6 +162,14 @@
         label="Hide icon"
         hint="Hide menu bar icon"
         bind:checked={hideIcon}
+        locked={isJSConfig}
+        onLockedClick={onLockedClick}
+        onchange={scheduleSave}
+      />
+      <OptionRow
+        label="Hide window on start"
+        hint="Don't open the window when Finicky starts"
+        bind:checked={hideWindowOnStart}
         locked={isJSConfig}
         onLockedClick={onLockedClick}
         onchange={scheduleSave}

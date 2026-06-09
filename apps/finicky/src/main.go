@@ -249,10 +249,13 @@ func main() {
 	}()
 
 	shouldHideIcon := false
+	hideWindowOnStart := false
 	if vm != nil {
-		shouldHideIcon = vm.GetAllConfigOptions().HideIcon
+		opts := vm.GetAllConfigOptions()
+		shouldHideIcon = opts.HideIcon
+		hideWindowOnStart = opts.HideWindowOnStart
 	}
-	C.RunApp(C.bool(forceWindowOpen), C.bool(!shouldHideIcon), C.bool(shouldKeepRunning))
+	C.RunApp(C.bool(forceWindowOpen), C.bool(!shouldHideIcon), C.bool(shouldKeepRunning), C.bool(hideWindowOnStart))
 }
 
 func handleRuntimeError(err error) {
@@ -446,7 +449,7 @@ func setupVM(cfw *config.ConfigFileWatcher, namespace string) (*config.VM, error
 			slog.Warn("Failed to load rules file", "error", rulesErr)
 		} else {
 			resolver.SetCachedRules(rf)
-			if rf.DefaultBrowser != "" || len(rf.Rules) > 0 {
+			if rf.DefaultBrowser != "" || len(rf.Rules) > 0 || rf.Options != nil {
 				script, scriptErr := rules.ToJSConfigScript(rf, namespace)
 				if scriptErr != nil {
 					return nil, fmt.Errorf("failed to generate config from rules: %v", scriptErr)
@@ -484,10 +487,11 @@ func setupVM(cfw *config.ConfigFileWatcher, namespace string) (*config.VM, error
 		"configPath":     util.ShortenPath(configInfo.ConfigPath),
 		"isJSConfig":     newVM.IsJSConfig(),
 		"options": map[string]interface{}{
-			"keepRunning":     opts.KeepRunning,
-			"hideIcon":        opts.HideIcon,
-			"logRequests":     opts.LogRequests,
-			"checkForUpdates": opts.CheckForUpdates,
+			"keepRunning":       opts.KeepRunning,
+			"hideIcon":          opts.HideIcon,
+			"hideWindowOnStart": opts.HideWindowOnStart,
+			"logRequests":       opts.LogRequests,
+			"checkForUpdates":   opts.CheckForUpdates,
 		},
 	})
 

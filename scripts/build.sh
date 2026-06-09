@@ -62,6 +62,13 @@ build_arch() {
         -o ../build/${APP_NAME}/Contents/MacOS/Finicky
 }
 
+# Remove stale .app bundles from previous builds. Without this, a second local
+# build fails because `mv Finicky-arm64.app Finicky.app` nests the new bundle
+# inside the existing Finicky.app directory instead of replacing it.
+rm -rf apps/finicky/build/Finicky.app \
+       apps/finicky/build/Finicky-arm64.app \
+       apps/finicky/build/Finicky-amd64.app
+
 if [ "${BUILD_UNIVERSAL:-0}" = "1" ]; then
     build_arch arm64
     build_arch amd64

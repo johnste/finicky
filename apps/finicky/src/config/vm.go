@@ -17,10 +17,11 @@ type VM struct {
 
 // ConfigOptions holds the values of all runtime config options.
 type ConfigOptions struct {
-	KeepRunning     bool
-	HideIcon        bool
-	LogRequests     bool
-	CheckForUpdates bool
+	KeepRunning       bool
+	HideIcon          bool
+	HideWindowOnStart bool
+	LogRequests       bool
+	CheckForUpdates   bool
 }
 
 // ConfigState represents the current state of the configuration
@@ -154,19 +155,21 @@ func (vm *VM) SetIsJSConfig(v bool) {
 // Safe to call on a nil VM — returns defaults in that case.
 func (vm *VM) GetAllConfigOptions() ConfigOptions {
 	defaults := ConfigOptions{
-		KeepRunning:     true,
-		HideIcon:        false,
-		LogRequests:     false,
-		CheckForUpdates: true,
+		KeepRunning:       true,
+		HideIcon:          false,
+		HideWindowOnStart: false,
+		LogRequests:       false,
+		CheckForUpdates:   true,
 	}
 	if vm == nil || vm.runtime == nil {
 		return defaults
 	}
 	script := `({
-		keepRunning:     finickyConfigAPI.getOption('keepRunning',     finalConfig, true),
-		hideIcon:        finickyConfigAPI.getOption('hideIcon',        finalConfig, false),
-		logRequests:     finickyConfigAPI.getOption('logRequests',     finalConfig, false),
-		checkForUpdates: finickyConfigAPI.getOption('checkForUpdates', finalConfig, true)
+		keepRunning:       finickyConfigAPI.getOption('keepRunning',       finalConfig, true),
+		hideIcon:          finickyConfigAPI.getOption('hideIcon',          finalConfig, false),
+		hideWindowOnStart: finickyConfigAPI.getOption('hideWindowOnStart', finalConfig, false),
+		logRequests:       finickyConfigAPI.getOption('logRequests',       finalConfig, false),
+		checkForUpdates:   finickyConfigAPI.getOption('checkForUpdates',   finalConfig, true)
 	})`
 	val, err := vm.runtime.RunString(script)
 	if err != nil {
@@ -175,10 +178,11 @@ func (vm *VM) GetAllConfigOptions() ConfigOptions {
 	}
 	obj := val.ToObject(vm.runtime)
 	return ConfigOptions{
-		KeepRunning:     obj.Get("keepRunning").ToBoolean(),
-		HideIcon:        obj.Get("hideIcon").ToBoolean(),
-		LogRequests:     obj.Get("logRequests").ToBoolean(),
-		CheckForUpdates: obj.Get("checkForUpdates").ToBoolean(),
+		KeepRunning:       obj.Get("keepRunning").ToBoolean(),
+		HideIcon:          obj.Get("hideIcon").ToBoolean(),
+		HideWindowOnStart: obj.Get("hideWindowOnStart").ToBoolean(),
+		LogRequests:       obj.Get("logRequests").ToBoolean(),
+		CheckForUpdates:   obj.Get("checkForUpdates").ToBoolean(),
 	}
 }
 

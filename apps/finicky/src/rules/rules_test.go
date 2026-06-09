@@ -124,6 +124,24 @@ func TestToJSConfigScript_NamespaceIsUsed(t *testing.T) {
 	}
 }
 
+// A rules file with only an options block (no defaultBrowser or rules) must
+// still emit those options so flags like hideWindowOnStart take effect at
+// startup, falling back to the default browser.
+func TestToJSConfigScript_OptionsOnly(t *testing.T) {
+	hide := true
+	rf := RulesFile{Options: &Options{HideWindowOnStart: &hide}}
+	script, err := ToJSConfigScript(rf, "finickyConfig")
+	if err != nil {
+		t.Fatal(err)
+	}
+	if !contains(script, `"hideWindowOnStart":true`) {
+		t.Errorf("expected hideWindowOnStart option in script, got: %s", script)
+	}
+	if !contains(script, "com.apple.Safari") {
+		t.Errorf("expected fallback default browser in script, got: %s", script)
+	}
+}
+
 // ---- Load / Save round-trip ----
 
 func TestLoadSave_RoundTrip(t *testing.T) {

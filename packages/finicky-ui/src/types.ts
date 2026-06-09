@@ -7,6 +7,7 @@ export interface Rule {
 export interface ConfigOptions {
   keepRunning: boolean;
   hideIcon: boolean;
+  hideWindowOnStart: boolean;
   logRequests: boolean;
   checkForUpdates: boolean;
 }
