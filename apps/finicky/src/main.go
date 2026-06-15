@@ -215,6 +215,9 @@ func main() {
 				vm, setupErr = setupVM(cfw, namespace)
 				if setupErr != nil {
 					handleRuntimeError(setupErr)
+				} else {
+					lastError = nil
+					C.SetStatusItemError(false)
 				}
 				slog.Debug("VM refresh complete", "duration", fmt.Sprintf("%.2fms", float64(time.Since(startTime).Microseconds())/1000))
 				if vm != nil {
@@ -258,7 +261,7 @@ func main() {
 func handleRuntimeError(err error) {
 	slog.Error("Failed evaluating url", "error", err)
 	lastError = err
-	go QueueWindowDisplay(1)
+	C.SetStatusItemError(true)
 }
 
 //export HandleURL
@@ -326,7 +329,7 @@ func TestURLInternal(urlString string) {
 func handleFatalError(errorMessage string) {
 	slog.Error("Fatal error", "msg", errorMessage)
 	lastError = fmt.Errorf("%s", errorMessage)
-	forceWindowOpen = true
+	C.SetStatusItemError(true)
 }
 
 //export QueueWindowDisplay

@@ -31,10 +31,6 @@
     [self terminateOtherInstances];
 
     bool openWindow = self.forceOpenWindow;
-    if (!openWindow) {
-        // Even if we aren't forcing the window to open, we still want to open it if didn't receive a URL
-        openWindow = !self.receivedURL;
-    }
 
     // Only show menu item if the option is enabled, and we either didn't receive a URL or we are keeping
     // the application running. We don't want to show the icon if Finicky is just receiving a url to open
@@ -134,6 +130,93 @@
 
     [menu addItemWithTitle:@"Quit" action:@selector(terminate:) keyEquivalent:@"q"];
     self.statusItem.menu = menu;
+}
+
+- (void)setErrorState:(bool)hasError {
+    if (!self.statusItem) return;
+
+    NSString *iconPath = [[NSBundle mainBundle] pathForResource:@"menu-bar" ofType:@"icns"];
+    NSImage *baseIcon = [[NSBundle mainBundle] imageForResource:@"menu-bar"];
+    if (!baseIcon) {
+        // Fallback if imageForResource fails
+        baseIcon = [[NSImage alloc] initWithContentsOfFile:iconPath];
+    }
+    if (!baseIcon) return;
+    baseIcon.size = NSMakeSize(18, 18);
+
+    if (!hasError) {
+        // Normal state: Pure template icon (automatically flips black/white)
+        baseIcon.template = YES;
+        self.statusItem.button.image = baseIcon;
+        return;
+    }
+
+    // Error state: Dynamic faded icon + SF Symbol warning triangle
+    NSImage *badged = [NSImage imageWithSize:NSMakeSize(18, 18) flipped:NO drawingHandler:^BOOL(NSRect dstRect) {
+
+        // 1. Determine current menu bar theme
+        BOOL isDarkMode = NO;
+        if (@available(macOS 10.14, *)) {
+            NSAppearanceName bestMatch = [NSApp.effectiveAppearance bestMatchFromAppearancesWithNames:@[NSAppearanceNameDarkAqua, NSAppearanceNameAqua]];
+            isDarkMode = [bestMatch isEqualToString:NSAppearanceNameDarkAqua];
+        }
+
+        // 2. Prepare and tint your base hand icon
+        NSImage *tintedIcon = [baseIcon copy];
+        [tintedIcon lockFocus];
+        if (isDarkMode) {
+            [[NSColor whiteColor] set];
+        } else {
+            [[NSColor controlTextColor] set];
+        }
+        NSRectFillUsingOperation(NSMakeRect(0, 0, 18, 18), NSCompositingOperationSourceAtop);
+        [tintedIcon unlockFocus];
+
+        // Draw your hand icon faded out (40% opacity / 0.4 alpha)
+        [tintedIcon drawInRect:dstRect fromRect:NSZeroRect operation:NSCompositingOperationSourceOver fraction:0.4];
+
+        // 3. Load a crisp vector warning triangle using SF Symbols (macOS 11.0+)
+        NSImage *warningTriangle = nil;
+        if (@available(macOS 11.0, *)) {
+            warningTriangle = [NSImage imageWithSystemSymbolName:@"exclamationmark.triangle.fill" accessibilityDescription:@"Error"];
+        }
+
+        // Define badge placement (bottom-right corner makes the hand's pointer finger stay visible)
+        CGFloat badgeSize = 13.0;
+        NSRect badgeRect = NSMakeRect(18 - badgeSize, 0, badgeSize, badgeSize);
+
+        if (warningTriangle) {
+            // Tint the SF Symbol warning triangle to vibrant system red
+            NSImage *redTriangle = [warningTriangle copy];
+            [redTriangle lockFocus];
+            [[NSColor systemRedColor] set];
+            NSRectFillUsingOperation(NSMakeRect(0, 0, warningTriangle.size.width, warningTriangle.size.height), NSCompositingOperationSourceAtop);
+            [redTriangle unlockFocus];
+
+            // Draw a tiny dark/light mask cutout behind the triangle so it pops off the faded hand
+            NSBezierPath *cutout = [NSBezierPath bezierPathWithOvalInRect:NSInsetRect(badgeRect, 1.0, 1.0)];
+            if (isDarkMode) {
+                [[NSColor colorWithWhite:0.12 alpha:1.0] setFill]; // Matches dark menu bar background
+            } else {
+                [[NSColor whiteColor] setFill];
+            }
+            [cutout fill];
+
+            [redTriangle drawInRect:badgeRect];
+        } else {
+            // Fallback for older macOS versions: Draw a crisp vector red dot if SF Symbols aren't available
+            NSBezierPath *dot = [NSBezierPath bezierPathWithOvalInRect:badgeRect];
+            [[NSColor systemRedColor] setFill];
+            [dot fill];
+        }
+
+        return YES;
+    }];
+
+    // Tell macOS to preserve our exact custom drawing pipeline
+    badged.template = NO;
+
+    self.statusItem.button.image = badged;
 }
 
 // Menu action to show the main window
@@ -270,4 +353,11 @@ void RunApp(bool forceOpenWindow, bool showStatusItem, bool keepRunning) {
         [NSApp finishLaunching];
         [NSApp run];
     }
+}
+
+void SetStatusItemError(bool hasError) {
+    dispatch_async(dispatch_get_main_queue(), ^{
+        BrowseAppDelegate *app = (BrowseAppDelegate *)[NSApp delegate];
+        [app setErrorState:hasError];
+    });
 }

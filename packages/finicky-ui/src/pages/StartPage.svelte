@@ -91,7 +91,7 @@
 
 </script>
 
-<PageContainer title={hasConfig ? "Configuration" : "No Configuration Found"}>
+<PageContainer title={hasConfig ? "Configuration" : "No Valid Configuration Found"}>
   {#if hasConfig}
     {#snippet description()}Current settings from your configuration file{/snippet}
   {/if}
@@ -187,7 +187,7 @@
     <div class="status-card error">
       <h3>Errors</h3>
       <p>
-        Finicky found {numErrors} errors while evaluating your configuration.
+        {numErrors} errors encountered.
       </p>
       <Link to="/troubleshoot">Troubleshooting</Link>
     </div>
