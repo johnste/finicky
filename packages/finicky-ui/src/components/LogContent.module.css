@@ -1,0 +1,57 @@
+.logContent {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  overflow-y: auto;
+  font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+  line-height: 1.5;
+  color: var(--text-primary);
+  flex: 1;
+  overflow: auto;
+}
+
+.logEntry {
+  display: flex;
+  justify-content: flex-start;
+  gap: 1em;
+  margin-bottom: 8px;
+  align-items: flex-start;
+}
+
+.logTime {
+  color: var(--text-secondary);
+  white-space: nowrap;
+  font-size: 0.85em;
+  opacity: 0.8;
+}
+
+.logMessage {
+  flex-grow: 1;
+  white-space: pre-wrap;
+  word-break: break-word;
+  font-size: 0.95em;
+}
+
+.logMessage a {
+  color: inherit;
+  text-decoration: underline;
+  text-decoration-style: dotted;
+  opacity: 0.9;
+}
+
+.logMessage a:hover {
+  text-decoration-style: solid;
+  opacity: 1;
+}
+
+.logLevelError {
+  color: var(--log-error);
+}
+
+.logLevelWarn {
+  color: var(--log-warning);
+}
+
+.logLevelDebug {
+  color: var(--log-debug);
+}

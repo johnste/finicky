@@ -19,13 +19,11 @@ var file *os.File
 type windowWriter struct{}
 
 func (w *windowWriter) Write(p []byte) (n int, err error) {
-	// Remove trailing newline if present
-	msg := string(p)
-	if len(msg) > 0 && msg[len(msg)-1] == '\n' {
-		msg = msg[:len(msg)-1]
+	payload := p
+	if len(payload) > 0 && payload[len(payload)-1] == '\n' {
+		payload = payload[:len(payload)-1]
 	}
-
-	window.SendMessageToWebView("log", msg)
+	window.BroadcastSSERaw("log", payload)
 	return len(p), nil
 }
 
