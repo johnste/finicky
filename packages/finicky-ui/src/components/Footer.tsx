@@ -26,7 +26,7 @@ export function Footer() {
           {hasConfig && (
             <button
               className={styles.configBadge}
-              onClick={() => showPathToast(basename(config.configPath), "Configuration loaded from\n${config.configPath}")}
+              onClick={() => showPathToast(basename(config.configPath), `Configuration loaded from\n${config.configPath}`)}
             >
               ✓ {basename(config.configPath)}
             </button>
@@ -34,7 +34,7 @@ export function Footer() {
           {rulesFile.path && rulesFile.path !== config.configPath && (
             <button
               className={styles.configBadge}
-              onClick={() => showPathToast(basename(rulesFile.path!), "Configuration loaded from\n${rulesFile.path}")}
+              onClick={() => showPathToast(basename(rulesFile.path!), `Configuration loaded from\n${rulesFile.path}`)}
             >
               ✓ {basename(rulesFile.path)}
             </button>

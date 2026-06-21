@@ -8,20 +8,23 @@ export function useRulesSave(rulesFile: RulesFile, getRules: () => Rule[], delay
   const isPending = useRef(false);
 
   const debounced = useDebouncedCallback(async () => {
-    isPending.current = false;
     try {
       const updated = await api.saveRules({
-        defaultBrowser: rulesFile.defaultBrowser,
-        defaultProfile: rulesFile.defaultProfile,
+        ...rulesFile,
         rules: getRules(),
       });
       appStore.update({ rulesFile: updated as any });
-    } catch {}
+    } catch {} finally {
+      isPending.current = false;
+    }
   }, delay);
 
   return {
     isPending,
-    save() { debounced.flush(); },
+    save() {
+      isPending.current = true;
+      debounced.flush();
+    },
     scheduleSave() {
       isPending.current = true;
       debounced.schedule();

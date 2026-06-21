@@ -74,3 +74,8 @@ func CloseWindow() {
 func GetAPIPort() C.int {
 	return C.int(apiPort)
 }
+
+//export GetAPIToken
+func GetAPIToken() *C.char {
+	return C.CString(apiToken)
+}

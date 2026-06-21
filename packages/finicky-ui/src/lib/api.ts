@@ -13,12 +13,31 @@ const BASE_URL: string = (() => {
   );
 })();
 
+// The native app injects a per-process secret into the WebView so the local
+// REST/SSE API can reject requests from anything else (e.g. a website
+// scanning localhost ports). Dev builds can pass the same token as a query
+// param when pointed at a real running instance via VITE_API_URL.
+const API_TOKEN: string = (() => {
+  const token = new URLSearchParams(window.location.search).get("apiToken");
+  if (token) {
+    localStorage.setItem("devApiToken", token);
+    return token;
+  }
+  return (
+    (window as any).__FINICKY_API_TOKEN__ ??
+    localStorage.getItem("devApiToken") ??
+    ""
+  );
+})();
+
 function base(): string {
   return BASE_URL;
 }
 
 async function get<T>(path: string): Promise<T> {
-  const res = await fetch(`${base()}${path}`);
+  const res = await fetch(`${base()}${path}`, {
+    headers: { "X-Finicky-Token": API_TOKEN },
+  });
   if (!res.ok) throw new Error(`GET ${path} failed: ${res.status}`);
   return res.json();
 }
@@ -26,7 +45,10 @@ async function get<T>(path: string): Promise<T> {
 async function post<T>(path: string, body: unknown): Promise<T> {
   const res = await fetch(`${base()}${path}`, {
     method: "POST",
-    headers: { "Content-Type": "application/json" },
+    headers: {
+      "Content-Type": "application/json",
+      "X-Finicky-Token": API_TOKEN,
+    },
     body: JSON.stringify(body),
   });
   if (!res.ok) throw new Error(await res.text());
@@ -41,5 +63,5 @@ export const api = {
   getBrowserProfiles: (browser: string) =>
     get<string[]>(`/browser-profiles?browser=${encodeURIComponent(browser)}`),
   testUrl: (url: string) => post<unknown>("/test-url", { url }),
-  eventsUrl: () => `${base()}/events`,
+  eventsUrl: () => `${base()}/events?token=${encodeURIComponent(API_TOKEN)}`,
 };

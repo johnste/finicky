@@ -45,7 +45,7 @@ export interface LogEntry {
 export interface TestUrlResult {
   browser: string;
   url: string;
-  openInBackground: boolean;
+  openInBackground?: boolean;
   profile?: string;
 }
 

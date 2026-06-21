@@ -141,7 +141,7 @@ export function BrowserProfileSelector({
         onClear={() => onChange({ browser: "", profile: "" }, { browser: false, profile: false }, true)}
         onBlur={() => onChange({ browser, profile }, custom, true)}
       />
-      {!custom.browser && browser && profileOptions.length > 0 && (
+      {!custom.browser && browser && (profileOptions.length > 0 || custom.profile) && (
         <ProfileField
           profile={profile}
           isProfileCustom={custom.profile}
