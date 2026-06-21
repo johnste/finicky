@@ -51,7 +51,7 @@ function createToastStore() {
       if (existing.timeoutId) clearTimeout(existing.timeoutId);
       const timeoutId = setTimeout(() => remove(existing.id), duration) as unknown as number;
       toasts = toasts.map((t) =>
-        t.id === existing.id ? { ...t, duration, timeoutId, key: Date.now() } : t
+        t.id === existing.id ? { ...t, extra, duration, timeoutId, key: Date.now() } : t
       );
       notify();
       return existing.id;

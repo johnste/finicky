@@ -1,6 +1,9 @@
 package window
 
 import (
+	"crypto/rand"
+	"crypto/subtle"
+	"encoding/hex"
 	"encoding/json"
 	"finicky/browser"
 	"finicky/rules"
@@ -15,12 +18,29 @@ import (
 
 var (
 	apiPort           int
+	apiToken          string
 	hub               = newSSEHub()
 	GetVersionFunc    func() string
 	GetConfigFunc     func() interface{}
 	GetUpdateInfoFunc func() interface{}
 	TestURLFunc       func(url string) (interface{}, error)
 )
+
+// trustedOrigin is the Origin header sent by the WebView. Pages loaded via a
+// custom, non-special URL scheme (see "finicky-assets://" in window.m) get an
+// opaque origin per the URL living standard, which browsers serialize as the
+// literal string "null". A regular website navigated to in a browser always
+// has a real http(s) origin, so restricting CORS to this value keeps other
+// sites from reading responses from this loopback API.
+const trustedOrigin = "null"
+
+func init() {
+	b := make([]byte, 32)
+	if _, err := rand.Read(b); err != nil {
+		panic(fmt.Sprintf("failed to generate API token: %v", err))
+	}
+	apiToken = hex.EncodeToString(b)
+}
 
 type sseHub struct {
 	mu      sync.Mutex
@@ -93,17 +113,42 @@ func StartAPIServer() error {
 	mux.HandleFunc("POST /api/test-url", handleTestURLHTTP)
 	mux.HandleFunc("GET /api/events", handleSSE)
 
-	go http.Serve(ln, corsMiddleware(mux)) //nolint:errcheck
+	go http.Serve(ln, corsMiddleware(authMiddleware(mux))) //nolint:errcheck
 	return nil
 }
 
 func corsMiddleware(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		w.Header().Set("Access-Control-Allow-Origin", "*")
-		w.Header().Set("Access-Control-Allow-Methods", "GET, POST, OPTIONS")
-		w.Header().Set("Access-Control-Allow-Headers", "Content-Type")
+		if r.Header.Get("Origin") == trustedOrigin {
+			w.Header().Set("Access-Control-Allow-Origin", trustedOrigin)
+			w.Header().Set("Access-Control-Allow-Methods", "GET, POST, OPTIONS")
+			w.Header().Set("Access-Control-Allow-Headers", "Content-Type, X-Finicky-Token")
+		}
 		if r.Method == http.MethodOptions {
 			w.WriteHeader(http.StatusNoContent)
+			return
+		}
+		next.ServeHTTP(w, r)
+	})
+}
+
+// authMiddleware requires the per-process API token on every request, via
+// either the X-Finicky-Token header (used by fetch) or a "token" query
+// parameter (used by EventSource, which cannot set custom headers). This
+// keeps the loopback API from being usable by anything that doesn't have the
+// token the native app injected into the WebView, regardless of origin.
+func authMiddleware(next http.Handler) http.Handler {
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		if r.Method == http.MethodOptions {
+			next.ServeHTTP(w, r)
+			return
+		}
+		token := r.Header.Get("X-Finicky-Token")
+		if token == "" {
+			token = r.URL.Query().Get("token")
+		}
+		if token == "" || subtle.ConstantTimeCompare([]byte(token), []byte(apiToken)) != 1 {
+			http.Error(w, "unauthorized", http.StatusUnauthorized)
 			return
 		}
 		next.ServeHTTP(w, r)
@@ -152,8 +197,10 @@ func handleSaveRulesHTTP(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	slog.Debug("Rules saved", "count", len(rf.Rules))
+	// Apply synchronously so a follow-up request (e.g. /api/test-url) is
+	// guaranteed to see the rebuilt VM rather than racing with it.
 	if SaveRulesHandler != nil {
-		go SaveRulesHandler(rf)
+		SaveRulesHandler(rf)
 	}
 	writeJSON(w, getRulesData())
 }

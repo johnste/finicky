@@ -76,10 +76,18 @@ void SetFileContentWithLength(const char* path, const char* content, size_t leng
     WKWebViewConfiguration *config = [[WKWebViewConfiguration alloc] init];
     [config setURLSchemeHandler:self forURLScheme:@"finicky-assets"];
 
-    // Inject the API base URL so the UI can reach the local HTTP server.
+    // Inject the API base URL and per-process auth token so the UI can reach
+    // the local HTTP server. The token must be freed since it crosses the
+    // CGo boundary as a copy (see GetAPIToken in window.go).
     extern int GetAPIPort(void);
+    extern char* GetAPIToken(void);
     int port = GetAPIPort();
-    NSString *apiScript = [NSString stringWithFormat:@"window.__FINICKY_API__ = 'http://127.0.0.1:%d/api';", port];
+    char* tokenCStr = GetAPIToken();
+    NSString *token = [NSString stringWithUTF8String:tokenCStr];
+    free(tokenCStr);
+    NSString *apiScript = [NSString stringWithFormat:
+        @"window.__FINICKY_API__ = 'http://127.0.0.1:%d/api'; window.__FINICKY_API_TOKEN__ = '%@';",
+        port, token];
     WKUserScript *apiUserScript = [[WKUserScript alloc]
         initWithSource:apiScript
          injectionTime:WKUserScriptInjectionTimeAtDocumentStart

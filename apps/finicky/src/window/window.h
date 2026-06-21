@@ -17,5 +17,6 @@ void SetFileContentWithLength(const char* path, const char* content, size_t leng
 
 extern void WindowDidClose(void);
 extern int GetAPIPort(void);
+extern char* GetAPIToken(void);
 
 #endif /* WINDOW_H */

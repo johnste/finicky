@@ -71,13 +71,15 @@ export function TestUrl() {
       return;
     }
 
-    const loadingTimer = setTimeout(() => setLoading(true), LOADING_DELAY);
+    let loadingTimer: ReturnType<typeof setTimeout> | undefined;
     const debounceTimer = setTimeout(async () => {
+      loadingTimer = setTimeout(() => setLoading(true), LOADING_DELAY - DEBOUNCE_DELAY);
       try {
         setResult((await api.testUrl(normalizeUrl(testUrl))) as TestUrlResult);
       } catch {
         setResult(null);
       } finally {
+        clearTimeout(loadingTimer);
         setLoading(false);
       }
     }, DEBOUNCE_DELAY);

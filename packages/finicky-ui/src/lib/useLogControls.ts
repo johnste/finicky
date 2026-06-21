@@ -27,11 +27,11 @@ export function useLogControls(messageBuffer: LogEntry[]) {
   }
 
   async function copyLogs() {
-    const text = messageBuffer
-      .filter((entry) => showDebug || entry.level.toLowerCase() !== "debug")
-      .map(formatEntry)
-      .join("\n");
     try {
+      const text = messageBuffer
+        .filter((entry) => showDebug || entry.level.toLowerCase() !== "debug")
+        .map(formatEntry)
+        .join("\n");
       await navigator.clipboard.writeText(text);
       toast.success("Logs copied to clipboard");
     } catch (err) {

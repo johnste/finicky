@@ -15,6 +15,7 @@ import { LogsIcon } from "./components/icons/Logs";
 import { AboutIcon } from "./components/icons/About";
 import { api } from "./lib/api";
 import { appStore } from "./lib/appStore";
+import { toast } from "./lib/toast";
 import { useSSE } from "./lib/useSSE";
 import type { TabDef, BottomTabDef } from "./components/TabBar";
 import styles from "./App.module.css";
@@ -34,9 +35,13 @@ export default function App() {
   useSSE();
 
   useEffect(() => {
-    async function load() {
+    let cancelled = false;
+    const MAX_ATTEMPTS = 3;
+
+    async function load(attempt = 0) {
       try {
         const data = await api.initialData();
+        if (cancelled) return;
         appStore.update({
           version: (data.version as string) ?? "v0.0.0",
           installedBrowsers: (data.installedBrowsers as string[]) ?? [],
@@ -44,9 +49,23 @@ export default function App() {
           ...(data.config ? { hasConfig: true, config: data.config as any } : {}),
           ...(data.updateInfo ? { updateInfo: data.updateInfo as any } : {}),
         });
-      } catch {}
+      } catch (err) {
+        if (cancelled) return;
+        if (attempt < MAX_ATTEMPTS) {
+          setTimeout(() => load(attempt + 1), 500 * (attempt + 1));
+        } else {
+          toast.error(
+            "Failed to load configuration",
+            err instanceof Error ? err.message : String(err)
+          );
+        }
+      }
     }
     load();
+
+    return () => {
+      cancelled = true;
+    };
   }, []);
 
   return (

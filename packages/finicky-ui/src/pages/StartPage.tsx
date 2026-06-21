@@ -108,8 +108,10 @@ export function StartPage() {
 
   const pendingRef = useRef({ options, bp, rulesFile });
   pendingRef.current = { options, bp, rulesFile };
+  const isPending = useRef(false);
 
   useEffect(() => {
+    if (isPending.current) return;
     setOptions(resolveOptions(rulesFile, config));
     setBp(initialBp(rulesFile, config, hasJsConfig));
   }, [rulesFile, config, hasJsConfig]);
@@ -119,14 +121,16 @@ export function StartPage() {
     try {
       const updated = await api.saveRules({ ...rulesFile, defaultBrowser: bp.browser, defaultProfile: bp.profile, options });
       appStore.update({ rulesFile: updated as any });
-    } catch {}
+    } catch {} finally {
+      isPending.current = false;
+    }
   }, SAVE_DEBOUNCE);
 
   const defaultBrowserIsCustom = resolveBrowserIsCustom(bp.browserCustom, bp.browser, installedBrowsers);
   const defaultProfileIsCustom = resolveProfileIsCustom(bp.profileCustom, bp.profile, bp.browser, profilesByBrowser);
 
-  function save() { if (!hasJsConfig) saveDebounced.flush(); }
-  function scheduleSave() { if (!hasJsConfig) saveDebounced.schedule(); }
+  function save() { if (!hasJsConfig) { isPending.current = true; saveDebounced.flush(); } }
+  function scheduleSave() { if (!hasJsConfig) { isPending.current = true; saveDebounced.schedule(); } }
 
   function setOption<K extends keyof Options>(key: K, value: Options[K]) {
     setOptions((prev) => ({ ...prev, [key]: value }));
