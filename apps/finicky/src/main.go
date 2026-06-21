@@ -45,10 +45,10 @@ type URLInfo struct {
 }
 
 type ConfigInfo struct {
-	Handlers       int16
-	Rewrites       int16
-	DefaultBrowser string
-	ConfigPath     string
+	Handlers       int16  `json:"handlers"`
+	Rewrites       int16  `json:"rewrites"`
+	DefaultBrowser string `json:"defaultBrowser"`
+	ConfigPath     string `json:"configPath"`
 }
 
 var urlListener chan URLInfo = make(chan URLInfo)
@@ -62,6 +62,7 @@ var dryRun bool = false
 var skipJSConfig bool = false
 var updateInfo UpdateInfo
 var configInfo *ConfigInfo
+var lastConfigPayload map[string]interface{}
 var shouldKeepRunning bool = true
 
 func main() {
@@ -132,9 +133,36 @@ func main() {
 
 	go checkForUpdates()
 
-	// Set up test URL handler
-	window.TestUrlHandler = func(url string) {
-		go TestURLInternal(url)
+	window.TestURLFunc = func(url string) (interface{}, error) {
+		slog.Debug("Testing URL", "url", url)
+		cfg, err := resolver.ResolveURL(vm, url, nil, false)
+		if err != nil {
+			return nil, err
+		}
+		return map[string]interface{}{
+			"url":              cfg.URL,
+			"browser":          cfg.Name,
+			"openInBackground": cfg.OpenInBackground,
+			"profile":          cfg.Profile,
+			"args":             cfg.Args,
+		}, nil
+	}
+
+	window.GetVersionFunc = version.GetCurrentVersion
+
+	window.GetConfigFunc = func() interface{} {
+		return lastConfigPayload
+	}
+
+	window.GetUpdateInfoFunc = func() interface{} {
+		if updateInfo.ReleaseInfo == nil && !updateInfo.UpdateCheckEnabled {
+			return nil
+		}
+		return buildUpdateInfoPayload()
+	}
+
+	if err := window.StartAPIServer(); err != nil {
+		slog.Error("Failed to start API server", "error", err)
 	}
 
 	// Set up rules save handler.
@@ -299,32 +327,6 @@ func HandleURL(url *C.char, name *C.char, bundleId *C.char, path *C.char, window
 	}
 }
 
-//export TestURL
-func TestURL(url *C.char) {
-	urlString := C.GoString(url)
-	TestURLInternal(urlString)
-}
-
-func TestURLInternal(urlString string) {
-	slog.Debug("Testing URL", "url", urlString)
-
-	config, err := resolver.ResolveURL(vm, urlString, nil, false)
-	if err != nil {
-		slog.Error("Failed to evaluate URL", "error", err)
-		window.SendMessageToWebView("testUrlResult", map[string]interface{}{
-			"error": err.Error(),
-		})
-		return
-	}
-
-	window.SendMessageToWebView("testUrlResult", map[string]interface{}{
-		"url":              config.URL,
-		"browser":          config.Name,
-		"openInBackground": config.OpenInBackground,
-		"profile":          config.Profile,
-		"args":             config.Args,
-	})
-}
 
 func handleFatalError(errorMessage string) {
 	slog.Error("Fatal error", "msg", errorMessage)
@@ -341,11 +343,6 @@ func QueueWindowDisplay(openWindow int32) {
 func ShowConfigWindow() {
 	slog.Debug("Showing window")
 	window.ShowWindow()
-
-	// Send version information
-	currentVersion := version.GetCurrentVersion()
-	window.SendMessageToWebView("version", currentVersion)
-
 }
 
 //export WindowDidClose
@@ -383,22 +380,23 @@ func checkForUpdates() {
 		slog.Info("New version is available", "version", updateInfo.ReleaseInfo.LatestVersion)
 	}
 
+	window.BroadcastSSE("updateInfo", buildUpdateInfoPayload())
+}
+
+func buildUpdateInfoPayload() map[string]interface{} {
 	if updateInfo.ReleaseInfo != nil {
-		window.SendMessageToWebView("updateInfo", map[string]interface{}{
+		return map[string]interface{}{
 			"version":            updateInfo.ReleaseInfo.LatestVersion,
 			"hasUpdate":          updateInfo.ReleaseInfo.HasUpdate,
 			"updateCheckEnabled": updateInfo.UpdateCheckEnabled,
 			"downloadUrl":        updateInfo.ReleaseInfo.DownloadUrl,
 			"releaseUrl":         updateInfo.ReleaseInfo.ReleaseUrl,
-		})
-	} else {
-		window.SendMessageToWebView("updateInfo", map[string]interface{}{
-			"version":            "",
-			"hasUpdate":          false,
-			"updateCheckEnabled": updateInfo.UpdateCheckEnabled,
-			"downloadUrl":        "",
-			"releaseUrl":         "",
-		})
+		}
+	}
+	return map[string]interface{}{
+		"version": "", "hasUpdate": false,
+		"updateCheckEnabled": updateInfo.UpdateCheckEnabled,
+		"downloadUrl": "", "releaseUrl": "",
 	}
 }
 
@@ -480,19 +478,20 @@ func setupVM(cfw *config.ConfigFileWatcher, namespace string) (*config.VM, error
 	opts := newVM.GetAllConfigOptions()
 	logRequests = opts.LogRequests
 
-	window.SendMessageToWebView("config", map[string]interface{}{
+	lastConfigPayload = map[string]interface{}{
 		"handlers":       configInfo.Handlers,
 		"rewrites":       configInfo.Rewrites,
 		"defaultBrowser": configInfo.DefaultBrowser,
 		"configPath":     util.ShortenPath(configInfo.ConfigPath),
-		"isJSConfig":     newVM.IsJSConfig(),
+		"hasJsConfig":    newVM.IsJSConfig(),
 		"options": map[string]interface{}{
 			"keepRunning":     opts.KeepRunning,
 			"hideIcon":        opts.HideIcon,
 			"logRequests":     opts.LogRequests,
 			"checkForUpdates": opts.CheckForUpdates,
 		},
-	})
+	}
+	window.BroadcastSSE("config", lastConfigPayload)
 
 	return newVM, nil
 }

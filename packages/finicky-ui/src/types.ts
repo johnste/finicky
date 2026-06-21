@@ -1,3 +1,18 @@
+export interface BrowserProfile {
+  browser: string;
+  profile: string;
+}
+
+export interface BrowserOptions {
+  installed: string[];
+  profiles: Record<string, string[]>;
+}
+
+export interface BrowserProfileCustom {
+  browser: boolean;
+  profile: boolean;
+}
+
 export interface Rule {
   match: string[];
   browser: string;
@@ -24,24 +39,19 @@ export interface LogEntry {
   msg: string;
   time: string;
   error?: string;
-  [key: string]: any; // Allow for additional dynamic fields
+  [key: string]: any;
+}
+
+export interface TestUrlResult {
+  browser: string;
+  url: string;
+  openInBackground: boolean;
+  profile?: string;
 }
 
 declare global {
   interface Window {
-    finicky: {
-      sendMessage: (msg: any) => void;
-      receiveMessage: (msg: any) => void;
-      /** Stub queue populated by the WKUserScript before the Svelte app is ready */
-      _queue?: any[];
-    };
-    webkit?: {
-      messageHandlers?: {
-        finicky?: {
-          postMessage: (msg: string) => void;
-        };
-      };
-    };
+    __FINICKY_API__?: string;
   }
 }
 
@@ -55,7 +65,7 @@ export interface UpdateInfo {
 
 export interface ConfigInfo {
   configPath: string;
-  isJSConfig?: boolean;
+  hasJsConfig?: boolean;
   handlers?: number;
   rewrites?: number;
   defaultBrowser?: string;

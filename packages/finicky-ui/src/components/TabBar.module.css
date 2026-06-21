@@ -1,0 +1,104 @@
+.tabContainer {
+  width: 210px;
+  background: var(--bg-nav);
+  position: sticky;
+  top: 0;
+  z-index: 10;
+  padding: 0.75rem 0.625rem;
+  display: flex;
+  flex: 0 0 auto;
+  flex-direction: column;
+  align-items: stretch;
+  justify-content: flex-start;
+  border-right: 1px solid var(--border-color);
+  height: 100%;
+  box-sizing: border-box;
+}
+
+.tabBar {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  flex: 1;
+  background: transparent;
+  padding: 0;
+  margin: 0;
+}
+
+.tabBar a {
+  text-decoration: none;
+}
+
+.spacer {
+  flex: 1;
+}
+
+.bottomTabs {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  padding-top: 6px;
+  border-top: 1px solid var(--border-color);
+}
+
+.tabContent {
+  user-select: none;
+  padding: 0.6rem 0.875rem;
+  border-radius: 0.5rem;
+  display: flex;
+  align-items: center;
+  flex-direction: row;
+  gap: 10px;
+  color: var(--nav-text);
+  background: transparent;
+  transition: background 0.1s ease;
+  width: 100%;
+  text-align: left;
+  font-size: 0.925em;
+  font-weight: 400;
+}
+
+.tabContent:hover {
+  background: var(--nav-hover);
+}
+
+.tabContent.active {
+  background: var(--nav-active);
+  color: var(--nav-active-text);
+  font-weight: 500;
+}
+
+.tabSmall {
+  font-size: 0.78em;
+  padding: 0.35rem 0.75rem;
+  color: var(--nav-text-secondary);
+}
+
+.tabSmall.active {
+  color: var(--nav-active-text);
+}
+
+.iconContainer {
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: flex-start;
+}
+
+.errorBadge {
+  position: absolute;
+  top: -8px;
+  right: -8px;
+  background: var(--log-error);
+  color: white;
+  border-radius: 50%;
+  min-width: 18px;
+  height: 18px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 12px;
+  font-weight: bold;
+  padding: 0 4px;
+  border: 2px solid var(--bg-nav);
+}
