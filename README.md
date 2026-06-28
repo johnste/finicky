@@ -95,6 +95,8 @@ Finicky has browser extensions for Chrome and Firefox. They add an "open with Fi
 
 See [Building Finicky from source](https://github.com/johnste/finicky/wiki/Building-Finicky-from-source)
 
+For a contributor-oriented overview of the codebase and technical stack, see [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md).
+
 ### Works well with
 
 If you are looking for something that lets you pick the browser to activate in a graphical interface, check out [Browserosaurus](https://browserosaurus.com/) by Will Stone, an open source browser prompter for macOS. It works really well together with Finicky!
