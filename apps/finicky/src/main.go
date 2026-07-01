@@ -25,6 +25,7 @@ import (
 	"os"
 	"runtime"
 	"strings"
+	"sync"
 	"time"
 
 	"github.com/dop251/goja"
@@ -45,10 +46,20 @@ type URLInfo struct {
 }
 
 type ConfigInfo struct {
-	Handlers       int16
-	Rewrites       int16
-	DefaultBrowser string
-	ConfigPath     string
+	Handlers       int16  `json:"handlers"`
+	Rewrites       int16  `json:"rewrites"`
+	DefaultBrowser string `json:"defaultBrowser"`
+	ConfigPath     string `json:"configPath"`
+}
+
+// configPayload is the REST/SSE "config" wire shape. Embedding ConfigInfo
+// and config.ConfigOptions means their fields only need to be named once,
+// in their own tagged struct definitions, instead of being restated as
+// string literal map keys that could silently drift from the struct.
+type configPayload struct {
+	ConfigInfo
+	HasJsConfig bool                 `json:"hasJsConfig"`
+	Options     config.ConfigOptions `json:"options"`
 }
 
 var urlListener chan URLInfo = make(chan URLInfo)
@@ -62,7 +73,94 @@ var dryRun bool = false
 var skipJSConfig bool = false
 var updateInfo UpdateInfo
 var configInfo *ConfigInfo
+var lastConfigPayload interface{}
 var shouldKeepRunning bool = true
+
+// stateMu guards vm, updateInfo, configInfo, lastConfigPayload, and
+// shouldKeepRunning. They're written from the single event-loop goroutine in
+// main() (and from setupVM) but now also read/written from the REST API's
+// HTTP handler goroutines (window.TestURLFunc, window.SaveRulesHandler,
+// window.GetConfigFunc, window.GetUpdateInfoFunc), so plain reads/writes are
+// no longer safe. Always go through the getX/setX helpers below instead of
+// touching these globals directly.
+var stateMu sync.Mutex
+
+func getVM() *config.VM {
+	stateMu.Lock()
+	defer stateMu.Unlock()
+	return vm
+}
+
+func setVM(v *config.VM) {
+	stateMu.Lock()
+	vm = v
+	stateMu.Unlock()
+}
+
+func getUpdateInfo() UpdateInfo {
+	stateMu.Lock()
+	defer stateMu.Unlock()
+	return updateInfo
+}
+
+func setUpdateInfo(ui UpdateInfo) {
+	stateMu.Lock()
+	updateInfo = ui
+	stateMu.Unlock()
+}
+
+func getConfigInfo() *ConfigInfo {
+	stateMu.Lock()
+	defer stateMu.Unlock()
+	return configInfo
+}
+
+func getConfigPayload() interface{} {
+	stateMu.Lock()
+	defer stateMu.Unlock()
+	return lastConfigPayload
+}
+
+// publishConfigInfo records a freshly computed ConfigInfo and returns the
+// resulting effective value. If ci is nil the previously published
+// ConfigInfo is kept and returned (mirrors the pre-existing behavior in
+// setupVM, where a nil ConfigState from the VM doesn't clear out the prior
+// config).
+func publishConfigInfo(ci *ConfigInfo) *ConfigInfo {
+	stateMu.Lock()
+	defer stateMu.Unlock()
+	if ci != nil {
+		configInfo = ci
+	}
+	return configInfo
+}
+
+func setConfigPayload(payload interface{}) {
+	stateMu.Lock()
+	lastConfigPayload = payload
+	stateMu.Unlock()
+}
+
+func getShouldKeepRunning() bool {
+	stateMu.Lock()
+	defer stateMu.Unlock()
+	return shouldKeepRunning
+}
+
+// vmBuildMu serializes the "decide whether/how to rebuild the VM, build it,
+// then publish it" sequence run by the configChange case (main event-loop
+// goroutine) and window.SaveRulesHandler (an HTTP-handler goroutine, invoked
+// synchronously from POST /api/rules). stateMu alone only makes each
+// individual getVM()/setVM() call atomic, not that whole read-decide-write
+// sequence, so without this the two rebuild paths could race to publish and
+// whichever finished last would silently win, discarding the other's change.
+var vmBuildMu sync.Mutex
+
+func setShouldKeepRunning(v bool) {
+	stateMu.Lock()
+	shouldKeepRunning = v
+	stateMu.Unlock()
+}
 
 func main() {
 	startTime := time.Now()
@@ -123,29 +221,62 @@ func main() {
 		handleFatalError(fmt.Sprintf("Failed to setup config file watcher: %v", err))
 	}
 
-	vm, err = setupVM(cfw, namespace)
+	initialVM, err := setupVM(cfw, namespace)
 	if err != nil {
 		handleFatalError(err.Error())
 	}
+	setVM(initialVM)
 
 	slog.Debug("VM setup complete", "duration", fmt.Sprintf("%.2fms", float64(time.Since(startTime).Microseconds())/1000))
 
 	go checkForUpdates()
 
-	// Set up test URL handler
-	window.TestUrlHandler = func(url string) {
-		go TestURLInternal(url)
+	window.TestURLFunc = func(url string) (interface{}, error) {
+		slog.Debug("Testing URL", "url", url)
+		cfg, err := resolver.ResolveURL(getVM(), url, nil, false)
+		if err != nil {
+			return nil, err
+		}
+		return map[string]interface{}{
+			"url":              cfg.URL,
+			"browser":          cfg.Name,
+			"openInBackground": cfg.OpenInBackground,
+			"profile":          cfg.Profile,
+			"args":             cfg.Args,
+		}, nil
 	}
 
-	// Set up rules save handler.
+	window.GetVersionFunc = version.GetCurrentVersion
+
+	window.GetConfigFunc = func() interface{} {
+		return getConfigPayload()
+	}
+
+	window.GetUpdateInfoFunc = func() interface{} {
+		ui := getUpdateInfo()
+		if ui.ReleaseInfo == nil && !ui.UpdateCheckEnabled {
+			return nil
+		}
+		return buildUpdateInfoPayload(ui)
+	}
+
+	// Set up rules save handler before starting the API server below, since
+	// StartAPIServer begins accepting HTTP requests immediately and a
+	// POST /api/rules landing before this assignment would silently skip
+	// the VM rebuild while still reporting success.
 	// When there is no JS config, rebuild the VM from the updated rules.
 	// When there is a JS config, JSON rules are loaded fresh in evaluateURL — nothing to do.
+	// Invoked synchronously from the /api/rules HTTP handler so the new VM is
+	// guaranteed to be in place by the time that request completes.
 	window.SaveRulesHandler = func(rf rules.RulesFile) {
+		vmBuildMu.Lock()
+		defer vmBuildMu.Unlock()
 		slog.Debug("Rules updated", "count", len(rf.Rules))
 		resolver.SetCachedRules(rf)
-		if vm == nil || !vm.IsJSConfig() {
+		if v := getVM(); v == nil || !v.IsJSConfig() {
 			if rf.DefaultBrowser == "" && len(rf.Rules) == 0 && rf.Options == nil {
-				vm = nil
+				setVM(nil)
+				setShouldKeepRunning(true)
 				return
 			}
 			script, err := rules.ToJSConfigScript(rf, namespace)
@@ -158,12 +289,16 @@ func main() {
 				slog.Error("Failed to rebuild VM from rules", "error", err)
 				return
 			}
-			vm = newVM
-			if vm != nil {
-				shouldKeepRunning = vm.GetAllConfigOptions().KeepRunning
+			setVM(newVM)
+			if newVM != nil {
+				setShouldKeepRunning(newVM.GetAllConfigOptions().KeepRunning)
 				go checkForUpdates()
 			}
 		}
+	}
+
+	if err := window.StartAPIServer(); err != nil {
+		handleFatalError(fmt.Sprintf("Failed to start API server: %v", err))
 	}
 
 	const oneDay = 24 * time.Hour
@@ -172,10 +307,10 @@ func main() {
 	timeoutChan := time.After(1 * time.Second)
 	updateChan := time.After(oneDay)
 
-	if vm != nil {
-		shouldKeepRunning = vm.GetAllConfigOptions().KeepRunning
+	if v := getVM(); v != nil {
+		setShouldKeepRunning(v.GetAllConfigOptions().KeepRunning)
 	}
-	if shouldKeepRunning {
+	if getShouldKeepRunning() {
 		timeoutChan = nil
 	}
 
@@ -190,7 +325,7 @@ func main() {
 
 				slog.Info("URL received", "url", url)
 
-				config, err := resolver.ResolveURL(vm, url, urlInfo.Opener, urlInfo.OpenInBackground)
+				config, err := resolver.ResolveURL(getVM(), url, urlInfo.Opener, urlInfo.OpenInBackground)
 				if err != nil {
 					handleRuntimeError(err)
 				} else {
@@ -202,7 +337,7 @@ func main() {
 
 				slog.Debug("Time taken evaluating URL and opening browser", "duration", fmt.Sprintf("%.2fms", float64(time.Since(startTime).Microseconds())/1000))
 
-				if !showingWindow && !shouldKeepRunning {
+				if !showingWindow && !getShouldKeepRunning() {
 					timeoutChan = time.After(2 * time.Second)
 				} else {
 					timeoutChan = nil
@@ -210,20 +345,27 @@ func main() {
 
 			case <-configChange:
 				startTime := time.Now()
-				var setupErr error
 				slog.Debug("Config has changed")
-				vm, setupErr = setupVM(cfw, namespace)
+				vmBuildMu.Lock()
+				newVM, setupErr := setupVM(cfw, namespace)
 				if setupErr != nil {
+					// Keep the last good VM running rather than publishing
+					// the failed reload's nil result, so URL handling still
+					// uses the previous config while the error is surfaced.
 					handleRuntimeError(setupErr)
 				} else {
+					setVM(newVM)
 					lastError = nil
 					C.SetStatusItemError(false)
-				}
-				slog.Debug("VM refresh complete", "duration", fmt.Sprintf("%.2fms", float64(time.Since(startTime).Microseconds())/1000))
-				if vm != nil {
-					shouldKeepRunning = vm.GetAllConfigOptions().KeepRunning
+					keepRunning := true
+					if newVM != nil {
+						keepRunning = newVM.GetAllConfigOptions().KeepRunning
+					}
+					setShouldKeepRunning(keepRunning)
 					go checkForUpdates()
 				}
+				vmBuildMu.Unlock()
+				slog.Debug("VM refresh complete", "duration", fmt.Sprintf("%.2fms", float64(time.Since(startTime).Microseconds())/1000))
 
 			case shouldShowWindow := <-queueWindowOpen:
 				if !showingWindow && shouldShowWindow {
@@ -237,7 +379,7 @@ func main() {
 				updateChan = time.After(oneDay)
 
 			case <-windowClosed:
-				if !shouldKeepRunning {
+				if !getShouldKeepRunning() {
 					slog.Info("Exiting due to window closed")
 					tearDown()
 				} else {
@@ -252,10 +394,10 @@ func main() {
 	}()
 
 	shouldHideIcon := false
-	if vm != nil {
-		shouldHideIcon = vm.GetAllConfigOptions().HideIcon
+	if v := getVM(); v != nil {
+		shouldHideIcon = v.GetAllConfigOptions().HideIcon
 	}
-	C.RunApp(C.bool(forceWindowOpen), C.bool(!shouldHideIcon), C.bool(shouldKeepRunning))
+	C.RunApp(C.bool(forceWindowOpen), C.bool(!shouldHideIcon), C.bool(getShouldKeepRunning()))
 }
 
 func handleRuntimeError(err error) {
@@ -299,32 +441,6 @@ func HandleURL(url *C.char, name *C.char, bundleId *C.char, path *C.char, window
 	}
 }
 
-//export TestURL
-func TestURL(url *C.char) {
-	urlString := C.GoString(url)
-	TestURLInternal(urlString)
-}
-
-func TestURLInternal(urlString string) {
-	slog.Debug("Testing URL", "url", urlString)
-
-	config, err := resolver.ResolveURL(vm, urlString, nil, false)
-	if err != nil {
-		slog.Error("Failed to evaluate URL", "error", err)
-		window.SendMessageToWebView("testUrlResult", map[string]interface{}{
-			"error": err.Error(),
-		})
-		return
-	}
-
-	window.SendMessageToWebView("testUrlResult", map[string]interface{}{
-		"url":              config.URL,
-		"browser":          config.Name,
-		"openInBackground": config.OpenInBackground,
-		"profile":          config.Profile,
-		"args":             config.Args,
-	})
-}
 
 func handleFatalError(errorMessage string) {
 	slog.Error("Fatal error", "msg", errorMessage)
@@ -341,11 +457,6 @@ func QueueWindowDisplay(openWindow int32) {
 func ShowConfigWindow() {
 	slog.Debug("Showing window")
 	window.ShowWindow()
-
-	// Send version information
-	currentVersion := version.GetCurrentVersion()
-	window.SendMessageToWebView("version", currentVersion)
-
 }
 
 //export WindowDidClose
@@ -355,8 +466,8 @@ func WindowDidClose() {
 
 //export GetCurrentConfigPath
 func GetCurrentConfigPath() *C.char {
-	if configInfo != nil && configInfo.ConfigPath != "" {
-		cPath := C.CString(configInfo.ConfigPath)
+	if ci := getConfigInfo(); ci != nil && ci.ConfigPath != "" {
+		cPath := C.CString(ci.ConfigPath)
 		return cPath
 	} else {
 		return nil
@@ -365,8 +476,8 @@ func GetCurrentConfigPath() *C.char {
 
 func checkForUpdates() {
 	var runtime *goja.Runtime
-	if vm != nil {
-		runtime = vm.Runtime()
+	if v := getVM(); v != nil {
+		runtime = v.Runtime()
 	}
 
 	releaseInfo, updateCheckEnabled, err := version.CheckForUpdatesIfEnabled(runtime)
@@ -374,31 +485,33 @@ func checkForUpdates() {
 		slog.Error("Error checking for updates", "error", err)
 	}
 
-	updateInfo = UpdateInfo{
+	ui := UpdateInfo{
 		ReleaseInfo:        releaseInfo,
 		UpdateCheckEnabled: updateCheckEnabled,
 	}
+	setUpdateInfo(ui)
 
-	if updateInfo.ReleaseInfo != nil && updateInfo.ReleaseInfo.HasUpdate {
-		slog.Info("New version is available", "version", updateInfo.ReleaseInfo.LatestVersion)
+	if ui.ReleaseInfo != nil && ui.ReleaseInfo.HasUpdate {
+		slog.Info("New version is available", "version", ui.ReleaseInfo.LatestVersion)
 	}
 
-	if updateInfo.ReleaseInfo != nil {
-		window.SendMessageToWebView("updateInfo", map[string]interface{}{
-			"version":            updateInfo.ReleaseInfo.LatestVersion,
-			"hasUpdate":          updateInfo.ReleaseInfo.HasUpdate,
-			"updateCheckEnabled": updateInfo.UpdateCheckEnabled,
-			"downloadUrl":        updateInfo.ReleaseInfo.DownloadUrl,
-			"releaseUrl":         updateInfo.ReleaseInfo.ReleaseUrl,
-		})
-	} else {
-		window.SendMessageToWebView("updateInfo", map[string]interface{}{
-			"version":            "",
-			"hasUpdate":          false,
-			"updateCheckEnabled": updateInfo.UpdateCheckEnabled,
-			"downloadUrl":        "",
-			"releaseUrl":         "",
-		})
+	window.BroadcastSSE("updateInfo", buildUpdateInfoPayload(ui))
+}
+
+func buildUpdateInfoPayload(ui UpdateInfo) map[string]interface{} {
+	if ui.ReleaseInfo != nil {
+		return map[string]interface{}{
+			"version":            ui.ReleaseInfo.LatestVersion,
+			"hasUpdate":          ui.ReleaseInfo.HasUpdate,
+			"updateCheckEnabled": ui.UpdateCheckEnabled,
+			"downloadUrl":        ui.ReleaseInfo.DownloadUrl,
+			"releaseUrl":         ui.ReleaseInfo.ReleaseUrl,
+		}
+	}
+	return map[string]interface{}{
+		"version": "", "hasUpdate": false,
+		"updateCheckEnabled": ui.UpdateCheckEnabled,
+		"downloadUrl": "", "releaseUrl": "",
 	}
 }
 
@@ -468,8 +581,9 @@ func setupVM(cfw *config.ConfigFileWatcher, namespace string) (*config.VM, error
 	}
 
 	cs := newVM.GetConfigState()
+	var ci *ConfigInfo
 	if cs != nil {
-		configInfo = &ConfigInfo{
+		ci = &ConfigInfo{
 			Handlers:       cs.Handlers,
 			Rewrites:       cs.Rewrites,
 			DefaultBrowser: cs.DefaultBrowser,
@@ -480,19 +594,22 @@ func setupVM(cfw *config.ConfigFileWatcher, namespace string) (*config.VM, error
 	opts := newVM.GetAllConfigOptions()
 	logRequests = opts.LogRequests
 
-	window.SendMessageToWebView("config", map[string]interface{}{
-		"handlers":       configInfo.Handlers,
-		"rewrites":       configInfo.Rewrites,
-		"defaultBrowser": configInfo.DefaultBrowser,
-		"configPath":     util.ShortenPath(configInfo.ConfigPath),
-		"isJSConfig":     newVM.IsJSConfig(),
-		"options": map[string]interface{}{
-			"keepRunning":     opts.KeepRunning,
-			"hideIcon":        opts.HideIcon,
-			"logRequests":     opts.LogRequests,
-			"checkForUpdates": opts.CheckForUpdates,
-		},
-	})
+	// publishConfigInfo keeps the previously published ConfigInfo when cs
+	// (and so ci) is nil, mirroring the prior behavior of this function. On
+	// the very first call there's nothing previously published yet, so fall
+	// back to an empty ConfigInfo rather than dereferencing nil below.
+	publishedCI := publishConfigInfo(ci)
+	if publishedCI == nil {
+		publishedCI = &ConfigInfo{}
+	}
+	payload := configPayload{
+		ConfigInfo:  *publishedCI,
+		HasJsConfig: newVM.IsJSConfig(),
+		Options:     opts,
+	}
+	payload.ConfigPath = util.ShortenPath(publishedCI.ConfigPath)
+	setConfigPayload(payload)
+	window.BroadcastSSE("config", payload)
 
 	return newVM, nil
 }

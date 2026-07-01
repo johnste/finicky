@@ -1,0 +1,40 @@
+.pageContainer {
+  max-width: 680px;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.pageContainer.center {
+  align-items: center;
+}
+
+.headerSection {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  padding-bottom: 4px;
+}
+
+.headerSection h2 {
+  margin: 0;
+  color: var(--text-primary);
+  font-size: 1.1em;
+  font-weight: 600;
+  letter-spacing: -0.01em;
+}
+
+.pageDescription {
+  color: var(--text-secondary);
+  margin: 0;
+  font-size: 0.85em;
+}
+
+.pageDescription code {
+  font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+  font-size: 0.9em;
+  background: var(--inset-bg);
+  padding: 1px 4px;
+  border-radius: 3px;
+}
