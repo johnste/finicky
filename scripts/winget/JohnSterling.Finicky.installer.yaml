@@ -1,0 +1,23 @@
+# yaml-language-server: $schema=https://aka.ms/winget-manifest.installer.1.6.0.schema.json
+# Submitted to https://github.com/microsoft/winget-pkgs
+# Update InstallerUrl and InstallerSha256 for each release.
+
+PackageIdentifier: JohnSterling.Finicky
+PackageVersion: 4.2.2
+MinimumOSVersion: 10.0.17763.0
+InstallerType: inno
+Scope: user
+InstallModes:
+  - interactive
+  - silent
+  - silentWithProgress
+UpgradeBehavior: install
+Installers:
+  - Architecture: x64
+    InstallerUrl: https://github.com/johnste/finicky/releases/download/v4.2.2/FinickySetup-4.2.2.exe
+    InstallerSha256: # Fill after building the installer
+    InstallerSwitches:
+      Silent: /VERYSILENT /SUPPRESSMSGBOXES /NORESTART
+      SilentWithProgress: /SILENT /SUPPRESSMSGBOXES /NORESTART
+ManifestType: installer
+ManifestVersion: 1.6.0
