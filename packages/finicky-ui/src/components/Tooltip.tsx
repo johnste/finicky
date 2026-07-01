@@ -1,4 +1,5 @@
 import type { ReactNode } from "react";
+import clsx from "clsx";
 import styles from "./Tooltip.module.css";
 
 interface Props {
@@ -9,7 +10,7 @@ interface Props {
 
 export function Tooltip({ children, text, block }: Props) {
   return (
-    <span className={`${styles.tooltipAnchor}${block ? " " + styles.block : ""}`}>
+    <span className={clsx(styles.tooltipAnchor, block && styles.block)}>
       {children}
       <span className={styles.tooltipText}>{text}</span>
     </span>

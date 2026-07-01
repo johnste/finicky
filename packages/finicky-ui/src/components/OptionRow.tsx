@@ -1,3 +1,4 @@
+import clsx from "clsx";
 import { LockIcon } from "./icons/Lock";
 import { Tooltip } from "./Tooltip";
 import styles from "./OptionRow.module.css";
@@ -20,7 +21,7 @@ function Inner({ label, hint, checked, locked, onChange }: Props) {
         <span className={styles.optionLabel}>{label}</span>
         <span className={styles.optionHint}>{hint}</span>
       </div>
-      <label className={`${styles.toggle}${locked ? " " + styles.locked : ""}`}>
+      <label className={clsx(styles.toggle, locked && styles.locked)}>
         <input
           type="checkbox"
           checked={checked}
@@ -51,7 +52,7 @@ export function OptionRow(props: Props) {
         <div
           role="button"
           tabIndex={0}
-          className={`${styles.optionRow} ${styles.locked}`}
+          className={clsx(styles.optionRow, styles.locked)}
           onClick={onLockedClick}
           onKeyDown={(e) => {
             if (e.key === "Enter" || e.key === " ") {

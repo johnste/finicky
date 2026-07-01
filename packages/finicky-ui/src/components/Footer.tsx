@@ -1,4 +1,5 @@
 import { useSyncExternalStore } from "react";
+import clsx from "clsx";
 import { ExternalIcon } from "./icons/External";
 import { toast } from "../lib/toast";
 import { appStore } from "../lib/appStore";
@@ -42,7 +43,7 @@ export function Footer() {
         </>
       ) : (
         <>
-          <span className={`${styles.configStatus} ${styles.warning}`}>No config</span>
+          <span className={clsx(styles.configStatus, styles.warning)}>No config</span>
           <a
             href="https://github.com/johnste/finicky/wiki/Getting-started"
             target="_blank"

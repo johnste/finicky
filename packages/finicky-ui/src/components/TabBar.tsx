@@ -1,5 +1,6 @@
 import { useSyncExternalStore } from "react";
 import { Link, useLocation } from "react-router-dom";
+import clsx from "clsx";
 import { appStore } from "../lib/appStore";
 import styles from "./TabBar.module.css";
 
@@ -31,7 +32,7 @@ export function TabBar({ tabs, bottomTabs }: Props) {
       <nav className={styles.tabBar}>
         {tabs.map(({ path, label, Icon }) => (
           <Link key={path} to={path}>
-            <div className={`${styles.tabContent}${isActive(path) ? " " + styles.active : ""}`}>
+            <div className={clsx(styles.tabContent, isActive(path) && styles.active)}>
               <div className={styles.iconContainer}>
                 <Icon />
               </div>
@@ -43,7 +44,7 @@ export function TabBar({ tabs, bottomTabs }: Props) {
         <div className={styles.bottomTabs}>
           {bottomTabs.map(({ path, label, Icon, showErrors }) => (
             <Link key={path} to={path}>
-              <div className={`${styles.tabContent} ${styles.tabSmall}${isActive(path) ? " " + styles.active : ""}`}>
+              <div className={clsx(styles.tabContent, styles.tabSmall, isActive(path) && styles.active)}>
                 <div className={styles.iconContainer}>
                   <Icon />
                   {showErrors && numErrors > 0 && (

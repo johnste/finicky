@@ -52,6 +52,7 @@ export interface TestUrlResult {
 declare global {
   interface Window {
     __FINICKY_API__?: string;
+    __FINICKY_API_TOKEN__?: string;
   }
 }
 

@@ -1,3 +1,4 @@
+import clsx from "clsx";
 import type { LogEntry } from "../types";
 import { formatLogEntry } from "../utils/text";
 import styles from "./LogContent.module.css";
@@ -23,7 +24,7 @@ export function LogContent({ messageBuffer, showDebug }: Props) {
             <span className={styles.logTime} title={entry.time}>
               {new Date(entry.time).toLocaleTimeString()}
             </span>
-            <div className={`${styles.logMessage} ${levelClassMap[entry.level.toLowerCase()] ?? ""}`}>
+            <div className={clsx(styles.logMessage, levelClassMap[entry.level.toLowerCase()])}>
               {formatLogEntry(entry).map((part, j) =>
                 part.type === "url" ? (
                   <a key={j} href={part.content} target="_blank" rel="noopener noreferrer">
