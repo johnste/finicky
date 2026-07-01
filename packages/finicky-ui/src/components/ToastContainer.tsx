@@ -1,4 +1,5 @@
 import { useSyncExternalStore } from "react";
+import clsx from "clsx";
 import { toast } from "../lib/toast";
 import type { Toast } from "../lib/toast";
 import styles from "./ToastContainer.module.css";
@@ -16,7 +17,7 @@ export function ToastContainer() {
   return (
     <div className={styles.toastContainer}>
       {toasts.map((t) => (
-        <div key={t.id} className={`${styles.toastItem} ${typeClass[t.type]}`} role="alert">
+        <div key={t.id} className={clsx(styles.toastItem, typeClass[t.type])} role="alert">
           <div className={styles.toastContent}>
             <svg className={styles.toastTimer} viewBox="0 0 24 24">
               <circle className={styles.timerBackground} cx="12" cy="12" r="10" />

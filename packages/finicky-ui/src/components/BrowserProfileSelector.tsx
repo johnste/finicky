@@ -1,3 +1,4 @@
+import clsx from "clsx";
 import { XIcon } from "./icons/X";
 import type { BrowserProfile, BrowserOptions, BrowserProfileCustom } from "../types";
 import styles from "./BrowserProfileSelector.module.css";
@@ -47,7 +48,7 @@ function BrowserField({ browser, isCustom, required, disabled, placeholder, inst
     );
   }
   return (
-    <div className={`${styles.selectWrapper}${required && !browser ? " " + styles.empty : ""}`}>
+    <div className={clsx(styles.selectWrapper, required && !browser && styles.empty)}>
       <select className={styles.browserDropdown} value={browser} onChange={(e) => onChange(e.target.value)} disabled={disabled}>
         <option value="">{placeholder}</option>
         {installedBrowsers.map((b) => <option key={b} value={b}>{b}</option>)}

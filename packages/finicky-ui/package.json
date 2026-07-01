@@ -11,13 +11,14 @@
     "check": "tsc -b"
   },
   "devDependencies": {
-    "@vitejs/plugin-react": "^4.5.0",
     "@types/react": "^18.3.20",
     "@types/react-dom": "^18.3.5",
+    "@vitejs/plugin-react": "^4.5.0",
     "typescript": "~5.7.2",
     "vite": "^6.3.6"
   },
   "dependencies": {
+    "clsx": "^2.1.1",
     "react": "^18.3.1",
     "react-dom": "^18.3.1",
     "react-router-dom": "^6.30.0"

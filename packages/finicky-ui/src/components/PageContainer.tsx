@@ -1,4 +1,5 @@
 import type { ReactNode } from "react";
+import clsx from "clsx";
 import styles from "./PageContainer.module.css";
 
 interface Props {
@@ -10,7 +11,7 @@ interface Props {
 
 export function PageContainer({ children, center, title, description }: Props) {
   return (
-    <div className={`${styles.pageContainer}${center ? " " + styles.center : ""}`}>
+    <div className={clsx(styles.pageContainer, center && styles.center)}>
       {title && (
         <div className={styles.headerSection}>
           <h2>{title}</h2>

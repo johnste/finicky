@@ -42,19 +42,42 @@ func init() {
 	apiToken = hex.EncodeToString(b)
 }
 
+// logBacklogSize bounds how many recent "log" SSE messages are kept to
+// replay to a newly-connecting client. Without this, log lines emitted
+// before any client is connected (which is essentially all startup
+// logging, since logger.Setup() runs long before the WebView's EventSource
+// connects) would be lost forever, since there's no other endpoint that
+// exposes historical log lines to the UI.
+const logBacklogSize = 200
+
 type sseHub struct {
-	mu      sync.Mutex
-	clients map[chan string]struct{}
+	mu          sync.Mutex
+	clients     map[chan string]struct{}
+	logBacklog  []string          // recent raw "log" messages, oldest first, capped at logBacklogSize
+	lastByEvent map[string]string // most recent raw message per non-"log" event (e.g. config, updateInfo)
 }
 
 func newSSEHub() *sseHub {
-	return &sseHub{clients: make(map[chan string]struct{})}
+	return &sseHub{
+		clients:     make(map[chan string]struct{}),
+		lastByEvent: make(map[string]string),
+	}
 }
 
-func (h *sseHub) register(ch chan string) {
+// registerWithBacklog adds ch to the set of live clients and returns a
+// snapshot of messages to replay to it first, atomically with respect to
+// broadcastRaw so nothing broadcast after this call is missed and nothing
+// is replayed twice.
+func (h *sseHub) registerWithBacklog(ch chan string) []string {
 	h.mu.Lock()
+	defer h.mu.Unlock()
 	h.clients[ch] = struct{}{}
-	h.mu.Unlock()
+	backlog := make([]string, 0, len(h.logBacklog)+len(h.lastByEvent))
+	backlog = append(backlog, h.logBacklog...)
+	for _, msg := range h.lastByEvent {
+		backlog = append(backlog, msg)
+	}
+	return backlog
 }
 
 func (h *sseHub) unregister(ch chan string) {
@@ -76,6 +99,14 @@ func (h *sseHub) broadcast(event string, data interface{}) {
 func (h *sseHub) broadcastRaw(event string, payload []byte) {
 	msg := fmt.Sprintf("event: %s\ndata: %s\n\n", event, payload)
 	h.mu.Lock()
+	if event == "log" {
+		h.logBacklog = append(h.logBacklog, msg)
+		if len(h.logBacklog) > logBacklogSize {
+			h.logBacklog = h.logBacklog[len(h.logBacklog)-logBacklogSize:]
+		}
+	} else {
+		h.lastByEvent[event] = msg
+	}
 	for ch := range h.clients {
 		select {
 		case ch <- msg:
@@ -202,7 +233,7 @@ func handleSaveRulesHTTP(w http.ResponseWriter, r *http.Request) {
 	if SaveRulesHandler != nil {
 		SaveRulesHandler(rf)
 	}
-	writeJSON(w, getRulesData())
+	writeJSON(w, rulesResponseFor(rf))
 }
 
 func handleGetBrowsersHTTP(w http.ResponseWriter, _ *http.Request) {
@@ -245,8 +276,13 @@ func handleSSE(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Connection", "keep-alive")
 
 	ch := make(chan string, 32)
-	hub.register(ch)
+	backlog := hub.registerWithBacklog(ch)
 	defer hub.unregister(ch)
+
+	for _, msg := range backlog {
+		fmt.Fprint(w, msg)
+	}
+	flusher.Flush()
 
 	for {
 		select {
@@ -268,6 +304,13 @@ func getRulesData() interface{} {
 		slog.Error("Failed to load rules", "error", err)
 		return map[string]interface{}{"defaultBrowser": "", "rules": []interface{}{}}
 	}
+	return rulesResponseFor(rf)
+}
+
+// rulesResponseFor builds the REST response shape for an already-loaded
+// RulesFile, without re-reading it from disk (e.g. right after a save,
+// where the caller already has the just-written content in memory).
+func rulesResponseFor(rf rules.RulesFile) interface{} {
 	path, _ := rules.GetPath()
 	var rulesPath string
 	if _, statErr := os.Stat(path); statErr == nil {

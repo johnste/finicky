@@ -1,4 +1,5 @@
 import { useState, useEffect, useRef, useSyncExternalStore } from "react";
+import clsx from "clsx";
 import { PageContainer } from "../components/PageContainer";
 import { BrowserProfileSelector } from "../components/BrowserProfileSelector";
 import { Tooltip } from "../components/Tooltip";
@@ -40,13 +41,14 @@ function computeRowStates(rules: Rule[], browsers: BrowserOptions): RowState[] {
 }
 
 async function fetchMissingProfiles(rules: Rule[], browsers: BrowserOptions) {
-  for (const r of rules) {
-    if (r.browser && browsers.profiles[r.browser] === undefined) {
+  const missing = [...new Set(rules.map((r) => r.browser).filter((b) => b && browsers.profiles[b] === undefined))];
+  await Promise.all(
+    missing.map(async (b) => {
       try {
-        appStore.addBrowserProfiles(r.browser, await api.getBrowserProfiles(r.browser));
+        appStore.addBrowserProfiles(b, await api.getBrowserProfiles(b));
       } catch {}
-    }
-  }
+    })
+  );
 }
 
 function useDragSort(onReorder: (from: number, to: number) => void, onDone: () => void) {
@@ -102,7 +104,11 @@ interface RuleRowProps {
 function RuleRow({ rule, isDragging, custom, browsers, callbacks: cb }: RuleRowProps) {
   return (
     <div
-      className={`${styles.ruleRow}${isDragging ? " " + styles.dragging : ""}${!rule.browser && !custom.browser ? " " + styles.noBrowser : ""}`}
+      className={clsx(
+        styles.ruleRow,
+        isDragging && styles.dragging,
+        !rule.browser && !custom.browser && styles.noBrowser
+      )}
       draggable
       onDragStart={cb.onDragStart}
       onDragOver={cb.onDragOver}
@@ -134,10 +140,10 @@ function RuleRow({ rule, isDragging, custom, browsers, callbacks: cb }: RuleRowP
         <div className={styles.patterns}>
           {rule.match.map((pattern, j) => (
             <div key={j} className={styles.patternRow}>
-              <div className={`${styles.patternInputWrapper}${patternNeedsWildcard(pattern) ? " " + styles.hasWarning : ""}`}>
+              <div className={clsx(styles.patternInputWrapper, patternNeedsWildcard(pattern) && styles.hasWarning)}>
                 <input
                   ref={(el) => cb.inputRef(el, j)}
-                  className={`${styles.textInput} ${styles.patternInput}`}
+                  className={clsx(styles.textInput, styles.patternInput)}
                   type="text"
                   placeholder="*.example.com/*"
                   value={pattern}
@@ -179,21 +185,44 @@ export function Rules() {
   const [rules, setRules] = useState<Rule[]>(() => normalizeRules(rulesFile.rules));
   const [rowStates, setRowStates] = useState<RowState[]>([]);
 
-  const { save, scheduleSave, isPending } = useRulesSave(rulesFile, () => rules, SAVE_DEBOUNCE);
+  // save()/scheduleSave() can flush immediately (synchronously, in the same
+  // tick as the setRules() call below it), before React has re-rendered and
+  // produced a fresh `rules` value. rulesRef is updated in lockstep with
+  // every setRules() call so useRulesSave always reads the latest rules
+  // regardless of render timing, instead of a stale pre-edit closure.
+  const rulesRef = useRef(rules);
+  function updateRules(next: Rule[] | ((prev: Rule[]) => Rule[])) {
+    const resolved = typeof next === "function" ? (next as (prev: Rule[]) => Rule[])(rulesRef.current) : next;
+    rulesRef.current = resolved;
+    setRules(resolved);
+  }
+
+  const { save, scheduleSave, isPending } = useRulesSave(
+    () => ({ ...rulesFile, rules: rulesRef.current }),
+    SAVE_DEBOUNCE
+  );
   const drag = useDragSort(
     (from, to) => {
       const move = <T,>(arr: T[]) => { const a = [...arr]; a.splice(to, 0, ...a.splice(from, 1)); return a; };
-      setRules(move);
+      updateRules(move);
       setRowStates(move);
     },
     scheduleSave
   );
   const focus = usePendingFocus();
 
+  // The installed-browser list only otherwise comes from the one-time
+  // /api/initial-data fetch at app launch, and the WebView page is never
+  // reloaded for the life of the process, so without this a browser
+  // installed while Finicky is running would never show up here.
+  useEffect(() => {
+    api.getBrowsers().then((installed) => appStore.update({ installedBrowsers: installed })).catch(() => {});
+  }, []);
+
   useEffect(() => {
     if (isPending.current) return;
     const newRules = normalizeRules(rulesFile.rules);
-    setRules(newRules);
+    updateRules(newRules);
     setRowStates(computeRowStates(newRules, browsers));
     fetchMissingProfiles(newRules, browsers);
   }, [rulesFile.rules, installedBrowsers]); // profilesByBrowser intentionally omitted
@@ -207,35 +236,35 @@ export function Rules() {
   function onRowMatchInput(i: number, j: number, e: React.ChangeEvent<HTMLInputElement>) {
     const newMatch = [...rules[i].match];
     newMatch[j] = e.target.value;
-    setRules(rules.map((r, idx) => (idx === i ? { ...r, match: newMatch } : r)));
+    updateRules(rules.map((r, idx) => (idx === i ? { ...r, match: newMatch } : r)));
     scheduleSave();
   }
 
   function addPattern(i: number) {
     focus.set(i, rules[i].match.length);
-    setRules(rules.map((r, idx) => (idx === i ? { ...r, match: [...r.match, ""] } : r)));
+    updateRules(rules.map((r, idx) => (idx === i ? { ...r, match: [...r.match, ""] } : r)));
   }
 
   function removePattern(i: number, j: number) {
     const newMatch = rules[i].match.filter((_, idx) => idx !== j);
-    setRules(rules.map((r, idx) => (idx === i ? { ...r, match: newMatch.length > 0 ? newMatch : [""] } : r)));
+    updateRules(rules.map((r, idx) => (idx === i ? { ...r, match: newMatch.length > 0 ? newMatch : [""] } : r)));
     save();
   }
 
   function addRule() {
     focus.set(rules.length, 0);
-    setRules([...rules, { match: [""], browser: "", profile: "" }]);
+    updateRules([...rules, { match: [""], browser: "", profile: "" }]);
     setRowStates((prev) => [...prev, { browser: false, profile: false }]);
   }
 
   function removeRule(i: number) {
-    setRules(rules.filter((_, idx) => idx !== i));
+    updateRules(rules.filter((_, idx) => idx !== i));
     setRowStates((prev) => prev.filter((_, idx) => idx !== i));
     save();
   }
 
   function handleChange(i: number, { browser, profile }: BrowserProfile, custom: BrowserProfileCustom) {
-    setRules(rules.map((r, idx) => (idx === i ? { ...r, browser, profile } : r)));
+    updateRules(rules.map((r, idx) => (idx === i ? { ...r, browser, profile } : r)));
     setRowStates((prev) => prev.map((s, idx) => (idx === i ? custom : s)));
   }
 

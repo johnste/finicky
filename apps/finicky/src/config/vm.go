@@ -17,10 +17,10 @@ type VM struct {
 
 // ConfigOptions holds the values of all runtime config options.
 type ConfigOptions struct {
-	KeepRunning     bool
-	HideIcon        bool
-	LogRequests     bool
-	CheckForUpdates bool
+	KeepRunning     bool `json:"keepRunning"`
+	HideIcon        bool `json:"hideIcon"`
+	LogRequests     bool `json:"logRequests"`
+	CheckForUpdates bool `json:"checkForUpdates"`
 }
 
 // ConfigState represents the current state of the configuration

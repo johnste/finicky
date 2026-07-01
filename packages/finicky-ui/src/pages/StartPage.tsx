@@ -1,6 +1,7 @@
 import { useState, useEffect, useRef, useSyncExternalStore } from "react";
-import { useDebouncedCallback } from "../lib/useDebouncedCallback";
+import { useRulesSave } from "../lib/useRulesSave";
 import { Link } from "react-router-dom";
+import clsx from "clsx";
 import { PageContainer } from "../components/PageContainer";
 import { BrowserProfileSelector } from "../components/BrowserProfileSelector";
 import { OptionRow } from "../components/OptionRow";
@@ -68,7 +69,7 @@ function onLockedClick() {
 function UpdateCard({ updateInfo }: { updateInfo: UpdateInfo }) {
   if (updateInfo.hasUpdate) {
     return (
-      <div className={`${styles.statusCard} ${styles.info}`}>
+      <div className={clsx(styles.statusCard, styles.info)}>
         <div className={styles.updateHeader}>
           <h3>New Version Available</h3>
           <span className={styles.updateVersion}>{updateInfo.version}</span>
@@ -86,7 +87,7 @@ function UpdateCard({ updateInfo }: { updateInfo: UpdateInfo }) {
   }
   if (!updateInfo.updateCheckEnabled) {
     return (
-      <div className={`${styles.statusCard} ${styles.info}`}>
+      <div className={clsx(styles.statusCard, styles.info)}>
         <h3>Update check is disabled</h3>
         <a href="https://github.com/johnste/finicky/releases" target="_blank" rel="noopener noreferrer">
           Check releases
@@ -108,7 +109,27 @@ export function StartPage() {
 
   const pendingRef = useRef({ options, bp, rulesFile });
   pendingRef.current = { options, bp, rulesFile };
-  const isPending = useRef(false);
+
+  // The installed-browser list only otherwise comes from the one-time
+  // /api/initial-data fetch at app launch, and the WebView page is never
+  // reloaded for the life of the process, so without this a browser
+  // installed while Finicky is running would never show up here.
+  useEffect(() => {
+    api.getBrowsers().then((installed) => appStore.update({ installedBrowsers: installed })).catch(() => {});
+  }, []);
+
+  const {
+    save: saveNow,
+    scheduleSave: scheduleSaveNow,
+    isPending,
+  } = useRulesSave(
+    () => {
+      const { options, bp, rulesFile } = pendingRef.current;
+      return { ...rulesFile, defaultBrowser: bp.browser, defaultProfile: bp.profile, options };
+    },
+    SAVE_DEBOUNCE,
+    "Failed to save preferences"
+  );
 
   useEffect(() => {
     if (isPending.current) return;
@@ -116,21 +137,11 @@ export function StartPage() {
     setBp(initialBp(rulesFile, config, hasJsConfig));
   }, [rulesFile, config, hasJsConfig]);
 
-  const saveDebounced = useDebouncedCallback(async () => {
-    const { options, bp, rulesFile } = pendingRef.current;
-    try {
-      const updated = await api.saveRules({ ...rulesFile, defaultBrowser: bp.browser, defaultProfile: bp.profile, options });
-      appStore.update({ rulesFile: updated as any });
-    } catch {} finally {
-      isPending.current = false;
-    }
-  }, SAVE_DEBOUNCE);
-
   const defaultBrowserIsCustom = resolveBrowserIsCustom(bp.browserCustom, bp.browser, installedBrowsers);
   const defaultProfileIsCustom = resolveProfileIsCustom(bp.profileCustom, bp.profile, bp.browser, profilesByBrowser);
 
-  function save() { if (!hasJsConfig) { isPending.current = true; saveDebounced.flush(); } }
-  function scheduleSave() { if (!hasJsConfig) { isPending.current = true; saveDebounced.schedule(); } }
+  function save() { if (!hasJsConfig) saveNow(); }
+  function scheduleSave() { if (!hasJsConfig) scheduleSaveNow(); }
 
   function setOption<K extends keyof Options>(key: K, value: Options[K]) {
     setOptions((prev) => ({ ...prev, [key]: value }));
@@ -154,7 +165,7 @@ export function StartPage() {
         </div>
       )}
 
-      <div className={`${styles.section}${hasJsConfig ? " " + styles.readonly : ""}`}>
+      <div className={clsx(styles.section, hasJsConfig && styles.readonly)}>
         <div className={styles.sectionHeader}>
           <span className={styles.sectionLabel}>Default browser</span>
           {hasJsConfig ? (
@@ -198,7 +209,7 @@ export function StartPage() {
       </div>
 
       {numErrors > 0 && (
-        <div className={`${styles.statusCard} ${styles.error}`}>
+        <div className={clsx(styles.statusCard, styles.error)}>
           <h3>Errors</h3>
           <p>{numErrors} errors encountered.</p>
           <Link to="/troubleshoot">Troubleshooting</Link>

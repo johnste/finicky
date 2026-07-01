@@ -52,6 +52,16 @@ type ConfigInfo struct {
 	ConfigPath     string `json:"configPath"`
 }
 
+// configPayload is the REST/SSE "config" wire shape. Embedding ConfigInfo
+// and config.ConfigOptions means their fields only need to be named once,
+// in their own tagged struct definitions, instead of being restated as
+// string literal map keys that could silently drift from the struct.
+type configPayload struct {
+	ConfigInfo
+	HasJsConfig bool                 `json:"hasJsConfig"`
+	Options     config.ConfigOptions `json:"options"`
+}
+
 var urlListener chan URLInfo = make(chan URLInfo)
 var windowClosed chan struct{} = make(chan struct{})
 var vm *config.VM
@@ -63,7 +73,7 @@ var dryRun bool = false
 var skipJSConfig bool = false
 var updateInfo UpdateInfo
 var configInfo *ConfigInfo
-var lastConfigPayload map[string]interface{}
+var lastConfigPayload interface{}
 var shouldKeepRunning bool = true
 
 // stateMu guards vm, updateInfo, configInfo, lastConfigPayload, and
@@ -105,7 +115,7 @@ func getConfigInfo() *ConfigInfo {
 	return configInfo
 }
 
-func getConfigPayload() map[string]interface{} {
+func getConfigPayload() interface{} {
 	stateMu.Lock()
 	defer stateMu.Unlock()
 	return lastConfigPayload
@@ -125,7 +135,7 @@ func publishConfigInfo(ci *ConfigInfo) *ConfigInfo {
 	return configInfo
 }
 
-func setConfigPayload(payload map[string]interface{}) {
+func setConfigPayload(payload interface{}) {
 	stateMu.Lock()
 	lastConfigPayload = payload
 	stateMu.Unlock()
@@ -136,6 +146,15 @@ func getShouldKeepRunning() bool {
 	defer stateMu.Unlock()
 	return shouldKeepRunning
 }
+
+// vmBuildMu serializes the "decide whether/how to rebuild the VM, build it,
+// then publish it" sequence run by the configChange case (main event-loop
+// goroutine) and window.SaveRulesHandler (an HTTP-handler goroutine, invoked
+// synchronously from POST /api/rules). stateMu alone only makes each
+// individual getVM()/setVM() call atomic, not that whole read-decide-write
+// sequence, so without this the two rebuild paths could race to publish and
+// whichever finished last would silently win, discarding the other's change.
+var vmBuildMu sync.Mutex
 
 func setShouldKeepRunning(v bool) {
 	stateMu.Lock()
@@ -241,21 +260,23 @@ func main() {
 		return buildUpdateInfoPayload(ui)
 	}
 
-	if err := window.StartAPIServer(); err != nil {
-		handleFatalError(fmt.Sprintf("Failed to start API server: %v", err))
-	}
-
-	// Set up rules save handler.
+	// Set up rules save handler before starting the API server below, since
+	// StartAPIServer begins accepting HTTP requests immediately and a
+	// POST /api/rules landing before this assignment would silently skip
+	// the VM rebuild while still reporting success.
 	// When there is no JS config, rebuild the VM from the updated rules.
 	// When there is a JS config, JSON rules are loaded fresh in evaluateURL — nothing to do.
 	// Invoked synchronously from the /api/rules HTTP handler so the new VM is
 	// guaranteed to be in place by the time that request completes.
 	window.SaveRulesHandler = func(rf rules.RulesFile) {
+		vmBuildMu.Lock()
+		defer vmBuildMu.Unlock()
 		slog.Debug("Rules updated", "count", len(rf.Rules))
 		resolver.SetCachedRules(rf)
 		if v := getVM(); v == nil || !v.IsJSConfig() {
 			if rf.DefaultBrowser == "" && len(rf.Rules) == 0 && rf.Options == nil {
 				setVM(nil)
+				setShouldKeepRunning(true)
 				return
 			}
 			script, err := rules.ToJSConfigScript(rf, namespace)
@@ -274,6 +295,10 @@ func main() {
 				go checkForUpdates()
 			}
 		}
+	}
+
+	if err := window.StartAPIServer(); err != nil {
+		handleFatalError(fmt.Sprintf("Failed to start API server: %v", err))
 	}
 
 	const oneDay = 24 * time.Hour
@@ -321,19 +346,26 @@ func main() {
 			case <-configChange:
 				startTime := time.Now()
 				slog.Debug("Config has changed")
+				vmBuildMu.Lock()
 				newVM, setupErr := setupVM(cfw, namespace)
-				setVM(newVM)
 				if setupErr != nil {
+					// Keep the last good VM running rather than publishing
+					// the failed reload's nil result, so URL handling still
+					// uses the previous config while the error is surfaced.
 					handleRuntimeError(setupErr)
 				} else {
+					setVM(newVM)
 					lastError = nil
 					C.SetStatusItemError(false)
-				}
-				slog.Debug("VM refresh complete", "duration", fmt.Sprintf("%.2fms", float64(time.Since(startTime).Microseconds())/1000))
-				if newVM != nil {
-					setShouldKeepRunning(newVM.GetAllConfigOptions().KeepRunning)
+					keepRunning := true
+					if newVM != nil {
+						keepRunning = newVM.GetAllConfigOptions().KeepRunning
+					}
+					setShouldKeepRunning(keepRunning)
 					go checkForUpdates()
 				}
+				vmBuildMu.Unlock()
+				slog.Debug("VM refresh complete", "duration", fmt.Sprintf("%.2fms", float64(time.Since(startTime).Microseconds())/1000))
 
 			case shouldShowWindow := <-queueWindowOpen:
 				if !showingWindow && shouldShowWindow {
@@ -563,21 +595,19 @@ func setupVM(cfw *config.ConfigFileWatcher, namespace string) (*config.VM, error
 	logRequests = opts.LogRequests
 
 	// publishConfigInfo keeps the previously published ConfigInfo when cs
-	// (and so ci) is nil, mirroring the prior behavior of this function.
+	// (and so ci) is nil, mirroring the prior behavior of this function. On
+	// the very first call there's nothing previously published yet, so fall
+	// back to an empty ConfigInfo rather than dereferencing nil below.
 	publishedCI := publishConfigInfo(ci)
-	payload := map[string]interface{}{
-		"handlers":       publishedCI.Handlers,
-		"rewrites":       publishedCI.Rewrites,
-		"defaultBrowser": publishedCI.DefaultBrowser,
-		"configPath":     util.ShortenPath(publishedCI.ConfigPath),
-		"hasJsConfig":    newVM.IsJSConfig(),
-		"options": map[string]interface{}{
-			"keepRunning":     opts.KeepRunning,
-			"hideIcon":        opts.HideIcon,
-			"logRequests":     opts.LogRequests,
-			"checkForUpdates": opts.CheckForUpdates,
-		},
+	if publishedCI == nil {
+		publishedCI = &ConfigInfo{}
 	}
+	payload := configPayload{
+		ConfigInfo:  *publishedCI,
+		HasJsConfig: newVM.IsJSConfig(),
+		Options:     opts,
+	}
+	payload.ConfigPath = util.ShortenPath(publishedCI.ConfigPath)
 	setConfigPayload(payload)
 	window.BroadcastSSE("config", payload)
 

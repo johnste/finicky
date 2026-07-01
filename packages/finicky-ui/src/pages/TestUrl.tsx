@@ -1,4 +1,5 @@
 import { useState, useEffect } from "react";
+import clsx from "clsx";
 import { PageContainer } from "../components/PageContainer";
 import { LinkIcon } from "../components/icons/Link";
 import { InfoIcon } from "../components/icons/Info";
@@ -31,9 +32,9 @@ function ResultItem({ label, value, itemClass, valueClass }: {
   valueClass?: string;
 }) {
   return (
-    <div className={`${styles.resultItem}${itemClass ? " " + itemClass : ""}`}>
+    <div className={clsx(styles.resultItem, itemClass)}>
       <span className={styles.resultLabel}>{label}</span>
-      <span className={`${styles.resultValue}${valueClass ? " " + valueClass : ""}`}>{value}</span>
+      <span className={clsx(styles.resultValue, valueClass)}>{value}</span>
     </div>
   );
 }
@@ -71,20 +72,29 @@ export function TestUrl() {
       return;
     }
 
+    // A slower earlier request can otherwise resolve after a faster later
+    // one and overwrite its result with stale data for a URL that's no
+    // longer in the input. `cancelled` guards every state update so only
+    // the most recent (non-superseded) request's response is ever applied.
+    let cancelled = false;
     let loadingTimer: ReturnType<typeof setTimeout> | undefined;
     const debounceTimer = setTimeout(async () => {
-      loadingTimer = setTimeout(() => setLoading(true), LOADING_DELAY - DEBOUNCE_DELAY);
+      loadingTimer = setTimeout(() => {
+        if (!cancelled) setLoading(true);
+      }, LOADING_DELAY - DEBOUNCE_DELAY);
       try {
-        setResult((await api.testUrl(normalizeUrl(testUrl))) as TestUrlResult);
+        const testResult = (await api.testUrl(normalizeUrl(testUrl))) as TestUrlResult;
+        if (!cancelled) setResult(testResult);
       } catch {
-        setResult(null);
+        if (!cancelled) setResult(null);
       } finally {
         clearTimeout(loadingTimer);
-        setLoading(false);
+        if (!cancelled) setLoading(false);
       }
     }, DEBOUNCE_DELAY);
 
     return () => {
+      cancelled = true;
       clearTimeout(loadingTimer);
       clearTimeout(debounceTimer);
     };
