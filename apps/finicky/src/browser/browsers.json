@@ -1,102 +1,119 @@
 [
   {
     "config_dir_relative": "BraveSoftware/Brave-Browser",
+    "config_dir_windows": "BraveSoftware\\Brave-Browser\\User Data",
     "id": "com.brave.Browser",
     "type": "Chromium",
     "app_name": "Brave Browser"
   },
   {
     "config_dir_relative": "Google/Chrome",
+    "config_dir_windows": "Google\\Chrome\\User Data",
     "id": "com.google.Chrome",
     "type": "Chromium",
     "app_name": "Google Chrome"
   },
   {
     "config_dir_relative": "Google/Chrome Beta",
+    "config_dir_windows": "Google\\Chrome Beta\\User Data",
     "id": "com.google.Chrome.beta",
     "type": "Chromium",
     "app_name": "Google Chrome Beta"
   },
   {
     "config_dir_relative": "Google/Chrome Canary",
+    "config_dir_windows": "Google\\Chrome SxS\\User Data",
     "id": "com.google.Chrome.canary",
     "type": "Chromium",
     "app_name": "Google Chrome Canary"
   },
   {
     "config_dir_relative": "Chromium",
+    "config_dir_windows": "Chromium\\User Data",
     "id": "org.chromium.Chromium",
     "type": "Chromium",
     "app_name": "Chromium"
   },
   {
     "config_dir_relative": "Microsoft Edge",
+    "config_dir_windows": "Microsoft\\Edge\\User Data",
     "id": "com.microsoft.edgemac",
     "type": "Chromium",
     "app_name": "Microsoft Edge"
   },
   {
     "config_dir_relative": "Vivaldi",
+    "config_dir_windows": "Vivaldi\\User Data",
     "id": "com.vivaldi.Vivaldi",
     "type": "Chromium",
     "app_name": "Vivaldi"
   },
   {
     "config_dir_relative": "WaveboxApp",
+    "config_dir_windows": "WaveboxApp\\User Data",
     "id": "com.bookry.wavebox",
     "type": "Chromium",
     "app_name": "Wavebox"
   },
   {
     "config_dir_relative": "net.imput.helium",
+    "config_dir_windows": "",
     "id": "net.imput.helium",
     "type": "Chromium",
     "app_name": "Helium"
   },
   {
     "config_dir_relative": "Comet",
+    "config_dir_windows": "",
     "id": "ai.perplexity.comet",
     "type": "Chromium",
     "app_name": "Comet"
   },
   {
     "config_dir_relative": "Yandex/YandexBrowser",
+    "config_dir_windows": "Yandex\\YandexBrowser\\User Data",
     "id": "ru.yandex.desktop.yandex-browser",
     "type": "Chromium",
     "app_name": "Yandex"
   },
   {
     "config_dir_relative": "com.operasoftware.Opera",
+    "config_dir_windows": "Opera Software\\Opera Stable",
     "id": "com.operasoftware.Opera",
     "type": "Chromium",
     "app_name": "Opera"
   },
   {
     "config_dir_relative": "com.operasoftware.OperaGX",
+    "config_dir_windows": "Opera Software\\Opera GX Stable",
     "id": "com.operasoftware.OperaGX",
     "type": "Chromium",
     "app_name": "Opera GX"
   },
   {
     "config_dir_relative": "",
+    "config_dir_windows": "",
     "id": "com.apple.Safari",
     "type": "Safari",
     "app_name": "Safari"
   },
   {
     "config_dir_relative": "Firefox",
+    "config_dir_windows": "Mozilla\\Firefox",
     "id": "org.mozilla.firefox",
     "type": "Firefox",
     "app_name": "Firefox"
   },
   {
     "config_dir_relative": "Firefox",
+    "config_dir_windows": "Mozilla\\Firefox",
     "id": "org.mozilla.firefoxdeveloperedition",
     "type": "Firefox",
     "app_name": "Firefox Developer Edition"
   },
   {
     "config_dir_relative": "zen",
+    "config_dir_windows": "zen",
     "id": "app.zen-browser.zen",
     "type": "Firefox",
     "app_name": "Zen"

@@ -8,7 +8,7 @@
 
 </div>
 
-Finicky is a macOS application that allows you to set up rules that decide which browser is opened for every url. With Finicky as your default browser, you can tell it to open Bluesky or Reddit in one browser, and LinkedIn or Google Meet in another.
+Finicky is an application for macOS and Windows that allows you to set up rules that decide which browser is opened for every url. With Finicky as your default browser, you can tell it to open Bluesky or Reddit in one browser, and LinkedIn or Google Meet in another.
 
 - Route any URL to your preferred browser with powerful matching rules
 - Automatically edit URLs before opening them (e.g., force HTTPS, remove tracking parameters)
@@ -22,16 +22,31 @@ Finicky is a macOS application that allows you to set up rules that decide which
 ## Table of Contents
 
 - [Installation](#installation)
+  - [macOS](#macos)
+  - [Windows](#windows)
 - [Basic configuration](#basic-configuration)
 - [Configuration](#configuration)
 - [Migrating from Finicky 3](#migrating-from-finicky-3)
 
 ## Installation
 
+### macOS
+
 - Download from [releases](https://github.com/johnste/finicky/releases)
 - Or install via homebrew: `brew install --cask finicky`
 - Create a JavaScript or TypeScript configuration file at `~/.finicky.js`.  Have a look at the example configuration below, or in the `example-config` folder.
-- Start Finicky (in Applications, or through Spotlight/Alfred/Raycast) and allow it to be set as the default browser. Starting Finicky manually opens the configuration/troubleshooting window. 
+- Start Finicky (in Applications, or through Spotlight/Alfred/Raycast) and allow it to be set as the default browser. Starting Finicky manually opens the configuration/troubleshooting window.
+
+### Windows
+
+- Download `FinickySetup.exe` from [releases](https://github.com/johnste/finicky/releases) and run the installer
+- Or install via winget: `winget install Finicky`
+- Create a configuration file at `%USERPROFILE%\.finicky.js` (same format as macOS — configs are cross-platform)
+- Open **Settings > Default Apps** and set Finicky as the default web browser
+- Finicky runs in the system tray and routes URLs based on your rules
+
+The installer registers Finicky as a browser in Windows. No admin rights are required — it installs per-user to `%LOCALAPPDATA%\Finicky`.
+
 
 ## Basic configuration
 
@@ -94,6 +109,16 @@ Finicky has browser extensions for Chrome and Firefox. They add an "open with Fi
 ### Building Finicky from source
 
 See [Building Finicky from source](https://github.com/johnste/finicky/wiki/Building-Finicky-from-source)
+
+**Windows (cross-compile from macOS/Linux):**
+```bash
+./scripts/build-windows.sh
+```
+
+**Windows (native):**
+```powershell
+$env:CGO_ENABLED="0"; go build -C apps/finicky/src -ldflags "-H windowsgui" -o ../build/windows/Finicky.exe .
+```
 
 ### Works well with
 
