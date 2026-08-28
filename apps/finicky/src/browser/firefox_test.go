@@ -173,18 +173,35 @@ func TestReadFirefoxGroupProfiles_FallbackToAllStores(t *testing.T) {
 	})
 	writeGroupStore(t, configDir, "3333", nil) // empty store
 
-	// No StoreID references anything, and a referenced-but-missing store also
-	// falls back to reading every store in the directory.
-	for _, ids := range [][]string{nil, {"deadbeef"}} {
-		got, readable := readFirefoxGroupProfiles(configDir, ids)
-		want := []firefoxProfile{
-			{Name: "Personal", Dir: personal},
-			{Name: "Work", Dir: work},
-			{Name: "Absolute", Dir: absDir},
-		}
-		if !readable || !reflect.DeepEqual(got, want) {
-			t.Errorf("readFirefoxGroupProfiles(%v):\n got %+v (readable=%v)\nwant %+v", ids, got, readable, want)
-		}
+	// Nothing references a store, so every store in the directory is read.
+	got, readable := readFirefoxGroupProfiles(configDir, nil)
+	want := []firefoxProfile{
+		{Name: "Personal", Dir: personal},
+		{Name: "Work", Dir: work},
+		{Name: "Absolute", Dir: absDir},
+	}
+	if !readable || !reflect.DeepEqual(got, want) {
+		t.Errorf("readFirefoxGroupProfiles(nil):\n got %+v (readable=%v)\nwant %+v", got, readable, want)
+	}
+}
+
+func TestReadFirefoxGroupProfiles_MissingReferencedStore(t *testing.T) {
+	configDir := t.TempDir()
+	work := mkProfileDir(t, configDir, "Profiles/abcd1234.Profile 1")
+	writeGroupStore(t, configDir, "1111", []groupRow{{name: "Work", path: "Profiles/abcd1234.Profile 1"}})
+
+	// The referenced store is missing, so nothing is read: the unreferenced
+	// "1111" store is stale and must not be used in its place.
+	got, readable := readFirefoxGroupProfiles(configDir, []string{"deadbeef"})
+	if readable || len(got) != 0 {
+		t.Errorf("readFirefoxGroupProfiles([deadbeef]):\n got %+v (readable=%v)\nwant no profiles (readable=false)", got, readable)
+	}
+
+	// Referencing the store that exists still reads it.
+	got, readable = readFirefoxGroupProfiles(configDir, []string{"1111"})
+	want := []firefoxProfile{{Name: "Work", Dir: work}}
+	if !readable || !reflect.DeepEqual(got, want) {
+		t.Errorf("readFirefoxGroupProfiles([1111]):\n got %+v (readable=%v)\nwant %+v", got, readable, want)
 	}
 }
 

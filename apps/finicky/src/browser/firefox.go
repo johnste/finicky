@@ -203,27 +203,31 @@ func firefoxStoreIDs(profiles []firefoxProfile) []string {
 
 // readFirefoxGroupProfiles reads the stores referenced from profiles.ini.
 // Firefox writes the store ID to the group's profiles.ini entry when it
-// populates a store, so unreferenced stores are stale or empty. When nothing
-// references a store, every store in the directory is read as a fallback.
-// The bool is false when at least one store could not be read.
+// populates a store, so unreferenced stores are stale or empty. Only when
+// nothing references a store is every store in the directory read as a
+// fallback; a referenced store that is missing is reported instead, so a
+// stale store is never read in its place.
+// The bool is false when at least one referenced store could not be read.
 func readFirefoxGroupProfiles(configDir string, storeIDs []string) ([]firefoxProfile, bool) {
 	groupsDir := filepath.Join(configDir, firefoxProfileGroupsDir)
+
+	readable := true
 
 	var storePaths []string
 	for _, id := range storeIDs {
 		storePath := filepath.Join(groupsDir, id+".sqlite")
 		if _, err := os.Stat(storePath); err != nil {
 			slog.Info("Firefox profile group store referenced by profiles.ini not found", "path", storePath)
+			readable = false
 			continue
 		}
 		storePaths = append(storePaths, storePath)
 	}
-	if len(storePaths) == 0 {
+	if len(storeIDs) == 0 {
 		storePaths, _ = filepath.Glob(filepath.Join(groupsDir, "*.sqlite"))
 		sort.Strings(storePaths)
 	}
 
-	readable := true
 	var profiles []firefoxProfile
 	for _, storePath := range storePaths {
 		rows, ok := readFirefoxGroupStore(configDir, storePath)
