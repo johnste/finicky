@@ -100,5 +100,11 @@
     "id": "app.zen-browser.zen",
     "type": "Firefox",
     "app_name": "Zen"
+  },
+  {
+    "config_dir_relative": "EcosiaBrowser",
+    "id": "org.ecosia.browser",
+    "type": "Chromium",
+    "app_name": "Ecosia Browser"
   }
 ]
