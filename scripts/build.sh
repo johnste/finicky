@@ -90,7 +90,7 @@ else
     # Rename arch build to plain Finicky.app
     build_arch arm64
 
-    rm -r apps/finicky/build/${APP_NAME}
+    rm -rf apps/finicky/build/${APP_NAME}
     mv apps/finicky/build/Finicky-arm64.app apps/finicky/build/${APP_NAME}
     copy_assets ${APP_NAME}
 
