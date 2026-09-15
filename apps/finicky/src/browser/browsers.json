@@ -6,6 +6,12 @@
     "app_name": "Brave Browser"
   },
   {
+    "config_dir_relative": "BraveSoftware/Brave-Browser-Nightly",
+    "id": "com.brave.Browser.nightly",
+    "type": "Chromium",
+    "app_name": "Brave Browser Nightly"
+  },
+  {
     "config_dir_relative": "Google/Chrome",
     "id": "com.google.Chrome",
     "type": "Chromium",
