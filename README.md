@@ -78,6 +78,15 @@ Finicky has extensive support for matching, rewriting and starting browsers or o
 - The wiki has some good [configuration ideas](https://github.com/johnste/finicky/wiki/Configuration-ideas).
 - Visit [discussions](https://github.com/johnste/finicky/discussions) to discuss supporting specific apps.
 
+### Browser profiles
+
+A handler can open a URL in a specific browser profile, either as `browser: { name: "Firefox", profile: "Work" }` or the shorthand `browser: "Firefox:Work"`. Finicky resolves the profile against the browser's own profile list, so use the name the browser shows you:
+
+- Chromium browsers (Chrome, Edge, Brave, Vivaldi, ...): the profile name from the browser's profile menu.
+- Firefox: the name shown in `about:profiles`. Both classic profiles from `profiles.ini` and profiles created with the newer profile manager (Firefox 138 and later, stored in `Profile Groups/*.sqlite`) are supported. If a name exists in both places, the `profiles.ini` profile is used. The profile directory name (for example `abcd1234.Profile 1`) is also accepted.
+
+Use the object form for profile names that contain a colon, since the shorthand splits on `:`. The Finicky window lists the profiles it detected for each browser.
+
 ## Migrating from Finicky 3
 
 Please see the [wiki page](https://github.com/johnste/finicky/wiki/Migrating-from-Finicky-3) for updating info and migrating your configuration
