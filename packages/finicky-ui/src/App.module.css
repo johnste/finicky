@@ -1,0 +1,27 @@
+.main {
+  display: flex;
+  flex-direction: column;
+  height: 100vh;
+  position: relative;
+}
+
+.layout {
+  display: flex;
+  flex: 1 1 auto;
+  min-height: 0;
+}
+
+.container {
+  padding: 1.25rem 1.25rem;
+  max-width: 100%;
+  box-sizing: border-box;
+  display: flex;
+  flex-direction: column;
+  flex: 1 1 100%;
+  overflow-y: auto;
+  scrollbar-gutter: stable;
+}
+
+.content {
+  flex: 1;
+}

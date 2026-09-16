@@ -1,0 +1,36 @@
+.logControls {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.debugToggle {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  cursor: pointer;
+  font-size: 0.85em;
+  color: var(--text-secondary);
+  user-select: none;
+}
+
+.debugToggle input[type="checkbox"] {
+  cursor: pointer;
+  accent-color: var(--accent-color);
+}
+
+.logControls button {
+  padding: 3px 10px;
+  border: 1px solid var(--border-color);
+  border-radius: 5px;
+  background: var(--button-bg);
+  color: var(--text-secondary);
+  cursor: pointer;
+  font-size: 0.82em;
+  font-family: inherit;
+  transition: color 0.15s;
+}
+
+.logControls button:hover {
+  color: var(--text-primary);
+}
