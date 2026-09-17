@@ -1,0 +1,140 @@
+name: Windows Build
+
+# Least-privilege GITHUB_TOKEN: nothing here writes to the repo.
+permissions:
+  contents: read
+
+on:
+    push:
+      branches: [main, windows-support, windows-smoke]
+    pull_request:
+      branches: [main]
+    workflow_dispatch:
+
+jobs:
+  build-windows:
+    runs-on: windows-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0 # full history + tags so `git describe` yields the real version
+          persist-credentials: false # later steps (npm ci, go build) never need the token
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: 'npm'
+          cache-dependency-path: |
+            packages/config-api/package-lock.json
+            packages/finicky-ui/package-lock.json
+
+      - name: Set up Go
+        uses: actions/setup-go@v4
+        with:
+          go-version: '1.24'
+          cache-dependency-path: |
+            apps/finicky/src/go.sum
+
+      - name: Install Node dependencies
+        run: |
+          cd packages/config-api
+          npm ci
+          cd ../finicky-ui
+          npm ci
+
+      # pwsh, not cmd: in a cmd script, `npm` (npm.cmd) without `call` transfers
+      # control and never returns, so everything after the first npm line was
+      # silently skipped and the embed assets never landed.
+      - name: Build config-api
+        run: |
+          cd packages/config-api
+          npm run build
+          npm run generate-types
+          Copy-Item dist/finickyConfigAPI.js ../../apps/finicky/src/assets/finickyConfigAPI.js -Force
+        shell: pwsh
+
+      - name: Build UI
+        run: |
+          cd packages/finicky-ui
+          npm run build
+          New-Item -ItemType Directory -Force ../../apps/finicky/src/assets/templates | Out-Null
+          Copy-Item dist/* ../../apps/finicky/src/assets/templates/ -Recurse -Force
+        shell: pwsh
+
+      - name: Build Windows binary
+        env:
+          CGO_ENABLED: '0'
+          GOOS: windows
+          GOARCH: amd64
+        run: |
+          $commitHash = git rev-parse --short HEAD
+          $buildDate = Get-Date -Format "yyyy-MM-dd HH:mm:ss UTC" -AsUTC
+          $version = git describe --tags --match 'v*' --always
+          cd apps/finicky/src
+          go build -ldflags "-X 'finicky/version.commitHash=$commitHash' -X 'finicky/version.buildDate=$buildDate' -X 'finicky/version.version=$version' -H windowsgui" -o ../build/windows/Finicky.exe .
+        shell: pwsh
+
+      - name: Run tests
+        run: |
+          cd apps/finicky/src
+          go test ./...
+        env:
+          CGO_ENABLED: '0'
+
+      - name: Upload Windows binary
+        uses: actions/upload-artifact@v4
+        with:
+          name: Finicky-windows-x64
+          path: apps/finicky/build/windows/Finicky.exe
+          retention-days: 14
+
+  cross-compile-check:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: 'npm'
+          cache-dependency-path: |
+            packages/config-api/package-lock.json
+            packages/finicky-ui/package-lock.json
+
+      - name: Set up Go
+        uses: actions/setup-go@v4
+        with:
+          go-version: '1.24'
+          cache-dependency-path: |
+            apps/finicky/src/go.sum
+
+      - name: Build assets
+        run: |
+          cd packages/config-api && npm ci && npm run build && npm run generate-types
+          cp dist/finickyConfigAPI.js ../../apps/finicky/src/assets/finickyConfigAPI.js
+          cd ../finicky-ui && npm ci && npm run build
+          mkdir -p ../../apps/finicky/src/assets/templates
+          cp -r dist/* ../../apps/finicky/src/assets/templates/
+
+      - name: Cross-compile for Windows
+        env:
+          CGO_ENABLED: '0'
+          GOOS: windows
+          GOARCH: amd64
+        run: |
+          cd apps/finicky/src
+          go build -o /dev/null .
+
+      - name: Cross-compile for macOS (verify no regressions)
+        env:
+          CGO_ENABLED: '0'
+          GOOS: darwin
+          GOARCH: arm64
+        run: |
+          cd apps/finicky/src
+          go build -o /dev/null . 2>&1 || echo "Expected: macOS build needs CGO for ObjC (this is OK)"

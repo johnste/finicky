@@ -1,0 +1,25 @@
+{
+  "FixedFileInfo": {
+    "FileVersion": { "Major": 4, "Minor": 4, "Patch": 0, "Build": 0 },
+    "ProductVersion": { "Major": 4, "Minor": 4, "Patch": 0, "Build": 0 },
+    "FileFlagsMask": "3f",
+    "FileFlags": "00",
+    "FileOS": "040004",
+    "FileType": "01",
+    "FileSubType": "00"
+  },
+  "StringFileInfo": {
+    "CompanyName": "Finicky",
+    "FileDescription": "Finicky",
+    "FileVersion": "4.4.0-alpha",
+    "InternalName": "Finicky.exe",
+    "LegalCopyright": "MIT â€” John Sterling and contributors",
+    "OriginalFilename": "Finicky.exe",
+    "ProductName": "Finicky",
+    "ProductVersion": "4.4.0-alpha"
+  },
+  "VarFileInfo": {
+    "Translation": { "LangID": "0409", "CharsetID": "04B0" }
+  },
+  "IconPath": "../assets/Resources/finicky.ico"
+}

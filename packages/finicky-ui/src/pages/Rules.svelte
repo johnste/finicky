@@ -44,6 +44,11 @@
     }
   }
   let pendingSave = $state(false);
+  // Set when we initiate a save. The backend echoes a "rules" message back; without
+  // this guard the $effect below would reassign `rules` and re-render every row,
+  // which steals focus when moving between the browser and URL fields (WebView2
+  // exposes this deterministically). We ignore the echo of our own save.
+  let selfSaved = false;
 
   function save() {
     clearTimeout(saveTimer);
@@ -52,6 +57,7 @@
       defaultProfile: rulesFile.defaultProfile,
       rules,
     };
+    selfSaved = true;
     window.finicky.sendMessage({ type: "saveRules", payload });
     pendingSave = false;
   }
@@ -65,6 +71,7 @@
         defaultProfile: rulesFile.defaultProfile,
         rules,
       };
+      selfSaved = true;
       window.finicky.sendMessage({ type: "saveRules", payload });
       pendingSave = false;
     }, SAVE_DEBOUNCE);
@@ -148,14 +155,20 @@
 
   // Sync incoming props into local state when they change; also fetch profiles for known browsers
   $effect(() => {
+    // Track inputs up front so external changes still re-sync after an early return.
+    const incoming = rulesFile;
+    const browsers = installedBrowsers;
     if (pendingSave) return;
-    const newRules = rulesFile.rules.map((r: Rule) => ({
+    // Ignore the echo of our own save — reassigning `rules` here re-renders the
+    // rows and breaks focus moving between the browser and URL fields.
+    if (selfSaved) { selfSaved = false; return; }
+    const newRules = incoming.rules.map((r: Rule) => ({
       ...r,
       match: Array.isArray(r.match) ? r.match : r.match ? [r.match as unknown as string] : [""],
     }));
     rules = newRules;
     rowIsCustom = newRules.map(
-      (r) => r.browser !== "" && !installedBrowsers.includes(r.browser)
+      (r) => r.browser !== "" && !browsers.includes(r.browser)
     );
     rowProfileIsCustom = newRules.map(
       (r) => {

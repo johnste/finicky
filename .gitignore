@@ -4,3 +4,6 @@ build
 .env
 dist
 example-config
+*.exe
+*.msi
+Output/

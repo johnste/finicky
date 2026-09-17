@@ -1,0 +1,26 @@
+# yaml-language-server: $schema=https://aka.ms/winget-manifest.defaultLocale.1.6.0.schema.json
+
+PackageIdentifier: JohnSterling.Finicky
+PackageVersion: 4.2.2
+PackageLocale: en-US
+Publisher: John Sterling
+PublisherUrl: https://github.com/johnste
+PackageName: Finicky
+PackageUrl: https://github.com/johnste/finicky
+License: MIT
+LicenseUrl: https://github.com/johnste/finicky/blob/main/LICENSE
+ShortDescription: A rule-based browser routing utility for Windows and macOS.
+Description: |-
+  Finicky lets you set up rules that decide which browser opens for every URL.
+  Route any URL to your preferred browser with powerful matching rules, automatically
+  edit URLs before opening them, and write rules in JavaScript or TypeScript for
+  complete control. Set Finicky as your default browser and it routes each link to
+  the right place based on domain, path, or source application.
+Tags:
+  - browser
+  - browser-router
+  - default-browser
+  - url-handler
+  - productivity
+ManifestType: defaultLocale
+ManifestVersion: 1.6.0

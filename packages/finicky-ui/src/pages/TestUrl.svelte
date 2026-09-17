@@ -31,11 +31,18 @@
 
   const DEBOUNCE_DELAY = 300;
   const LOADING_DELAY = DEBOUNCE_DELAY + 100;
+  // If the backend never answers (dead bridge, hung resolver), stop the
+  // spinner and say so instead of spinning forever.
+  const RESPONSE_TIMEOUT = 5000;
+  let responseTimer: ReturnType<typeof setTimeout>;
+  let timedOut = false;
 
   function testUrlAutomatically() {
     clearTimeout(debounceTimer);
     clearTimeout(loadingTimer);
+    clearTimeout(responseTimer);
     loading = false;
+    timedOut = false;
 
     if (!isValidUrl(testUrl)) {
       testUrlResult.set(null);
@@ -50,6 +57,11 @@
     debounceTimer = setTimeout(() => {
       const normalizedUrl = normalizeUrl(testUrl);
 
+      responseTimer = setTimeout(() => {
+        loading = false;
+        timedOut = true;
+      }, RESPONSE_TIMEOUT);
+
       // Send message to native app to test the URL
       window.finicky.sendMessage({
         type: "testUrl",
@@ -59,8 +71,12 @@
   }
 
   // Subscribe to test results
-  testUrlResult.subscribe(() => {
+  testUrlResult.subscribe((result) => {
     clearTimeout(loadingTimer);
+    if (result) {
+      clearTimeout(responseTimer);
+      timedOut = false;
+    }
     loading = false;
   });
 
@@ -94,7 +110,17 @@
       />
     </div>
 
-    {#if $testUrlResult}
+    {#if timedOut}
+      <div class="error-message">
+        <InfoIcon />
+        No response from Finicky — the test timed out. Check the Logs tab for errors.
+      </div>
+    {:else if $testUrlResult?.error}
+      <div class="error-message">
+        <InfoIcon />
+        Could not evaluate this URL: {$testUrlResult.error}
+      </div>
+    {:else if $testUrlResult}
       <div class="result-section">
         <div class="result-header">
           <h3>Result</h3>
@@ -204,6 +230,19 @@
   .empty-state p {
     margin: 0;
     font-size: 0.95em;
+  }
+
+  .error-message {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 12px 16px;
+    background: rgba(224, 82, 82, 0.08);
+    border: 1px solid rgba(224, 82, 82, 0.35);
+    border-radius: 8px;
+    color: var(--text-primary);
+    font-size: 0.9em;
+    word-break: break-word;
   }
 
   .hint-message {
