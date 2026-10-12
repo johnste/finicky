@@ -51,7 +51,11 @@ type ConfigInfo struct {
 	ConfigPath     string
 }
 
-var urlListener chan URLInfo = make(chan URLInfo)
+// Buffered so handing a url over never blocks the caller. HandleURL runs on the
+// main thread, and a handler that occupies the main thread while it works (the
+// "ask" picker runs a modal there) cannot drain the channel it would be blocking
+// on: the url event deadlocks the app, beachball and all.
+var urlListener chan URLInfo = make(chan URLInfo, 64)
 var windowClosed chan struct{} = make(chan struct{})
 var vm *config.VM
 
@@ -299,10 +303,18 @@ func HandleURL(url *C.char, name *C.char, bundleId *C.char, path *C.char, window
 		}
 	}
 
-	urlListener <- URLInfo{
+	info := URLInfo{
 		URL:              urlString,
 		Opener:           &opener,
 		OpenInBackground: bool(openInBackground),
+	}
+
+	// This runs on the main thread, which must never block here: see urlListener.
+	select {
+	case urlListener <- info:
+	default:
+		slog.Warn("Url queue is full, handing off asynchronously", "url", urlString)
+		go func() { urlListener <- info }()
 	}
 }
 
