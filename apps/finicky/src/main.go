@@ -196,8 +196,15 @@ func main() {
 				} else {
 					lastError = nil
 				}
-				if launchErr := browser.LaunchBrowser(*config, dryRun, urlInfo.OpenInBackground); launchErr != nil {
-					slog.Error("Failed to start browser", "error", launchErr)
+				launchConfig := *config
+				shouldLaunch := true
+				if launchConfig.AppType == "ask" {
+					launchConfig, shouldLaunch = resolveAskConfig(launchConfig)
+				}
+				if shouldLaunch {
+					if launchErr := browser.LaunchBrowser(launchConfig, dryRun, urlInfo.OpenInBackground); launchErr != nil {
+						slog.Error("Failed to start browser", "error", launchErr)
+					}
 				}
 
 				slog.Debug("Time taken evaluating URL and opening browser", "duration", fmt.Sprintf("%.2fms", float64(time.Since(startTime).Microseconds())/1000))

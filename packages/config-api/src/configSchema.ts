@@ -74,9 +74,23 @@ const UrlMatcherPatternSchema = z.union([
 
 // ===== Browser Schemas =====
 
-const appTypes = ["appName", "bundleId", "path", "none"] as const;
+const appTypes = ["appName", "bundleId", "path", "none", "ask"] as const;
 
 export type AppType = (typeof appTypes)[number];
+
+const PickerOptionSchema = z
+  .union([
+    z.string(),
+    z.object({
+      name: z.string(),
+      appType: z.enum(appTypes).optional(),
+      profile: z.string().optional(),
+      args: z.array(z.string()).optional(),
+      title: z.string().optional(),
+    }),
+  ])
+  .identifier("PickerOption")
+  .describe('A destination offered when appType is "ask"');
 
 const BrowserConfigSchema = z
   .object({
@@ -85,9 +99,20 @@ const BrowserConfigSchema = z
     openInBackground: z.boolean().optional(),
     profile: z.string().optional(),
     args: z.array(z.string()).optional(),
+    title: z.string().optional(),
+    options: z.array(PickerOptionSchema).optional(),
   })
   .identifier("BrowserConfig")
   .describe("A browser or app to open for urls");
+
+const PickerOptionStrictSchema = z.object({
+  name: z.string(),
+  appType: z.enum(appTypes),
+  openInBackground: z.boolean().optional(),
+  profile: z.string(),
+  args: z.array(z.string()),
+  title: z.string(),
+});
 
 export const BrowserConfigStrictSchema = z.object({
   name: z.string(),
@@ -96,6 +121,8 @@ export const BrowserConfigStrictSchema = z.object({
   profile: z.string(),
   args: z.array(z.string()),
   url: z.string(),
+  title: z.string(),
+  options: z.array(PickerOptionStrictSchema),
 });
 
 const BrowserResolverSchema = z
