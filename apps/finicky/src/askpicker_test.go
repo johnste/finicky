@@ -47,12 +47,30 @@ func TestResolveAskConfigWithoutOptions(t *testing.T) {
 		URL:     "https://example.com",
 	}
 
-	got, shouldLaunch := resolveAskConfig(config)
+	got, shouldLaunch := resolveAskConfig(config, false)
 
 	if shouldLaunch {
 		t.Error("expected shouldLaunch to be false when no options are configured")
 	}
 	if got.URL != config.URL {
 		t.Errorf("expected the url to be preserved, got %q", got.URL)
+	}
+}
+
+// A dry run must not reach the picker. If this regresses the test blocks on a
+// modal rather than failing an assertion, which is itself the signal.
+func TestResolveAskConfigDryRunDoesNotPrompt(t *testing.T) {
+	config := browser.BrowserConfig{
+		Name:    "ask",
+		AppType: "ask",
+		URL:     "https://example.com",
+		Options: []browser.BrowserConfig{
+			{Name: "Google Chrome", Profile: "Profile 2", Title: "Work"},
+			{Name: "Google Chrome", Profile: "Default", Title: "Personal"},
+		},
+	}
+
+	if _, shouldLaunch := resolveAskConfig(config, true); shouldLaunch {
+		t.Error("a dry run must not resolve to something launchable")
 	}
 }

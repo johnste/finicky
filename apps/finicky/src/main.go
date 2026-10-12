@@ -199,7 +199,7 @@ func main() {
 				launchConfig := *config
 				shouldLaunch := true
 				if launchConfig.AppType == "ask" {
-					launchConfig, shouldLaunch = resolveAskConfig(launchConfig)
+					launchConfig, shouldLaunch = resolveAskConfig(launchConfig, dryRun)
 				}
 				if shouldLaunch {
 					if launchErr := browser.LaunchBrowser(launchConfig, dryRun, urlInfo.OpenInBackground); launchErr != nil {

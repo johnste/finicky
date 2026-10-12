@@ -3,6 +3,7 @@ package main
 import (
 	"fmt"
 	"log/slog"
+	"strings"
 
 	"finicky/browser"
 	"finicky/picker"
@@ -10,9 +11,9 @@ import (
 
 // resolveAskConfig presents a picker for a browser config with appType "ask"
 // and returns the destination the user chose. The second return value is false
-// when nothing should be opened, either because the user cancelled or because
-// the config offered no options to choose from.
-func resolveAskConfig(config browser.BrowserConfig) (browser.BrowserConfig, bool) {
+// when nothing should be opened: the user cancelled, the config offered no
+// options to choose from, or this is a dry run.
+func resolveAskConfig(config browser.BrowserConfig, dryRun bool) (browser.BrowserConfig, bool) {
 	if len(config.Options) == 0 {
 		slog.Error("Browser appType is \"ask\" but no options were configured", "url", config.URL)
 		return config, false
@@ -21,6 +22,13 @@ func resolveAskConfig(config browser.BrowserConfig) (browser.BrowserConfig, bool
 	labels := make([]string, 0, len(config.Options))
 	for _, option := range config.Options {
 		labels = append(labels, askOptionLabel(option))
+	}
+
+	// A dry run simulates without opening anything, and a modal waiting on a
+	// click is the one thing a simulation must not do.
+	if dryRun {
+		slog.Info("Dry run, not showing the picker", "url", config.URL, "options", strings.Join(labels, ", "))
+		return config, false
 	}
 
 	title := config.Title
