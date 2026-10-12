@@ -313,8 +313,12 @@ func HandleURL(url *C.char, name *C.char, bundleId *C.char, path *C.char, window
 	select {
 	case urlListener <- info:
 	default:
-		slog.Warn("Url queue is full, handing off asynchronously", "url", urlString)
-		go func() { urlListener <- info }()
+		// The queue only fills when urls arrive faster than they are answered,
+		// which means dozens of unanswered pickers are already stacked up.
+		// Dropping keeps the hand-off ordered and bounded; deferring the send to
+		// a goroutine instead would let it overtake urls that arrive later, and
+		// let goroutines accumulate for as long as the stream lasts.
+		slog.Warn("Url queue is full, dropping url", "url", urlString, "queued", len(urlListener))
 	}
 }
 
