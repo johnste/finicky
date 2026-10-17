@@ -129,7 +129,7 @@ const HandlerRuleSchema = z
   .identifier("BrowserHandler");
 
 // ===== Configuration Schemas =====
-const ConfigOptionsSchema = z
+export const ConfigOptionsSchema = z
   .object({
     urlShorteners: z.array(z.string()).optional(),
     logRequests: z.boolean().optional().describe("Log to file on disk"),
