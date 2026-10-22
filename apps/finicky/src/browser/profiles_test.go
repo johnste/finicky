@@ -186,3 +186,60 @@ func TestParseProfiles_MalformedIsNotDenial(t *testing.T) {
 		t.Errorf("malformed: got (ok=%v, denied=%v)", ok, denied)
 	}
 }
+
+// The launch path, not just the readers: a denial must still produce
+// arguments, because the browser can resolve what Finicky could not. Without
+// these, a change could drop the fallback and silently go back to opening
+// whichever profile was last used.
+func TestChromiumProfileArgs(t *testing.T) {
+	dir := t.TempDir()
+	path := filepath.Join(dir, "Local State")
+	writeTempFile(t, path, `{"profile":{"info_cache":{"Profile 1":{"name":"Work"}}}}`)
+
+	if got, ok := chromiumProfileArgs(path, "Work"); !ok || !reflect.DeepEqual(got, []string{"--profile-directory=Profile 1"}) {
+		t.Errorf("display name: got (%v, %v)", got, ok)
+	}
+	// Readable list, unknown name: left unresolved rather than guessed at.
+	if got, ok := chromiumProfileArgs(path, "Nope"); ok {
+		t.Errorf("unknown name: got %v, want no args", got)
+	}
+
+	denyDir(t, dir)
+	// Denied: the configured value is handed over as the directory name.
+	if got, ok := chromiumProfileArgs(path, "Profile 1"); !ok || !reflect.DeepEqual(got, []string{"--profile-directory=Profile 1"}) {
+		t.Errorf("under denial: got (%v, %v), want --profile-directory=Profile 1", got, ok)
+	}
+	if got, ok := chromiumProfileArgs(path, ""); ok {
+		t.Errorf("empty profile under denial: got %v, want no args", got)
+	}
+}
+
+func TestFirefoxProfileArgs(t *testing.T) {
+	dir := t.TempDir()
+	path := filepath.Join(dir, "profiles.ini")
+	writeTempFile(t, path, sampleProfilesIni)
+	profileDir := filepath.Join(dir, "Profiles", "abcd1234.work")
+	if err := os.MkdirAll(profileDir, 0o755); err != nil {
+		t.Fatal(err)
+	}
+
+	if got, ok := firefoxProfileArgs(path, "Work"); !ok || !reflect.DeepEqual(got, []string{"-P", "Work"}) {
+		t.Errorf("name: got (%v, %v)", got, ok)
+	}
+	if got, ok := firefoxProfileArgs(path, "Nope"); ok {
+		t.Errorf("unknown name: got %v, want no args", got)
+	}
+	// A path resolves whether or not the list was readable.
+	if got, ok := firefoxProfileArgs(path, profileDir); !ok || !reflect.DeepEqual(got, []string{"--profile", profileDir}) {
+		t.Errorf("path: got (%v, %v)", got, ok)
+	}
+
+	denyDir(t, dir)
+	// Denied: Firefox resolves the name itself against its own profiles.ini.
+	if got, ok := firefoxProfileArgs(path, "Work"); !ok || !reflect.DeepEqual(got, []string{"-P", "Work"}) {
+		t.Errorf("under denial: got (%v, %v), want -P Work", got, ok)
+	}
+	if got, ok := firefoxProfileArgs(path, ""); ok {
+		t.Errorf("empty profile under denial: got %v, want no args", got)
+	}
+}

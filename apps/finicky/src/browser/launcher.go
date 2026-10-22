@@ -181,20 +181,8 @@ func resolveBrowserProfileArgs(identifier string, profile string) ([]string, boo
 			}
 
 			localStatePath := filepath.Join(homeDir, "Library/Application Support", matchedBrowser.ConfigDirRelative, "Local State")
-			profilePath, ok, denied := parseProfiles(localStatePath, profile)
-			if ok {
-				return []string{"--profile-directory=" + profilePath}, true
-			}
-			if denied && profile != "" {
-				// The browser resolves the directory name itself, so hand it
-				// over unresolved rather than dropping the profile. Local
-				// State maps a display name to a directory and that is what
-				// could not be read, so this only lands on the right profile
-				// when the configured value is the directory name, such as
-				// "Profile 1". Saying so is better than silently opening
-				// whichever profile was last used.
-				slog.Warn("Passing the profile to the browser unresolved, because the profile list could not be read", "profile", profile, "note", "this must be the profile directory name, for example \"Profile 1\", not the name shown in the browser", "suggestion", browserDataAccessHint)
-				return []string{"--profile-directory=" + profile}, true
+			if args, ok := chromiumProfileArgs(localStatePath, profile); ok {
+				return args, true
 			}
 		case "Firefox":
 			homeDir, err := util.UserHomeDir()
@@ -204,11 +192,7 @@ func resolveBrowserProfileArgs(identifier string, profile string) ([]string, boo
 			}
 
 			profilesIniPath := filepath.Join(homeDir, "Library/Application Support", matchedBrowser.ConfigDirRelative, "profiles.ini")
-			profileName, ok, denied := parseFirefoxProfiles(profilesIniPath, profile)
-			if ok {
-				return []string{"-P", profileName}, true
-			}
-			if args, ok := firefoxFallbackArgs(profile, denied); ok {
+			if args, ok := firefoxProfileArgs(profilesIniPath, profile); ok {
 				return args, true
 			}
 		default:
@@ -217,6 +201,36 @@ func resolveBrowserProfileArgs(identifier string, profile string) ([]string, boo
 	}
 
 	return nil, false
+}
+
+// chromiumProfileArgs resolves a configured profile to Chromium command line
+// arguments, given the path to that browser's Local State.
+func chromiumProfileArgs(localStatePath string, profile string) ([]string, bool) {
+	profilePath, ok, denied := parseProfiles(localStatePath, profile)
+	if ok {
+		return []string{"--profile-directory=" + profilePath}, true
+	}
+	if denied && profile != "" {
+		// The browser resolves the directory name itself, so hand it over
+		// unresolved rather than dropping the profile. Local State maps a
+		// display name to a directory and that is the file that could not be
+		// read, so this only lands on the right profile when the configured
+		// value is already the directory name, such as "Profile 1". Saying so
+		// is better than silently opening whichever profile was last used.
+		slog.Warn("Passing the profile to the browser unresolved, because the profile list could not be read", "profile", profile, "note", "this must be the profile directory name, for example \"Profile 1\", not the name shown in the browser", "suggestion", browserDataAccessHint)
+		return []string{"--profile-directory=" + profile}, true
+	}
+	return nil, false
+}
+
+// firefoxProfileArgs resolves a configured profile to Firefox command line
+// arguments, given the path to profiles.ini.
+func firefoxProfileArgs(profilesIniPath string, profile string) ([]string, bool) {
+	profileName, ok, denied := parseFirefoxProfiles(profilesIniPath, profile)
+	if ok {
+		return []string{"-P", profileName}, true
+	}
+	return firefoxFallbackArgs(profile, denied)
 }
 
 // browserDataAccessHint is the remedy when the operating system refuses a
