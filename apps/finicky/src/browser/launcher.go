@@ -3,8 +3,10 @@ package browser
 import (
 	_ "embed"
 	"encoding/json"
+	"errors"
 	"fmt"
 	"io"
+	"io/fs"
 	"log/slog"
 	"os"
 	"os/exec"
@@ -179,9 +181,20 @@ func resolveBrowserProfileArgs(identifier string, profile string) ([]string, boo
 			}
 
 			localStatePath := filepath.Join(homeDir, "Library/Application Support", matchedBrowser.ConfigDirRelative, "Local State")
-			profilePath, ok := parseProfiles(localStatePath, profile)
+			profilePath, ok, denied := parseProfiles(localStatePath, profile)
 			if ok {
 				return []string{"--profile-directory=" + profilePath}, true
+			}
+			if denied && profile != "" {
+				// The browser resolves the directory name itself, so hand it
+				// over unresolved rather than dropping the profile. Local
+				// State maps a display name to a directory and that is what
+				// could not be read, so this only lands on the right profile
+				// when the configured value is the directory name, such as
+				// "Profile 1". Saying so is better than silently opening
+				// whichever profile was last used.
+				slog.Warn("Passing the profile to the browser unresolved, because the profile list could not be read", "profile", profile, "note", "this must be the profile directory name, for example \"Profile 1\", not the name shown in the browser", "suggestion", browserDataAccessHint)
+				return []string{"--profile-directory=" + profile}, true
 			}
 		case "Firefox":
 			homeDir, err := util.UserHomeDir()
@@ -191,9 +204,12 @@ func resolveBrowserProfileArgs(identifier string, profile string) ([]string, boo
 			}
 
 			profilesIniPath := filepath.Join(homeDir, "Library/Application Support", matchedBrowser.ConfigDirRelative, "profiles.ini")
-			profileName, ok := parseFirefoxProfiles(profilesIniPath, profile)
+			profileName, ok, denied := parseFirefoxProfiles(profilesIniPath, profile)
 			if ok {
 				return []string{"-P", profileName}, true
+			}
+			if args, ok := firefoxFallbackArgs(profile, denied); ok {
+				return args, true
 			}
 		default:
 			slog.Info("Browser is not a supported browser type, skipping profile detection", "identifier", identifier)
@@ -203,11 +219,42 @@ func resolveBrowserProfileArgs(identifier string, profile string) ([]string, boo
 	return nil, false
 }
 
-func readFirefoxProfileNames(profilesIniPath string) []string {
+// browserDataAccessHint is the remedy when the operating system refuses a
+// read of a browser's data directory.
+//
+// macOS 27 protects the application support directories of other apps, so
+// reads of ~/Library/Application Support/<browser> fail with EPERM
+// ("operation not permitted"). The browser itself keeps working, so the
+// denial looks exactly like a profile that does not exist: nothing matches,
+// the browser is launched with no profile argument, and the URL opens in
+// whichever profile was last used.
+//
+// The grant is per browser, listed under Finicky in Files & Folders. macOS
+// creates the entry, switched off, the first time it denies a read, and
+// mentions it once in a "Data Access Blocked" notification. There is no
+// prompt at the time and the pane has no Add button, so nothing appears
+// until a denial has happened. Full Disk Access also works, but grants far
+// more than this needs.
+const browserDataAccessHint = "Allow Finicky to read this browser's data in System Settings > Privacy & Security > Files & Folders, then restart Finicky"
+
+// reportBrowserDataReadError logs a failed read of a browser's data and
+// reports whether the operating system refused it, which is not the same as
+// the file being absent and does not mean the profile is gone.
+func reportBrowserDataReadError(what string, path string, err error) bool {
+	if errors.Is(err, fs.ErrPermission) {
+		slog.Warn("The operating system denied access to the browser's profile data, so no profiles could be read", "file", what, "path", path, "error", err, "suggestion", browserDataAccessHint)
+		return true
+	}
+	slog.Info("Error reading "+what, "path", path, "error", err)
+	return false
+}
+
+// readFirefoxProfileNames returns the profile names in profiles.ini. The bool
+// is true when the file could not be read because access was denied.
+func readFirefoxProfileNames(profilesIniPath string) ([]string, bool) {
 	data, err := os.ReadFile(profilesIniPath)
 	if err != nil {
-		slog.Info("Error reading profiles.ini", "path", profilesIniPath, "error", err)
-		return []string{}
+		return []string{}, reportBrowserDataReadError("profiles.ini", profilesIniPath, err)
 	}
 
 	names := []string{}
@@ -217,50 +264,101 @@ func readFirefoxProfileNames(profilesIniPath string) []string {
 			names = append(names, name)
 		}
 	}
-	return names
+	return names, false
 }
 
-func parseFirefoxProfiles(profilesIniPath string, profile string) (string, bool) {
-	names := readFirefoxProfileNames(profilesIniPath)
+// parseFirefoxProfiles matches a configured profile against profiles.ini. The
+// second bool is true when the list could not be read because access was
+// denied, so the caller can tell "no such profile" from "could not look".
+func parseFirefoxProfiles(profilesIniPath string, profile string) (string, bool, bool) {
+	names, denied := readFirefoxProfileNames(profilesIniPath)
 	for _, name := range names {
 		if name == profile {
-			return name, true
+			return name, true, false
 		}
 	}
-	slog.Warn("Could not find profile in Firefox profiles.", "Expected profile", profile, "Available profiles", strings.Join(names, ", "))
-	return "", false
+	if !denied {
+		slog.Warn("Could not find profile in Firefox profiles.", "Expected profile", profile, "Available profiles", strings.Join(names, ", "))
+	}
+	return "", false, denied
 }
 
-func chromiumInfoCache(localStatePath string) (map[string]interface{}, bool) {
+// firefoxFallbackArgs resolves a profile that profiles.ini could not.
+//
+// An absolute path names the profile directory Firefox would open anyway, and
+// using it needs no access to the Firefox directory at all.
+//
+// Otherwise, if the list could not be read, hand the name to Firefox
+// unresolved. Firefox resolves "-P" itself through GetProfileByName against
+// the profiles.ini it reads directly, and Firefox is not the process being
+// denied, so the lookup succeeds. A name Firefox cannot find opens the
+// profile manager, which is a visible failure the user can act on, rather
+// than the silent one this replaces. When the list was readable and the name
+// still missed, the name is simply wrong and is left unresolved.
+func firefoxFallbackArgs(profile string, denied bool) ([]string, bool) {
+	if profile == "" {
+		return nil, false
+	}
+
+	if filepath.IsAbs(profile) {
+		info, err := os.Stat(profile)
+		switch {
+		case err == nil && !info.IsDir():
+			slog.Warn("Firefox profile path is not a directory", "path", profile)
+			return nil, false
+		case errors.Is(err, fs.ErrNotExist):
+			// Firefox creates an empty profile for a directory that is not
+			// there rather than failing, which loses a session silently.
+			slog.Warn("Firefox profile path does not exist", "path", profile, "note", "Firefox would create an empty profile there, so it is not used")
+			return nil, false
+		case err != nil:
+			// Under a denial the directory is almost certainly there, and
+			// Firefox is not the one being denied.
+			slog.Warn("Using Firefox profile path that could not be checked", "path", profile, "error", err, "suggestion", browserDataAccessHint)
+		default:
+			slog.Info("Using Firefox profile path directly", "path", profile)
+		}
+		return []string{"--profile", profile}, true
+	}
+
+	if denied {
+		slog.Warn("Passing the Firefox profile name to Firefox unresolved, because the profile list could not be read", "name", profile, "suggestion", browserDataAccessHint)
+		return []string{"-P", profile}, true
+	}
+	return nil, false
+}
+
+// chromiumInfoCache reads the profile list from Local State. The last bool is
+// true when the file could not be read because access was denied.
+func chromiumInfoCache(localStatePath string) (map[string]interface{}, bool, bool) {
 	data, err := os.ReadFile(localStatePath)
 	if err != nil {
-		slog.Info("Error reading Local State file", "path", localStatePath, "error", err)
-		return nil, false
+		return nil, false, reportBrowserDataReadError("Local State file", localStatePath, err)
 	}
 
 	var localState map[string]interface{}
 	if err := json.Unmarshal(data, &localState); err != nil {
 		slog.Info("Error parsing Local State JSON", "error", err)
-		return nil, false
+		return nil, false, false
 	}
 
 	profiles, ok := localState["profile"].(map[string]interface{})
 	if !ok {
 		slog.Info("Could not find profile section in Local State")
-		return nil, false
+		return nil, false, false
 	}
 
 	infoCache, ok := profiles["info_cache"].(map[string]interface{})
 	if !ok {
 		slog.Info("Could not find info_cache in profile section")
-		return nil, false
+		return nil, false, false
 	}
 
-	return infoCache, true
+	return infoCache, true, false
 }
 
 func getAllChromiumProfiles(localStatePath string) []string {
-	cache, ok := chromiumInfoCache(localStatePath)
+	cache, ok, _ := chromiumInfoCache(localStatePath)
 	if !ok {
 		return []string{}
 	}
@@ -281,10 +379,13 @@ func getAllChromiumProfiles(localStatePath string) []string {
 	return names
 }
 
-func parseProfiles(localStatePath string, profile string) (string, bool) {
-	infoCache, ok := chromiumInfoCache(localStatePath)
+// parseProfiles matches a configured profile name against Local State. The
+// last bool is true when the list could not be read because access was
+// denied, so the caller can tell "no such profile" from "could not look".
+func parseProfiles(localStatePath string, profile string) (string, bool, bool) {
+	infoCache, ok, denied := chromiumInfoCache(localStatePath)
 	if !ok {
-		return "", false
+		return "", false, denied
 	}
 
 	// Look for the specified profile
@@ -301,7 +402,7 @@ func parseProfiles(localStatePath string, profile string) (string, bool) {
 
 		if name == profile {
 			slog.Info("Found profile by name", "name", name, "path", profilePath)
-			return profilePath, true
+			return profilePath, true, false
 		}
 	}
 
@@ -315,7 +416,7 @@ func parseProfiles(localStatePath string, profile string) (string, bool) {
 					slog.Warn("Found profile using profile path", "path", profilePath, "name", name, "suggestion", "Please use the profile name instead")
 				}
 			}
-			return profilePath, true
+			return profilePath, true, false
 		}
 	}
 
@@ -335,7 +436,7 @@ func parseProfiles(localStatePath string, profile string) (string, bool) {
 	}
 	slog.Warn("Could not find profile in browser profiles.", "Expected profile", profile, "Available profiles", strings.Join(profileNames, ", "))
 
-	return "", false
+	return "", false, false
 }
 
 // GetProfilesForBrowser returns available profile names for a given browser app name or bundle ID.
@@ -371,7 +472,8 @@ func GetProfilesForBrowser(identifier string) []string {
 		return getAllChromiumProfiles(localStatePath)
 	case "Firefox":
 		profilesIniPath := filepath.Join(homeDir, "Library/Application Support", matchedBrowser.ConfigDirRelative, "profiles.ini")
-		return readFirefoxProfileNames(profilesIniPath)
+		names, _ := readFirefoxProfileNames(profilesIniPath)
+		return names
 	default:
 		return []string{}
 	}
