@@ -317,6 +317,25 @@ describe("resolveBrowser", () => {
     });
   });
 
+  it("rejects non-boolean window focus options", () => {
+    expect(() =>
+      resolveBrowser(
+        { name: "Google Chrome", focusWindow: "yes" } as any,
+        mockUrl,
+        mockOptions
+      )
+    ).toThrow("Invalid browser option");
+  });
+
+  it("preserves window focus options in resolved handlers", () => {
+    const result = resolveBrowser(
+      { name: "Google Chrome", profile: "Work", focusWindow: true },
+      mockUrl,
+      mockOptions
+    );
+    expect(result).toMatchObject({ profile: "Work", focusWindow: true });
+  });
+
   it("resolves object browser specifications", () => {
     const browserConfig = {
       name: "Google Chrome",

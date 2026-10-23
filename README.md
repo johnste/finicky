@@ -78,6 +78,35 @@ Finicky has extensive support for matching, rewriting and starting browsers or o
 - The wiki has some good [configuration ideas](https://github.com/johnste/finicky/wiki/Configuration-ideas).
 - Visit [discussions](https://github.com/johnste/finicky/discussions) to discuss supporting specific apps.
 
+### Focus a Chrome profile window
+
+Chrome profiles can have windows on different macOS Spaces. Set `focusWindow: true` to raise the window that receives the link:
+
+```js
+export default {
+  defaultBrowser: {
+    name: "Google Chrome",
+    profile: "Work",
+    openInBackground: false,
+    focusWindow: true,
+  },
+};
+```
+
+This option supports Google Chrome by app name or bundle ID. It is off by default and does not apply to background links.
+
+macOS requires Automation access to Google Chrome and System Events, plus Accessibility access for Finicky. Grant these permissions in System Settings → Privacy & Security when prompted. They let Finicky read Chrome tab IDs and raise the receiving window.
+
+Finicky compares tab IDs before and after opening the link. This also handles opening the same URL twice. It polls for the receiving window for five seconds after opening the link. If focusing fails, the link stays open and the Troubleshoot log reports the error. Existing configurations and other browsers keep their normal launch behavior.
+
+To verify the option:
+
+1. Open two Chrome profiles in separate Spaces. Put the target profile window in full screen.
+2. Open a matching link from another app on a third Space.
+3. Confirm the tab opens in the selected profile and macOS switches to that window.
+4. Open the same URL again. Confirm focus follows the new tab.
+5. Set `openInBackground: true`. Confirm the link opens without changing focus.
+
 ## Migrating from Finicky 3
 
 Please see the [wiki page](https://github.com/johnste/finicky/wiki/Migrating-from-Finicky-3) for updating info and migrating your configuration

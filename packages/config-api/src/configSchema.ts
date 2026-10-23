@@ -83,6 +83,7 @@ const BrowserConfigSchema = z
     name: z.string(),
     appType: z.enum(appTypes).optional(),
     openInBackground: z.boolean().optional(),
+    focusWindow: z.boolean().optional(),
     profile: z.string().optional(),
     args: z.array(z.string()).optional(),
   })
@@ -93,6 +94,7 @@ export const BrowserConfigStrictSchema = z.object({
   name: z.string(),
   appType: z.enum(appTypes),
   openInBackground: z.boolean().optional(),
+  focusWindow: z.boolean().optional(),
   profile: z.string(),
   args: z.array(z.string()),
   url: z.string(),

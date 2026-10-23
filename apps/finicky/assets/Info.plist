@@ -22,6 +22,8 @@
     <string>4.4.0-alpha</string>
     <key>CFBundleIconFile</key>
     <string>finicky.icns</string>
+    <key>NSAppleEventsUsageDescription</key>
+    <string>Focus the Chrome window that receives a link when focusWindow is enabled.</string>
     <key>LSUIElement</key>
     <true/>
     <key>CFBundleURLTypes</key>
