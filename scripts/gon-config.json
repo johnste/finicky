@@ -5,7 +5,8 @@
     "username": "john@johnste.se"
   },
   "sign": {
-    "application_identity": "Developer ID Application: John Sterling"
+    "application_identity": "Developer ID Application: John Sterling",
+    "entitlements_file": "./scripts/Finicky.entitlements"
   },
   "dmg": {
     "output_path": "dist/Finicky.dmg",

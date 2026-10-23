@@ -9,8 +9,8 @@ import (
 	"os"
 	"os/exec"
 	"path/filepath"
-	"strings"
 	"slices"
+	"strings"
 
 	"al.essio.dev/pkg/shellescape"
 	"finicky/util"
@@ -18,6 +18,9 @@ import (
 
 //go:embed browsers.json
 var browsersJsonData []byte
+
+//go:embed focus_chrome.applescript
+var chromeFocusScript string
 
 type BrowserResult struct {
 	Browser BrowserConfig `json:"browser"`
@@ -28,6 +31,7 @@ type BrowserConfig struct {
 	Name             string   `json:"name"`
 	AppType          string   `json:"appType"`
 	OpenInBackground *bool    `json:"openInBackground"`
+	FocusWindow      bool     `json:"focusWindow"`
 	Profile          string   `json:"profile"`
 	Args             []string `json:"args"`
 	URL              string   `json:"url"`
@@ -77,7 +81,7 @@ func LaunchBrowser(config BrowserConfig, dryRun bool, openInBackgroundByDefault 
 
 	// Add --args if we have profile args or custom args
 	if ok || hasCustomArgs {
-		if ! slices.Contains(config.Args, "--args") {
+		if !slices.Contains(config.Args, "--args") {
 			openArgs = append(openArgs, "--args")
 		}
 		// Add profile arguments first if present
@@ -97,6 +101,14 @@ func LaunchBrowser(config BrowserConfig, dryRun bool, openInBackgroundByDefault 
 	}
 
 	cmd := exec.Command("open", openArgs...)
+	if config.FocusWindow && !openInBackground {
+		if config.Name == "Google Chrome" || config.Name == "com.google.Chrome" {
+			scriptArgs := append([]string{"-e", chromeFocusScript, "--"}, openArgs...)
+			cmd = exec.Command("osascript", scriptArgs...)
+		} else {
+			slog.Warn("Window focusing is only supported for Google Chrome", "name", config.Name)
+		}
+	}
 
 	// Pretty print the command with proper escaping
 	prettyCmd := formatCommand(cmd.Path, cmd.Args)
