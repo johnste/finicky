@@ -51,7 +51,11 @@ type ConfigInfo struct {
 	ConfigPath     string
 }
 
-var urlListener chan URLInfo = make(chan URLInfo)
+// Buffered so handing a url over never blocks the caller. HandleURL runs on the
+// main thread, and a handler that occupies the main thread while it works (the
+// "ask" picker runs a modal there) cannot drain the channel it would be blocking
+// on: the url event deadlocks the app, beachball and all.
+var urlListener chan URLInfo = make(chan URLInfo, 64)
 var windowClosed chan struct{} = make(chan struct{})
 var vm *config.VM
 
@@ -196,8 +200,15 @@ func main() {
 				} else {
 					lastError = nil
 				}
-				if launchErr := browser.LaunchBrowser(*config, dryRun, urlInfo.OpenInBackground); launchErr != nil {
-					slog.Error("Failed to start browser", "error", launchErr)
+				launchConfig := *config
+				shouldLaunch := true
+				if launchConfig.AppType == "ask" {
+					launchConfig, shouldLaunch = resolveAskConfig(launchConfig, dryRun)
+				}
+				if shouldLaunch {
+					if launchErr := browser.LaunchBrowser(launchConfig, dryRun, urlInfo.OpenInBackground); launchErr != nil {
+						slog.Error("Failed to start browser", "error", launchErr)
+					}
 				}
 
 				slog.Debug("Time taken evaluating URL and opening browser", "duration", fmt.Sprintf("%.2fms", float64(time.Since(startTime).Microseconds())/1000))
@@ -292,10 +303,22 @@ func HandleURL(url *C.char, name *C.char, bundleId *C.char, path *C.char, window
 		}
 	}
 
-	urlListener <- URLInfo{
+	info := URLInfo{
 		URL:              urlString,
 		Opener:           &opener,
 		OpenInBackground: bool(openInBackground),
+	}
+
+	// This runs on the main thread, which must never block here: see urlListener.
+	select {
+	case urlListener <- info:
+	default:
+		// The queue only fills when urls arrive faster than they are answered,
+		// which means dozens of unanswered pickers are already stacked up.
+		// Dropping keeps the hand-off ordered and bounded; deferring the send to
+		// a goroutine instead would let it overtake urls that arrive later, and
+		// let goroutines accumulate for as long as the stream lasts.
+		slog.Warn("Url queue is full, dropping url", "url", urlString, "queued", len(urlListener))
 	}
 }
 
