@@ -69,6 +69,19 @@ export default {
 };
 ```
 
+### Safari profiles
+
+Safari has no command line option for choosing a profile, so Finicky opens a new window in the profile through Safari's File menu ("New Work Window") and then hands the url to it. This needs Accessibility permission for Finicky, which macOS asks for the first time it is used. Safari profile urls always open in the foreground, and the profile name must match the File menu of English Safari.
+
+```js
+handlers: [
+  {
+    match: "*.example.com/*",
+    browser: { name: "Safari", profile: "Work" },
+  },
+],
+```
+
 See the [configuration](#configuration) for all the features Finicky supports.
 
 ## Configuration
