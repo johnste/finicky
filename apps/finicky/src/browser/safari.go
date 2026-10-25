@@ -33,6 +33,10 @@ const safariMenuTimeoutSeconds = 5
 // before the profile window is requested, so the two are not confused.
 const safariStartupDelay = 2 * time.Second
 
+// safariStartupAttempts bounds how often the menu is tried after launching
+// Safari, since a slow start can leave its menu bar empty for a while.
+const safariStartupAttempts = 3
+
 // Results of pressing a Safari menu item, mirrored from safari_menu.h so that
 // Go code, tests included, can name them.
 const (
@@ -41,6 +45,7 @@ const (
 	safariMenuNotRunning = C.SAFARI_MENU_NOT_RUNNING
 	safariMenuNoItem     = C.SAFARI_MENU_NO_ITEM
 	safariMenuTimeout    = C.SAFARI_MENU_TIMEOUT
+	safariMenuNoWindows  = C.SAFARI_MENU_NO_WINDOWS
 )
 
 // safariMenuItemTitle is the File menu item Safari shows for a profile.
@@ -67,6 +72,8 @@ func safariMenuError(status int, profile string) error {
 		return fmt.Errorf("Safari has no %q menu item, so there is no profile named %q", safariMenuItemTitle(profile), profile)
 	case safariMenuTimeout:
 		return fmt.Errorf("Safari did not open a window for profile %q in time", profile)
+	case safariMenuNoWindows:
+		return fmt.Errorf("could not read Safari's windows, so profile %q was not opened", profile)
 	default:
 		return fmt.Errorf("unexpected result %d opening Safari profile %q", status, profile)
 	}
@@ -94,8 +101,13 @@ func launchSafariProfile(url string, profile string, dryRun bool) error {
 		if err := exec.Command("open", "-a", "Safari").Run(); err != nil {
 			return fmt.Errorf("launching Safari failed: %v", err)
 		}
-		time.Sleep(safariStartupDelay)
-		status = pressSafariMenuItem(title)
+		for attempt := 0; attempt < safariStartupAttempts; attempt++ {
+			time.Sleep(safariStartupDelay)
+			status = pressSafariMenuItem(title)
+			if status != safariMenuNotRunning && status != safariMenuNoItem {
+				break
+			}
+		}
 	}
 	if err := safariMenuError(status, profile); err != nil {
 		return err

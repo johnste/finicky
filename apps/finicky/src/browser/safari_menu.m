@@ -84,11 +84,15 @@ int safariOpenWindowFromMenu(const char *menuTitle, double timeoutSeconds) {
         }
 
         if (item != NULL) {
+            // Without a starting count a new window cannot be told apart, so
+            // the press is skipped rather than reported as a success.
             CFIndex before = windowCount(app);
-            AXUIElementPerformAction(item, kAXPressAction);
-
-            result = SAFARI_MENU_TIMEOUT;
-            for (double waited = 0; waited < timeoutSeconds; waited += 0.1) {
+            result = SAFARI_MENU_NO_WINDOWS;
+            if (before >= 0) {
+                AXUIElementPerformAction(item, kAXPressAction);
+                result = SAFARI_MENU_TIMEOUT;
+            }
+            for (double waited = 0; before >= 0 && waited < timeoutSeconds; waited += 0.1) {
                 if (windowCount(app) > before) {
                     result = SAFARI_MENU_OK;
                     break;
