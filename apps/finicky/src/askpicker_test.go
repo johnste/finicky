@@ -57,6 +57,70 @@ func TestResolveAskConfigWithoutOptions(t *testing.T) {
 	}
 }
 
+func TestAbbreviateURL(t *testing.T) {
+	tests := []struct {
+		name      string
+		url       string
+		maxLength int
+		want      string
+	}{
+		{
+			name:      "short urls are untouched",
+			url:       "https://example.com/docs",
+			maxLength: 90,
+			want:      "https://example.com/docs",
+		},
+		{
+			name:      "a url exactly at the cap is untouched",
+			url:       "https://example.com/12345",
+			maxLength: 25,
+			want:      "https://example.com/12345",
+		},
+		{
+			name:      "the middle goes, scheme and host survive",
+			url:       "https://mail.google.com/mail/u/0/some/very/long/path/that/keeps/going#inbox/FMfcgzQbfWKpXsMb",
+			maxLength: 40,
+			want:      "https://mail.google.com…FMfcgzQbfWKpXsMb",
+		},
+		{
+			name:      "a host longer than the cap falls back to the tail",
+			url:       "https://a-really-long-hostname-beyond-the-budget.example.com/path",
+			maxLength: 20,
+			want:      "https://a-really-lo…",
+		},
+		{
+			name:      "a url with no path keeps the whole host",
+			url:       "https://averyveryverylonghostnamethatfitsthebudget.example.com",
+			maxLength: 40,
+			want:      "https://averyveryverylonghostnamethatfi…",
+		},
+		{
+			name:      "a schemeless string still truncates",
+			url:       "not-really-a-url-but-still-far-too-long-to-show",
+			maxLength: 20,
+			want:      "not-really-a-url-bu…",
+		},
+		{
+			name:      "multibyte characters are not split",
+			url:       "https://example.com/äöüäöüäöüäöüäöüäöü",
+			maxLength: 26,
+			want:      "https://example.com…äöüäöü",
+		},
+	}
+
+	for _, test := range tests {
+		t.Run(test.name, func(t *testing.T) {
+			got := abbreviateURL(test.url, test.maxLength)
+			if got != test.want {
+				t.Errorf("abbreviateURL() = %q, want %q", got, test.want)
+			}
+			if length := len([]rune(got)); length > test.maxLength {
+				t.Errorf("result is %d runes, over the %d cap", length, test.maxLength)
+			}
+		})
+	}
+}
+
 // A dry run must not reach the picker. If this regresses the test blocks on a
 // modal rather than failing an assertion, which is itself the signal.
 func TestResolveAskConfigDryRunDoesNotPrompt(t *testing.T) {

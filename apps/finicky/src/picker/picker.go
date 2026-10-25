@@ -16,8 +16,9 @@ import "unsafe"
 const Cancelled = -1
 
 // Choose shows a modal picker listing labels and returns the index of the
-// chosen label, or Cancelled if the user dismissed it.
-func Choose(title string, message string, labels []string) int {
+// chosen label, or Cancelled if the user dismissed it. tooltip is shown on
+// hover and carries the untruncated form of message.
+func Choose(title string, message string, tooltip string, labels []string) int {
 	if len(labels) == 0 {
 		return Cancelled
 	}
@@ -26,6 +27,8 @@ func Choose(title string, message string, labels []string) int {
 	defer C.free(unsafe.Pointer(cTitle))
 	cMessage := C.CString(message)
 	defer C.free(unsafe.Pointer(cMessage))
+	cTooltip := C.CString(tooltip)
+	defer C.free(unsafe.Pointer(cTooltip))
 
 	pointerSize := C.size_t(unsafe.Sizeof(uintptr(0)))
 	cLabels := C.malloc(C.size_t(len(labels)) * pointerSize)
@@ -41,5 +44,5 @@ func Choose(title string, message string, labels []string) int {
 		}
 	}()
 
-	return int(C.showBrowserPicker(cTitle, cMessage, (**C.char)(cLabels), C.int(len(labels))))
+	return int(C.showBrowserPicker(cTitle, cMessage, cTooltip, (**C.char)(cLabels), C.int(len(labels))))
 }
