@@ -27,8 +27,6 @@ import (
 	"strings"
 	"sync"
 	"time"
-
-	"github.com/dop251/goja"
 )
 
 //go:embed assets/finickyConfigAPI.js
@@ -443,7 +441,6 @@ func HandleURL(url *C.char, name *C.char, bundleId *C.char, path *C.char, window
 	}
 }
 
-
 func handleFatalError(errorMessage string) {
 	slog.Error("Fatal error", "msg", errorMessage)
 	lastError = fmt.Errorf("%s", errorMessage)
@@ -477,12 +474,9 @@ func GetCurrentConfigPath() *C.char {
 }
 
 func checkForUpdates() {
-	var runtime *goja.Runtime
-	if v := getVM(); v != nil {
-		runtime = v.Runtime()
-	}
-
-	releaseInfo, updateCheckEnabled, err := version.CheckForUpdatesIfEnabled(runtime)
+	// GetAllConfigOptions returns defaults (checkForUpdates on) for a nil VM.
+	enabled := getVM().GetAllConfigOptions().CheckForUpdates
+	releaseInfo, updateCheckEnabled, err := version.CheckForUpdatesIfEnabled(enabled)
 	if err != nil {
 		slog.Error("Error checking for updates", "error", err)
 	}
@@ -513,7 +507,7 @@ func buildUpdateInfoPayload(ui UpdateInfo) map[string]interface{} {
 	return map[string]interface{}{
 		"version": "", "hasUpdate": false,
 		"updateCheckEnabled": ui.UpdateCheckEnabled,
-		"downloadUrl": "", "releaseUrl": "",
+		"downloadUrl":        "", "releaseUrl": "",
 	}
 }
 

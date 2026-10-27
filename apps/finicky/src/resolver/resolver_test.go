@@ -1,7 +1,9 @@
 package resolver_test
 
 import (
+	"fmt"
 	"os"
+	"sync"
 	"testing"
 
 	"finicky/config"
@@ -200,9 +202,9 @@ func TestResolveURL_MergedJSAndJSON_WithCachedRules(t *testing.T) {
 		url     string
 		browser string
 	}{
-		{"https://github.com/foo", "Firefox"},          // JS handler wins
+		{"https://github.com/foo", "Firefox"},                // JS handler wins
 		{"https://linear.app/team/issue/1", "Google Chrome"}, // JSON rule applies
-		{"https://example.com", "Safari"},              // JS default
+		{"https://example.com", "Safari"},                    // JS default
 	}
 	for _, tt := range tests {
 		t.Run(tt.url, func(t *testing.T) {
@@ -275,5 +277,45 @@ func TestResolveURL_OpenInBackground(t *testing.T) {
 	}
 	if result.OpenInBackground == nil || !*result.OpenInBackground {
 		t.Error("expected OpenInBackground=true")
+	}
+}
+
+// The VM is shared by the URL event loop and the REST API (/api/test-url), so
+// concurrent resolutions must not see each other's url/opener globals.
+func TestResolveURL_Concurrent(t *testing.T) {
+	vm := jsVM(t, `({
+		defaultBrowser: "Safari",
+		handlers: [
+			{ match: "https://github.com/*", browser: "Firefox" },
+			{ match: "https://linear.app/*", browser: "Google Chrome" }
+		]
+	})`)
+
+	cases := []struct{ url, browser string }{
+		{"https://github.com/johnste/finicky", "Firefox"},
+		{"https://linear.app/team/issue/123", "Google Chrome"},
+	}
+
+	var wg sync.WaitGroup
+	errs := make(chan error, 200)
+	for i := 0; i < 200; i++ {
+		tc := cases[i%len(cases)]
+		wg.Add(1)
+		go func() {
+			defer wg.Done()
+			result, err := ResolveURL(vm, tc.url, nil, false)
+			if err != nil {
+				errs <- err
+				return
+			}
+			if result.Name != tc.browser || result.URL != tc.url {
+				errs <- fmt.Errorf("%s: got %q %q, want %q", tc.url, result.Name, result.URL, tc.browser)
+			}
+		}()
+	}
+	wg.Wait()
+	close(errs)
+	for err := range errs {
+		t.Error(err)
 	}
 }

@@ -199,7 +199,7 @@ export function Rules() {
   }
 
   const { save, scheduleSave, isPending } = useRulesSave(
-    () => ({ ...rulesFile, rules: rulesRef.current }),
+    () => ({ rules: rulesRef.current }),
     SAVE_DEBOUNCE
   );
   const drag = useDragSort(
