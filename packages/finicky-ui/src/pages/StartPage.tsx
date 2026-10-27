@@ -108,8 +108,8 @@ export function StartPage() {
   const [options, setOptions] = useState<Options>(() => resolveOptions(rulesFile, config));
   const [bp, setBp] = useState(() => initialBp(rulesFile, config, hasJsConfig));
 
-  const pendingRef = useRef({ options, bp, rulesFile });
-  pendingRef.current = { options, bp, rulesFile };
+  const pendingRef = useRef({ options, bp });
+  pendingRef.current = { options, bp };
 
   useInstalledBrowsers();
 
@@ -119,8 +119,8 @@ export function StartPage() {
     isPending,
   } = useRulesSave(
     () => {
-      const { options, bp, rulesFile } = pendingRef.current;
-      return { ...rulesFile, defaultBrowser: bp.browser, defaultProfile: bp.profile, options };
+      const { options, bp } = pendingRef.current;
+      return { defaultBrowser: bp.browser, defaultProfile: bp.profile, options };
     },
     SAVE_DEBOUNCE,
     "Failed to save preferences"

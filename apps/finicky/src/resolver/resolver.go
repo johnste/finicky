@@ -10,6 +10,8 @@ import (
 	"finicky/config"
 	"finicky/rules"
 	"finicky/shorturl"
+
+	"github.com/dop251/goja"
 )
 
 // OpenerInfo describes the process that triggered the URL open.
@@ -66,18 +68,16 @@ func mergeBackground(fromConfig *bool, requested bool) *bool {
 }
 
 func evaluateURL(vm *config.VM, url string, opener *OpenerInfo) (*browser.BrowserConfig, error) {
-	runtime := vm.Runtime()
-
+	// Resolve short URLs before taking the VM lock, since it may hit the network.
+	originalURL := url
 	resolvedURL, err := shorturl.ResolveURL(url)
-	runtime.Set("originalUrl", url)
 	if err != nil {
 		slog.Info("Failed to resolve short URL", "error", err, "url", url, "using", resolvedURL)
 	}
-	url = resolvedURL
-	runtime.Set("url", resolvedURL)
 
+	var openerMap map[string]interface{}
 	if opener != nil {
-		openerMap := map[string]interface{}{
+		openerMap = map[string]interface{}{
 			"name":     opener.Name,
 			"bundleId": opener.BundleID,
 			"path":     opener.Path,
@@ -85,18 +85,16 @@ func evaluateURL(vm *config.VM, url string, opener *OpenerInfo) (*browser.Browse
 		if opener.WindowTitle != "" {
 			openerMap["windowTitle"] = opener.WindowTitle
 		}
-		runtime.Set("opener", openerMap)
 		slog.Debug("Setting opener", "name", opener.Name, "bundleId", opener.BundleID, "path", opener.Path, "windowTitle", opener.WindowTitle)
 	} else {
-		runtime.Set("opener", nil)
 		slog.Debug("No opener detected")
 	}
 
 	// When there is a JS config, append cached JSON rules as lower-priority handlers.
 	var evalScript string
+	var jsonHandlers interface{}
 	if vm.IsJSConfig() {
-		rf := getCachedRules()
-		runtime.Set("_jsonHandlers", rules.ToJSHandlers(rf.Rules))
+		jsonHandlers = rules.ToJSHandlers(getCachedRules().Rules)
 		evalScript = `finickyConfigAPI.openUrl(url, opener, originalUrl, Object.assign({}, finalConfig, {
 			handlers: (finalConfig.handlers || []).concat(_jsonHandlers)
 		}))`
@@ -104,12 +102,33 @@ func evaluateURL(vm *config.VM, url string, opener *OpenerInfo) (*browser.Browse
 		evalScript = "finickyConfigAPI.openUrl(url, opener, originalUrl, finalConfig)"
 	}
 
-	openResult, err := runtime.RunString(evalScript)
+	// The globals below are shared by every evaluation, so setting them and
+	// running the script must happen under one lock; otherwise a concurrent
+	// evaluation (e.g. /api/test-url while a real URL is opening) could swap
+	// in its own url or opener mid-run.
+	var resultJSON interface{}
+	err = vm.Run(func(runtime *goja.Runtime) error {
+		runtime.Set("originalUrl", originalURL)
+		runtime.Set("url", resolvedURL)
+		if openerMap != nil {
+			runtime.Set("opener", openerMap)
+		} else {
+			runtime.Set("opener", nil)
+		}
+		if jsonHandlers != nil {
+			runtime.Set("_jsonHandlers", jsonHandlers)
+		}
+		openResult, err := runtime.RunString(evalScript)
+		if err != nil {
+			return fmt.Errorf("failed to evaluate URL in config: %v", err)
+		}
+		resultJSON = openResult.ToObject(runtime).Export()
+		return nil
+	})
 	if err != nil {
-		return nil, fmt.Errorf("failed to evaluate URL in config: %v", err)
+		return nil, err
 	}
 
-	resultJSON := openResult.ToObject(runtime).Export()
 	resultBytes, err := json.Marshal(resultJSON)
 	if err != nil {
 		return nil, fmt.Errorf("failed to process browser configuration: %v", err)
@@ -145,4 +164,3 @@ func defaultBrowserConfig(urlStr string, openInBackground bool) *browser.Browser
 		URL:              urlStr,
 	}
 }
-

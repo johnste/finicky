@@ -5,11 +5,17 @@ import (
 	"fmt"
 	"log/slog"
 	"os"
+	"sync"
 
 	"github.com/dop251/goja"
 )
 
 type VM struct {
+	// mu serializes all use of runtime, which is not safe for concurrent use.
+	// The VM is shared by the URL event loop, the REST API's handlers and the
+	// update checker, so every access must go through Run or a method that
+	// takes mu.
+	mu         sync.Mutex
 	runtime    *goja.Runtime
 	namespace  string
 	isJSConfig bool
@@ -119,6 +125,8 @@ func (vm *VM) setup(apiContent []byte, content []byte) error {
 }
 
 func (vm *VM) GetConfigState() *ConfigState {
+	vm.mu.Lock()
+	defer vm.mu.Unlock()
 	state, err := vm.runtime.RunString("finickyConfigAPI.getConfigState(finalConfig)")
 	if err != nil {
 		slog.Error("Failed to get config state", "error", err)
@@ -162,6 +170,8 @@ func (vm *VM) GetAllConfigOptions() ConfigOptions {
 	if vm == nil || vm.runtime == nil {
 		return defaults
 	}
+	vm.mu.Lock()
+	defer vm.mu.Unlock()
 	script := `({
 		keepRunning:     finickyConfigAPI.getOption('keepRunning',     finalConfig, true),
 		hideIcon:        finickyConfigAPI.getOption('hideIcon',        finalConfig, false),
@@ -182,7 +192,10 @@ func (vm *VM) GetAllConfigOptions() ConfigOptions {
 	}
 }
 
-// Runtime returns the underlying goja.Runtime
-func (vm *VM) Runtime() *goja.Runtime {
-	return vm.runtime
+// Run calls fn with exclusive access to the underlying goja.Runtime. fn must
+// not keep the runtime or call other VM methods that take the lock.
+func (vm *VM) Run(fn func(*goja.Runtime) error) error {
+	vm.mu.Lock()
+	defer vm.mu.Unlock()
+	return fn(vm.runtime)
 }
