@@ -291,6 +291,8 @@ func main() {
 			}
 			setVM(newVM)
 			if newVM != nil {
+				rulesPath, _ := rules.GetPath()
+				publishConfig(newVM, rulesPath)
 				setShouldKeepRunning(newVM.GetAllConfigOptions().KeepRunning)
 				go checkForUpdates()
 			}
@@ -580,6 +582,16 @@ func setupVM(cfw *config.ConfigFileWatcher, namespace string) (*config.VM, error
 		return nil, nil
 	}
 
+	logRequests = newVM.GetAllConfigOptions().LogRequests
+	publishConfig(newVM, configPath)
+
+	return newVM, nil
+}
+
+// publishConfig records the config state of a freshly built VM and broadcasts
+// it to the UI, so both the "config" SSE event and GET /api/initial-data
+// reflect it.
+func publishConfig(newVM *config.VM, configPath string) {
 	cs := newVM.GetConfigState()
 	var ci *ConfigInfo
 	if cs != nil {
@@ -591,12 +603,9 @@ func setupVM(cfw *config.ConfigFileWatcher, namespace string) (*config.VM, error
 		}
 	}
 
-	opts := newVM.GetAllConfigOptions()
-	logRequests = opts.LogRequests
-
 	// publishConfigInfo keeps the previously published ConfigInfo when cs
-	// (and so ci) is nil, mirroring the prior behavior of this function. On
-	// the very first call there's nothing previously published yet, so fall
+	// (and so ci) is nil, mirroring the prior behavior of setupVM. On the
+	// very first call there's nothing previously published yet, so fall
 	// back to an empty ConfigInfo rather than dereferencing nil below.
 	publishedCI := publishConfigInfo(ci)
 	if publishedCI == nil {
@@ -605,11 +614,9 @@ func setupVM(cfw *config.ConfigFileWatcher, namespace string) (*config.VM, error
 	payload := configPayload{
 		ConfigInfo:  *publishedCI,
 		HasJsConfig: newVM.IsJSConfig(),
-		Options:     opts,
+		Options:     newVM.GetAllConfigOptions(),
 	}
 	payload.ConfigPath = util.ShortenPath(publishedCI.ConfigPath)
 	setConfigPayload(payload)
 	window.BroadcastSSE("config", payload)
-
-	return newVM, nil
 }
