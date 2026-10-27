@@ -26,13 +26,17 @@ var (
 	TestURLFunc       func(url string) (interface{}, error)
 )
 
-// trustedOrigin is the Origin header sent by the WebView. Pages loaded via a
-// custom, non-special URL scheme (see "finicky-assets://" in window.m) get an
-// opaque origin per the URL living standard, which browsers serialize as the
-// literal string "null". A regular website navigated to in a browser always
-// has a real http(s) origin, so restricting CORS to this value keeps other
-// sites from reading responses from this loopback API.
-const trustedOrigin = "null"
+// trustedOrigins are the Origin headers the WebView may send. The UI is loaded
+// from the custom "finicky-assets://local/" base URL (see window.m). Unlike the
+// URL living standard, which would make that an opaque "null" origin, WebKit
+// gives custom schemes a tuple origin and sends "finicky-assets://local".
+// "null" is kept in case a WebKit version does treat it as opaque. A regular
+// website always has a real http(s) origin, so restricting CORS to these
+// values keeps other sites from reading responses from this loopback API.
+var trustedOrigins = map[string]bool{
+	"finicky-assets://local": true,
+	"null":                   true,
+}
 
 func init() {
 	b := make([]byte, 32)
@@ -150,8 +154,9 @@ func StartAPIServer() error {
 
 func corsMiddleware(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		if r.Header.Get("Origin") == trustedOrigin {
-			w.Header().Set("Access-Control-Allow-Origin", trustedOrigin)
+		if origin := r.Header.Get("Origin"); trustedOrigins[origin] {
+			w.Header().Set("Access-Control-Allow-Origin", origin)
+			w.Header().Set("Vary", "Origin")
 			w.Header().Set("Access-Control-Allow-Methods", "GET, POST, OPTIONS")
 			w.Header().Set("Access-Control-Allow-Headers", "Content-Type, X-Finicky-Token")
 		}
