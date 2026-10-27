@@ -8,6 +8,7 @@ import { XIcon } from "../components/icons/X";
 import { appStore } from "../lib/appStore";
 import { api } from "../lib/api";
 import { useRulesSave } from "../lib/useRulesSave";
+import { useInstalledBrowsers } from "../lib/useInstalledBrowsers";
 import type { Rule, BrowserProfile, BrowserOptions, BrowserProfileCustom } from "../types";
 import styles from "./Rules.module.css";
 
@@ -211,13 +212,7 @@ export function Rules() {
   );
   const focus = usePendingFocus();
 
-  // The installed-browser list only otherwise comes from the one-time
-  // /api/initial-data fetch at app launch, and the WebView page is never
-  // reloaded for the life of the process, so without this a browser
-  // installed while Finicky is running would never show up here.
-  useEffect(() => {
-    api.getBrowsers().then((installed) => appStore.update({ installedBrowsers: installed })).catch(() => {});
-  }, []);
+  useInstalledBrowsers();
 
   useEffect(() => {
     if (isPending.current) return;

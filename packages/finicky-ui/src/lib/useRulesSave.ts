@@ -16,15 +16,24 @@ export function useRulesSave(
   errorMessage = "Failed to save rules"
 ) {
   const isPending = useRef(false);
+  // Saves can overlap (e.g. blur on one field then another), and responses
+  // may arrive out of order. Only the latest request's response is applied,
+  // so an older one can't overwrite newer state.
+  const latestRequest = useRef(0);
 
   const debounced = useDebouncedCallback(async () => {
+    const id = ++latestRequest.current;
     try {
       const updated = await api.saveRules(buildPayload());
-      appStore.update({ rulesFile: updated as any });
+      if (id === latestRequest.current) {
+        appStore.update({ rulesFile: updated as any });
+      }
     } catch (err) {
       toast.error(errorMessage, err instanceof Error ? err.message : String(err));
     } finally {
-      isPending.current = false;
+      if (id === latestRequest.current) {
+        isPending.current = false;
+      }
     }
   }, delay);
 

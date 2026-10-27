@@ -1,5 +1,6 @@
 import { useState, useEffect, useRef, useSyncExternalStore } from "react";
 import { useRulesSave } from "../lib/useRulesSave";
+import { useInstalledBrowsers } from "../lib/useInstalledBrowsers";
 import { Link } from "react-router-dom";
 import clsx from "clsx";
 import { PageContainer } from "../components/PageContainer";
@@ -99,10 +100,10 @@ function UpdateCard({ updateInfo }: { updateInfo: UpdateInfo }) {
 }
 
 export function StartPage() {
-  const { hasConfig, config, updateInfo, rulesFile, installedBrowsers, profilesByBrowser, messageBuffer } =
+  const { hasConfig, config, updateInfo, rulesFile, installedBrowsers, profilesByBrowser } =
     useSyncExternalStore(appStore.subscribe, appStore.getSnapshot);
   const hasJsConfig = config.hasJsConfig ?? false;
-  const numErrors = messageBuffer.filter((m) => m.level.toLowerCase() === "error").length;
+  const numErrors = appStore.getNumErrors();
 
   const [options, setOptions] = useState<Options>(() => resolveOptions(rulesFile, config));
   const [bp, setBp] = useState(() => initialBp(rulesFile, config, hasJsConfig));
@@ -110,13 +111,7 @@ export function StartPage() {
   const pendingRef = useRef({ options, bp, rulesFile });
   pendingRef.current = { options, bp, rulesFile };
 
-  // The installed-browser list only otherwise comes from the one-time
-  // /api/initial-data fetch at app launch, and the WebView page is never
-  // reloaded for the life of the process, so without this a browser
-  // installed while Finicky is running would never show up here.
-  useEffect(() => {
-    api.getBrowsers().then((installed) => appStore.update({ installedBrowsers: installed })).catch(() => {});
-  }, []);
+  useInstalledBrowsers();
 
   const {
     save: saveNow,
