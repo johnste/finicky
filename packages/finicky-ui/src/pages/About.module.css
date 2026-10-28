@@ -1,0 +1,73 @@
+.logoSection {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  padding: 4px 0;
+}
+
+.appInfo {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+}
+
+.appName {
+  font-size: 1.4em;
+  font-weight: 600;
+  color: var(--text-primary);
+  line-height: 1.2;
+}
+
+.version {
+  color: var(--text-secondary);
+  font-size: 0.85em;
+}
+
+.section {
+  padding: 16px 20px;
+  background: var(--card-bg);
+  border: 1px solid var(--card-border);
+  border-radius: 12px;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.section h2 {
+  font-size: 0.8em;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: var(--text-secondary);
+  margin: 0 0 6px 0;
+}
+
+.section p {
+  margin: 0;
+  line-height: 1.6;
+  color: var(--text-secondary);
+  font-size: 0.9em;
+}
+
+.section a {
+  color: var(--accent-color);
+  text-decoration: none;
+}
+
+.section a:hover {
+  opacity: 0.8;
+}
+
+.repoLink {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  color: var(--accent-color);
+  text-decoration: none;
+  font-size: 0.9em;
+  margin-top: 6px;
+}
+
+.repoLink:hover {
+  opacity: 0.8;
+}

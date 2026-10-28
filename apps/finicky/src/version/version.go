@@ -15,7 +15,6 @@ import (
 	"finicky/util"
 
 	"github.com/Masterminds/semver"
-	"github.com/dop251/goja"
 )
 
 const updateCheckInterval = 24 * time.Hour
@@ -234,8 +233,9 @@ func checkForUpdates() (releaseInfo *ReleaseInfo) {
 	return releaseInfo
 }
 
-// CheckForUpdatesIfEnabled checks if updates should be performed based on VM configuration
-func CheckForUpdatesIfEnabled(vm *goja.Runtime) (releaseInfo *ReleaseInfo, updateCheckEnabled bool, err error) {
+// CheckForUpdatesIfEnabled checks for updates when enabled is true (the
+// config's checkForUpdates option).
+func CheckForUpdatesIfEnabled(enabled bool) (releaseInfo *ReleaseInfo, updateCheckEnabled bool, err error) {
 	if mockVersion := os.Getenv("FINICKY_MOCK_UPDATE"); mockVersion != "" {
 		slog.Info("FINICKY_MOCK_UPDATE set, returning mock update", "version", mockVersion)
 		mockTag := strings.TrimPrefix(mockVersion, "v")
@@ -247,24 +247,11 @@ func CheckForUpdatesIfEnabled(vm *goja.Runtime) (releaseInfo *ReleaseInfo, updat
 		}, true, nil
 	}
 
-	if vm == nil {
-		// Check for updates if we don't have a VM
+	if enabled {
 		releaseInfo := checkForUpdates()
 		return releaseInfo, true, nil
 	}
-
-	// Check checkForUpdates option
-	shouldCheckForUpdates, err := vm.RunString("finickyConfigAPI.getOption('checkForUpdates', finalConfig, true)")
-	if err != nil {
-		return nil, true, fmt.Errorf("failed to get checkForUpdates option: %v", err)
-	}
-
-	if shouldCheckForUpdates.ToBoolean() {
-		releaseInfo := checkForUpdates()
-		return releaseInfo, true, nil
-	} else {
-		slog.Debug("Skipping update check")
-	}
+	slog.Debug("Skipping update check")
 	return nil, false, nil
 }
 

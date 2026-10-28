@@ -1,0 +1,73 @@
+.footer {
+  display: flex;
+  flex: 0 0 auto;
+  align-items: center;
+  gap: 0.6rem;
+  padding: 0.4rem 0.75rem;
+  background: var(--bg-nav);
+  border-top: 1px solid var(--border-color);
+  overflow: hidden;
+}
+
+.version {
+  color: var(--text-secondary);
+  font-size: 0.75em;
+  font-variant-numeric: tabular-nums;
+  letter-spacing: 0.02em;
+}
+
+.spacer {
+  flex: 1;
+}
+
+.upToDate {
+  color: var(--log-success);
+  font-size: 0.75em;
+}
+
+.configLabel {
+  color: var(--text-secondary);
+  font-size: 0.75em;
+}
+
+.configBadge {
+  font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+  font-size: 0.72em;
+  padding: 2px 8px;
+  border-radius: 3px;
+  background: transparent;
+  border: none;
+  color: var(--text-secondary);
+  cursor: pointer;
+  white-space: nowrap;
+  flex-shrink: 0;
+  transition: background 0.15s ease, color 0.15s ease;
+}
+
+.configBadge:hover {
+  background: var(--button-hover);
+  color: var(--text-primary);
+}
+
+.configStatus {
+  font-size: 0.75em;
+  color: var(--text-secondary);
+}
+
+.configStatus.warning {
+  color: var(--log-warning);
+}
+
+.configLink {
+  color: var(--accent-color);
+  font-size: 0.8em;
+  text-decoration: none;
+  transition: opacity 0.2s ease;
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.configLink:hover {
+  text-decoration: underline;
+}

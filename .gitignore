@@ -4,3 +4,4 @@ build
 .env
 dist
 example-config
+.fallow

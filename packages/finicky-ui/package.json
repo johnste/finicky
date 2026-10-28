@@ -5,20 +5,22 @@
   "type": "module",
   "scripts": {
     "dev": "vite",
+    "dev:api": "VITE_API_URL=http://127.0.0.1:${PORT}/api vite",
     "build": "vite build",
     "preview": "vite preview",
-    "check": "svelte-check --tsconfig ./tsconfig.app.json && tsc -p tsconfig.node.json"
+    "check": "tsc -b"
   },
   "devDependencies": {
-    "@sveltejs/vite-plugin-svelte": "^5.0.3",
-    "@tsconfig/svelte": "^5.0.4",
-    "svelte": "^5.20.2",
-    "svelte-check": "^4.1.4",
+    "@types/react": "^18.3.20",
+    "@types/react-dom": "^18.3.5",
+    "@vitejs/plugin-react": "^4.5.0",
     "typescript": "~5.7.2",
     "vite": "^6.3.6"
   },
   "dependencies": {
-    "svelte-routing": "^2.13.0"
-  },
-  "packageManager": "pnpm@9.15.0+sha512.76e2379760a4328ec4415815bcd6628dee727af3779aaa4c914e3944156c4299921a89f976381ee107d41f12cfa4b66681ca9c718f0668fa0831ed4c6d8ba56c"
+    "clsx": "^2.1.1",
+    "react": "^18.3.1",
+    "react-dom": "^18.3.1",
+    "react-router-dom": "^6.30.0"
+  }
 }

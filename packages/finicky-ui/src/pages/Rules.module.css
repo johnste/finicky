@@ -1,0 +1,213 @@
+.textInput {
+  padding: 8px 12px;
+  background: var(--input-bg);
+  border: 1px solid var(--border-color);
+  border-radius: 8px;
+  color: var(--text-primary);
+  font-size: 0.9em;
+  font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+}
+
+.textInput:focus {
+  outline: none;
+  border-color: var(--accent-color);
+}
+
+.textInput::placeholder {
+  color: var(--text-secondary);
+  opacity: 0.4;
+}
+
+.emptyRules {
+  color: var(--text-secondary);
+  font-size: 0.9em;
+  opacity: 0.6;
+  padding: 16px 0 4px;
+  text-align: center;
+}
+
+.rulesList {
+  display: flex;
+  flex-direction: column;
+  gap: 0;
+  border: 1px solid var(--border-color);
+  border-radius: 8px;
+  overflow: hidden;
+}
+
+.ruleRow {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  padding: 10px 12px;
+  background: var(--card-bg);
+  border-radius: 0;
+  border: none;
+  border-bottom: 1px solid var(--border-color);
+  transition: background 0.15s;
+}
+
+.ruleRow:last-child {
+  border-bottom: none;
+}
+
+.ruleRow:hover {
+  background: var(--bg-hover);
+}
+
+.ruleRow.noBrowser {
+  border-left: 3px solid var(--log-warning);
+  padding-left: 9px;
+}
+
+.browserRequiredHint {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  color: var(--log-warning);
+  font-size: 0.75em;
+  white-space: nowrap;
+  flex-shrink: 0;
+}
+
+.browserRequiredHint svg {
+  width: 12px;
+  height: 12px;
+  flex-shrink: 0;
+}
+
+.ruleRow.dragging {
+  outline: 2px solid var(--accent-color);
+  outline-offset: -2px;
+  opacity: 0.7;
+}
+
+.ruleTop {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  min-width: 0;
+}
+
+.ruleBottom {
+  display: flex;
+  align-items: flex-start;
+  gap: 8px;
+  min-width: 0;
+  padding-left: 22px;
+}
+
+.dragHandle {
+  color: var(--text-secondary);
+  opacity: 0.4;
+  cursor: grab;
+  font-size: 1.1em;
+  user-select: none;
+  flex-shrink: 0;
+}
+
+.patterns {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  flex: 1;
+  min-width: 0;
+}
+
+.patternRow {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  min-width: 0;
+}
+
+.patternInputWrapper {
+  position: relative;
+  flex: 1;
+  min-width: 0;
+}
+
+.patternInputWrapper.hasWarning .patternInput {
+  padding-right: 32px;
+}
+
+.patternWarningIcon {
+  position: absolute;
+  right: 7px;
+  top: 50%;
+  transform: translateY(-50%);
+  display: flex;
+  color: var(--log-warning);
+  line-height: 1;
+  cursor: help;
+}
+
+
+.patternInput {
+  width: 100%;
+}
+
+.removePatternBtn {
+  background: none;
+  border: none;
+  color: var(--text-secondary);
+  cursor: pointer;
+  padding: 3px;
+  border-radius: 4px;
+  flex-shrink: 0;
+  display: flex;
+  transition: color 0.15s;
+}
+
+.removePatternBtn:hover {
+  color: var(--log-error);
+}
+
+.addPatternBtn {
+  align-self: flex-start;
+  background: none;
+  border: none;
+  color: var(--text-secondary);
+  font-size: 0.78em;
+  padding: 2px 4px;
+  cursor: pointer;
+  transition: color 0.15s;
+}
+
+.addPatternBtn:hover {
+  color: var(--accent-color);
+}
+
+.deleteBtn {
+  background: none;
+  border: none;
+  color: var(--text-secondary);
+  cursor: pointer;
+  padding: 4px;
+  border-radius: 4px;
+  flex-shrink: 0;
+  display: flex;
+  margin-left: auto;
+  transition: color 0.15s;
+}
+
+.deleteBtn:hover {
+  color: var(--log-error);
+}
+
+.addRuleBtn {
+  align-self: flex-start;
+  background: transparent;
+  border: 1px solid var(--accent-color);
+  border-radius: 8px;
+  color: var(--accent-color);
+  font-size: 0.88em;
+  padding: 8px 16px;
+  cursor: pointer;
+  transition: background 0.15s ease, color 0.15s ease;
+}
+
+.addRuleBtn:hover {
+  background: var(--button-hover);
+  color: var(--accent-color);
+}

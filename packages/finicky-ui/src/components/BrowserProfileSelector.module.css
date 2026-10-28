@@ -1,0 +1,102 @@
+.browserSelectRow {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+}
+
+.selectWrapper {
+  position: relative;
+  flex: 1;
+  min-width: 0;
+}
+
+.selectWrapper::after {
+  content: '';
+  position: absolute;
+  right: 14px;
+  top: 50%;
+  transform: translateY(-60%) rotate(45deg);
+  width: 5px;
+  height: 5px;
+  border-right: 2px solid var(--text-secondary);
+  border-bottom: 2px solid var(--text-secondary);
+  pointer-events: none;
+}
+
+.selectWrapper:focus-within::after {
+  border-color: var(--accent-color);
+}
+
+.browserDropdown {
+  width: 100%;
+  padding: 7px 32px 7px 12px;
+  background: var(--input-bg);
+  border: 1px solid var(--border-color);
+  border-radius: 8px;
+  color: var(--text-primary);
+  font-size: 0.9em;
+  font-family: inherit;
+  cursor: pointer;
+  -webkit-appearance: none;
+  appearance: none;
+}
+
+.browserDropdown:focus {
+  outline: none;
+  border-color: var(--accent-color);
+}
+
+.selectWrapper.empty .browserDropdown {
+  border-color: var(--log-warning);
+}
+
+.selectWrapper.empty::after {
+  border-color: var(--log-warning);
+}
+
+.browserDropdown:disabled {
+  opacity: 0.6;
+  cursor: default;
+}
+
+.selectWrapper:has(.browserDropdown:disabled)::after {
+  opacity: 0.6;
+}
+
+.browserInput {
+  flex: 1;
+  min-width: 0;
+  padding: 8px 12px;
+  background: var(--input-bg);
+  border: 1px solid var(--border-color);
+  border-radius: 8px;
+  color: var(--text-primary);
+  font-size: 0.9em;
+  font-family: inherit;
+}
+
+.browserInput:focus {
+  outline: none;
+  border-color: var(--accent-color);
+}
+
+.browserInput:disabled {
+  opacity: 0.6;
+  cursor: default;
+}
+
+.clearBtn {
+  background: none;
+  border: none;
+  color: var(--text-secondary);
+  cursor: pointer;
+  padding: 3px;
+  border-radius: 4px;
+  flex-shrink: 0;
+  display: flex;
+  transition: color 0.15s;
+}
+
+.clearBtn:hover {
+  color: var(--log-error);
+}

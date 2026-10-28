@@ -36,18 +36,16 @@ func (r *Rule) UnmarshalJSON(data []byte) error {
 	return nil
 }
 
-// MarshalJSON serializes match as a plain string when there is only one entry.
+// MarshalJSON serializes match always as an array for consistency.
 func (r Rule) MarshalJSON() ([]byte, error) {
 	type RuleAlias struct {
-		Match   interface{} `json:"match"`
-		Browser string      `json:"browser"`
-		Profile string      `json:"profile,omitempty"`
+		Match   []string `json:"match"`
+		Browser string   `json:"browser"`
+		Profile string   `json:"profile,omitempty"`
 	}
-	var match interface{}
-	if len(r.Match) == 1 {
-		match = r.Match[0]
-	} else {
-		match = r.Match
+	match := r.Match
+	if match == nil {
+		match = []string{}
 	}
 	return json.Marshal(RuleAlias{Match: match, Browser: r.Browser, Profile: r.Profile})
 }

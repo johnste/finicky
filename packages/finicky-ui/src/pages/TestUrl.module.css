@@ -1,0 +1,140 @@
+.inputSection {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.inputLabel {
+  color: var(--text-primary);
+  font-size: 0.9em;
+  font-weight: 500;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.loadingSpinner {
+  width: 16px;
+  height: 16px;
+  color: var(--accent-color);
+  animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+  from { transform: rotate(0deg); }
+  to { transform: rotate(360deg); }
+}
+
+.urlInput {
+  padding: 14px 16px;
+  font-size: 1em;
+  background: var(--input-bg);
+  border: 1px solid var(--border-color);
+  border-radius: 8px;
+  color: var(--text-primary);
+  transition: all 0.2s ease;
+  font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+}
+
+.urlInput:focus {
+  outline: none;
+  border-color: var(--accent-color);
+  background: var(--input-bg);
+}
+
+.urlInput::placeholder {
+  color: var(--text-secondary);
+  opacity: 0.4;
+}
+
+.emptyState {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 48px 24px;
+  gap: 16px;
+  color: var(--text-secondary);
+  opacity: 0.6;
+}
+
+.emptyState p {
+  margin: 0;
+  font-size: 0.95em;
+}
+
+.hintMessage {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 12px 16px;
+  background: rgba(245, 188, 28, 0.06);
+  border: 1px solid rgba(245, 188, 28, 0.25);
+  border-radius: 8px;
+  color: var(--text-secondary);
+  font-size: 0.9em;
+}
+
+.resultSection {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.resultHeader {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding-bottom: 12px;
+  border-bottom: 1px solid var(--border-color);
+}
+
+.resultHeader h3 {
+  margin: 0;
+  color: var(--text-primary);
+  font-size: 1.1em;
+}
+
+.resultGrid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 16px;
+}
+
+.resultItem {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  padding: 12px;
+  background: var(--inset-bg);
+  border-radius: 8px;
+}
+
+.resultItem.fullWidth {
+  grid-column: 1 / -1;
+}
+
+.resultLabel {
+  color: var(--text-secondary);
+  font-size: 0.8em;
+  font-weight: 500;
+}
+
+.resultValue {
+  color: var(--text-primary);
+  font-size: 1em;
+  word-break: break-word;
+  overflow-wrap: break-word;
+  min-width: 0;
+}
+
+.resultValue.browser {
+  font-weight: 600;
+  color: var(--accent-color);
+}
+
+.resultValue.url {
+  font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+  font-size: 0.9em;
+  word-break: break-all;
+}
