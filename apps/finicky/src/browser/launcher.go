@@ -9,8 +9,8 @@ import (
 	"os"
 	"os/exec"
 	"path/filepath"
-	"strings"
 	"slices"
+	"strings"
 
 	"al.essio.dev/pkg/shellescape"
 	"finicky/util"
@@ -40,13 +40,17 @@ type browserInfo struct {
 	Type              string `json:"type"`
 }
 
-func LaunchBrowser(config BrowserConfig, dryRun bool, openInBackgroundByDefault bool) error {
+func LaunchBrowser(config BrowserConfig, dryRun bool, openInBackgroundByDefault bool, logRequests bool) error {
 	if config.AppType == "none" {
-		slog.Info("AppType is 'none', not launching any browser")
+		if logRequests {
+			slog.Info("AppType is 'none', not launching any browser")
+		}
 		return nil
 	}
 
-	slog.Info("Starting browser", "name", config.Name, "url", config.URL)
+	if logRequests {
+		slog.Info("Starting browser", "name", config.Name, "url", config.URL)
+	}
 
 	var openArgs []string
 
@@ -67,7 +71,7 @@ func LaunchBrowser(config BrowserConfig, dryRun bool, openInBackgroundByDefault 
 	}
 
 	// Handle profile and custom args
-	profileArgs, ok := resolveBrowserProfileArgs(config.Name, config.Profile)
+	profileArgs, ok := resolveBrowserProfileArgs(config.Name, config.Profile, logRequests)
 	hasCustomArgs := len(config.Args) > 0
 
 	// Add -n flag if profile is used (required for profile switching)
@@ -77,7 +81,7 @@ func LaunchBrowser(config BrowserConfig, dryRun bool, openInBackgroundByDefault 
 
 	// Add --args if we have profile args or custom args
 	if ok || hasCustomArgs {
-		if ! slices.Contains(config.Args, "--args") {
+		if !slices.Contains(config.Args, "--args") {
 			openArgs = append(openArgs, "--args")
 		}
 		// Add profile arguments first if present
@@ -102,9 +106,11 @@ func LaunchBrowser(config BrowserConfig, dryRun bool, openInBackgroundByDefault 
 	prettyCmd := formatCommand(cmd.Path, cmd.Args)
 
 	if dryRun {
-		slog.Debug("Would run command (dry run)", "command", prettyCmd)
+		if logRequests {
+			slog.Debug("Would run command (dry run)", "command", prettyCmd)
+		}
 		return nil
-	} else {
+	} else if logRequests {
 		slog.Debug("Run command", "command", prettyCmd)
 	}
 
@@ -136,7 +142,7 @@ func LaunchBrowser(config BrowserConfig, dryRun bool, openInBackgroundByDefault 
 	if len(stderrBytes) > 0 {
 		slog.Error("Command returned error", "error", string(stderrBytes))
 	}
-	if len(stdoutBytes) > 0 {
+	if logRequests && len(stdoutBytes) > 0 {
 		slog.Debug("Command returned output", "output", string(stdoutBytes))
 	}
 
@@ -147,7 +153,7 @@ func LaunchBrowser(config BrowserConfig, dryRun bool, openInBackgroundByDefault 
 	return nil
 }
 
-func resolveBrowserProfileArgs(identifier string, profile string) ([]string, bool) {
+func resolveBrowserProfileArgs(identifier string, profile string, logRequests bool) ([]string, bool) {
 	var browsersJson []browserInfo
 	if err := json.Unmarshal(browsersJsonData, &browsersJson); err != nil {
 		slog.Info("Error parsing browsers.json", "error", err)
@@ -167,7 +173,9 @@ func resolveBrowserProfileArgs(identifier string, profile string) ([]string, boo
 		return nil, false
 	}
 
-	slog.Debug("Browser found in browsers.json", "identifier", identifier, "type", matchedBrowser.Type)
+	if logRequests {
+		slog.Debug("Browser found in browsers.json", "identifier", identifier, "type", matchedBrowser.Type)
+	}
 
 	if profile != "" {
 		switch matchedBrowser.Type {
@@ -179,7 +187,7 @@ func resolveBrowserProfileArgs(identifier string, profile string) ([]string, boo
 			}
 
 			localStatePath := filepath.Join(homeDir, "Library/Application Support", matchedBrowser.ConfigDirRelative, "Local State")
-			profilePath, ok := parseProfiles(localStatePath, profile)
+			profilePath, ok := parseProfiles(localStatePath, profile, logRequests)
 			if ok {
 				return []string{"--profile-directory=" + profilePath}, true
 			}
@@ -281,7 +289,7 @@ func getAllChromiumProfiles(localStatePath string) []string {
 	return names
 }
 
-func parseProfiles(localStatePath string, profile string) (string, bool) {
+func parseProfiles(localStatePath string, profile string, logRequests bool) (string, bool) {
 	infoCache, ok := chromiumInfoCache(localStatePath)
 	if !ok {
 		return "", false
@@ -300,13 +308,17 @@ func parseProfiles(localStatePath string, profile string) (string, bool) {
 		}
 
 		if name == profile {
-			slog.Info("Found profile by name", "name", name, "path", profilePath)
+			if logRequests {
+				slog.Info("Found profile by name", "name", name, "path", profilePath)
+			}
 			return profilePath, true
 		}
 	}
 
 	// If we didn't find the profile, try to find it by profile folder name
-	slog.Debug("Could not find profile in browser profiles, trying to find by profile path", "profile", profile)
+	if logRequests {
+		slog.Debug("Could not find profile in browser profiles, trying to find by profile path", "profile", profile)
+	}
 	for profilePath, info := range infoCache {
 		if profilePath == profile {
 			// Try to get the profile name of the profile we want the user to use instead

@@ -184,8 +184,6 @@ func handleTestUrl(msg map[string]interface{}) {
 		return
 	}
 
-	slog.Debug("Forwarding test URL request", "url", url)
-
 	if TestUrlHandler != nil {
 		TestUrlHandler(url)
 	} else {
