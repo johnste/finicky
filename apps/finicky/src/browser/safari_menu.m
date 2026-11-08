@@ -89,10 +89,11 @@ int safariOpenWindowFromMenu(const char *menuTitle, double timeoutSeconds) {
             CFIndex before = windowCount(app);
             result = SAFARI_MENU_NO_WINDOWS;
             if (before >= 0) {
-                AXUIElementPerformAction(item, kAXPressAction);
-                result = SAFARI_MENU_TIMEOUT;
+                result = AXUIElementPerformAction(item, kAXPressAction) == kAXErrorSuccess
+                             ? SAFARI_MENU_TIMEOUT
+                             : SAFARI_MENU_PRESS_FAILED;
             }
-            for (double waited = 0; before >= 0 && waited < timeoutSeconds; waited += 0.1) {
+            for (double waited = 0; result == SAFARI_MENU_TIMEOUT && waited < timeoutSeconds; waited += 0.1) {
                 if (windowCount(app) > before) {
                     result = SAFARI_MENU_OK;
                     break;

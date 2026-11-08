@@ -7,6 +7,7 @@
 #define SAFARI_MENU_NO_ITEM 3
 #define SAFARI_MENU_TIMEOUT 4
 #define SAFARI_MENU_NO_WINDOWS 5
+#define SAFARI_MENU_PRESS_FAILED 6
 
 // Brings Safari forward, presses the File menu item titled menuTitle through
 // the Accessibility API and waits up to timeoutSeconds for a new window to

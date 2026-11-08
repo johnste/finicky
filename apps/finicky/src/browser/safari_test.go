@@ -56,6 +56,7 @@ func TestSafariMenuErrorExplainsEachFailure(t *testing.T) {
 		{safariMenuNoItem, `no profile named "Work"`},
 		{safariMenuTimeout, "in time"},
 		{safariMenuNoWindows, "windows"},
+		{safariMenuPressFailed, "refused"},
 		{99, "unexpected result 99"},
 	}
 	for _, test := range tests {

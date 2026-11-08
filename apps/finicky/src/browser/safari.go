@@ -34,18 +34,20 @@ const safariMenuTimeoutSeconds = 5
 const safariStartupDelay = 2 * time.Second
 
 // safariStartupAttempts bounds how often the menu is tried after launching
-// Safari, since a slow start can leave its menu bar empty for a while.
+// Safari, since a slow start can leave its menu bar empty, or its windows
+// unreadable, for a while.
 const safariStartupAttempts = 3
 
 // Results of pressing a Safari menu item, mirrored from safari_menu.h so that
 // Go code, tests included, can name them.
 const (
-	safariMenuOK         = C.SAFARI_MENU_OK
-	safariMenuNotTrusted = C.SAFARI_MENU_NOT_TRUSTED
-	safariMenuNotRunning = C.SAFARI_MENU_NOT_RUNNING
-	safariMenuNoItem     = C.SAFARI_MENU_NO_ITEM
-	safariMenuTimeout    = C.SAFARI_MENU_TIMEOUT
-	safariMenuNoWindows  = C.SAFARI_MENU_NO_WINDOWS
+	safariMenuOK          = C.SAFARI_MENU_OK
+	safariMenuNotTrusted  = C.SAFARI_MENU_NOT_TRUSTED
+	safariMenuNotRunning  = C.SAFARI_MENU_NOT_RUNNING
+	safariMenuNoItem      = C.SAFARI_MENU_NO_ITEM
+	safariMenuTimeout     = C.SAFARI_MENU_TIMEOUT
+	safariMenuNoWindows   = C.SAFARI_MENU_NO_WINDOWS
+	safariMenuPressFailed = C.SAFARI_MENU_PRESS_FAILED
 )
 
 // safariMenuItemTitle is the File menu item Safari shows for a profile.
@@ -74,6 +76,8 @@ func safariMenuError(status int, profile string) error {
 		return fmt.Errorf("Safari did not open a window for profile %q in time", profile)
 	case safariMenuNoWindows:
 		return fmt.Errorf("could not read Safari's windows, so profile %q was not opened", profile)
+	case safariMenuPressFailed:
+		return fmt.Errorf("Safari refused the %q menu press for profile %q", safariMenuItemTitle(profile), profile)
 	default:
 		return fmt.Errorf("unexpected result %d opening Safari profile %q", status, profile)
 	}
@@ -104,7 +108,7 @@ func launchSafariProfile(url string, profile string, dryRun bool) error {
 		for attempt := 0; attempt < safariStartupAttempts; attempt++ {
 			time.Sleep(safariStartupDelay)
 			status = pressSafariMenuItem(title)
-			if status != safariMenuNotRunning && status != safariMenuNoItem {
+			if status != safariMenuNotRunning && status != safariMenuNoItem && status != safariMenuNoWindows {
 				break
 			}
 		}
