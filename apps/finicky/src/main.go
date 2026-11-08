@@ -51,12 +51,21 @@ type ConfigInfo struct {
 	ConfigPath     string
 }
 
-var urlListener chan URLInfo = make(chan URLInfo)
-var windowClosed chan struct{} = make(chan struct{})
+// Buffered so handing a url over never blocks the caller. HandleURL runs on the
+// main thread, and a handler that occupies the main thread while it works (the
+// "ask" picker runs a modal there) cannot drain the channel it would be blocking
+// on: the url event deadlocks the app, beachball and all.
+var urlListener chan URLInfo = make(chan URLInfo, 64)
+
+// windowClosed and queueWindowOpen are also sent to from the main thread, so
+// they are buffered and sent to without blocking, for the same reason. A cold
+// launch by a url shows the picker before launching finishes, and launching
+// then queues the window display while the picker waits for the main thread.
+var windowClosed chan struct{} = make(chan struct{}, 1)
 var vm *config.VM
 
 var forceWindowOpen bool = false
-var queueWindowOpen chan bool = make(chan bool)
+var queueWindowOpen chan bool = make(chan bool, 1)
 var lastError error
 var dryRun bool = false
 var skipJSConfig bool = false
@@ -196,8 +205,15 @@ func main() {
 				} else {
 					lastError = nil
 				}
-				if launchErr := browser.LaunchBrowser(*config, dryRun, urlInfo.OpenInBackground); launchErr != nil {
-					slog.Error("Failed to start browser", "error", launchErr)
+				launchConfig := *config
+				shouldLaunch := true
+				if launchConfig.AppType == "ask" {
+					launchConfig, shouldLaunch = resolveAskConfig(launchConfig, dryRun)
+				}
+				if shouldLaunch {
+					if launchErr := browser.LaunchBrowser(launchConfig, dryRun, urlInfo.OpenInBackground); launchErr != nil {
+						slog.Error("Failed to start browser", "error", launchErr)
+					}
 				}
 
 				slog.Debug("Time taken evaluating URL and opening browser", "duration", fmt.Sprintf("%.2fms", float64(time.Since(startTime).Microseconds())/1000))
@@ -292,10 +308,27 @@ func HandleURL(url *C.char, name *C.char, bundleId *C.char, path *C.char, window
 		}
 	}
 
-	urlListener <- URLInfo{
+	info := URLInfo{
 		URL:              urlString,
 		Opener:           &opener,
 		OpenInBackground: bool(openInBackground),
+	}
+
+	queueURL(info)
+}
+
+// queueURL hands a url to the url loop. It runs on the main thread, which must
+// never block here: see urlListener.
+func queueURL(info URLInfo) {
+	select {
+	case urlListener <- info:
+	default:
+		// The queue only fills when urls arrive faster than they are answered,
+		// which means dozens of unanswered pickers are already stacked up.
+		// Dropping keeps the hand-off ordered and bounded; deferring the send to
+		// a goroutine instead would let it overtake urls that arrive later, and
+		// let goroutines accumulate for as long as the stream lasts.
+		slog.Warn("Url queue is full, dropping url", "url", info.URL, "queued", len(urlListener))
 	}
 }
 
@@ -334,7 +367,12 @@ func handleFatalError(errorMessage string) {
 
 //export QueueWindowDisplay
 func QueueWindowDisplay(openWindow int32) {
-	queueWindowOpen <- openWindow != 0
+	select {
+	case queueWindowOpen <- openWindow != 0:
+	default:
+		// Only sent once per launch, so a full queue already holds the answer.
+		slog.Warn("Window display already queued, ignoring", "openWindow", openWindow != 0)
+	}
 }
 
 //export ShowConfigWindow
@@ -350,7 +388,11 @@ func ShowConfigWindow() {
 
 //export WindowDidClose
 func WindowDidClose() {
-	windowClosed <- struct{}{}
+	select {
+	case windowClosed <- struct{}{}:
+	default:
+		// A close is already pending, and one is all the loop needs.
+	}
 }
 
 //export GetCurrentConfigPath

@@ -71,6 +71,39 @@ export default {
 
 See the [configuration](#configuration) for all the features Finicky supports.
 
+### Asking which browser to use
+
+Some urls cannot be told apart by a rule. A single sign-on link looks identical
+whether it belongs to your work account or your personal one, so no matcher can
+route it. For those, a browser can be `appType: "ask"`, which prompts you to
+pick a destination instead of choosing one for you.
+
+```js
+// ~/.finicky.js
+export default {
+  // Anything no handler matched asks, instead of guessing
+  defaultBrowser: {
+    name: "ask",
+    appType: "ask",
+    title: "Open link in", // optional heading for the prompt
+    options: [
+      { name: "Google Chrome", profile: "Profile 2", title: "Work" },
+      { name: "Google Chrome", profile: "Default", title: "Personal" },
+      "Firefox", // the usual shorthands work, including "Name:profile"
+    ],
+  },
+};
+```
+
+Each option is an ordinary browser value, so options can differ only by
+`profile`. That is what lets the prompt offer two profiles of the same browser,
+which a picker that only knows about applications cannot express. An option's
+`title` labels its button; without one the button reads `Name - profile`.
+
+`appType: "ask"` has to be written out, because the bare name `ask` is a
+perfectly good application name and is treated as one. Dismissing the prompt
+opens nothing.
+
 ## Configuration
 
 Finicky has extensive support for matching, rewriting and starting browsers or other application that handle urls. See the wiki for the [full configuration documentation](<https://github.com/johnste/finicky/wiki/Configuration-(v4)>) explaining available, APIs and options as well as detail information on how to match on urls.
