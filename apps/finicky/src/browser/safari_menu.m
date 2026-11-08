@@ -58,6 +58,12 @@ int safariOpenWindowFromMenu(const char *menuTitle, double timeoutSeconds) {
             return SAFARI_MENU_NOT_RUNNING;
         }
         NSRunningApplication *safari = [running objectAtIndex:0];
+        // A Safari that is still launching has no usable menu or windows yet,
+        // so it is treated like one that is not running, which the caller
+        // waits out.
+        if (![safari isFinishedLaunching]) {
+            return SAFARI_MENU_NOT_RUNNING;
+        }
         // The url is handed over afterwards with `open`, which lands in the
         // profile of Safari's active window, so the new window has to be it.
         [safari activateWithOptions:0];

@@ -31,7 +31,7 @@ const safariMenuTimeoutSeconds = 5
 
 // safariStartupDelay lets a freshly launched Safari open its own first window
 // before the profile window is requested, so the two are not confused.
-const safariStartupDelay = 2 * time.Second
+var safariStartupDelay = 2 * time.Second
 
 // safariStartupAttempts bounds how often the menu is tried after launching
 // Safari, since a slow start can leave its menu bar empty, or its windows
@@ -87,6 +87,7 @@ func safariMenuError(status int, profile string) error {
 // Safari.
 var pressMenuItem = pressSafariMenuItem
 var runURLCommand = func(cmd *exec.Cmd) ([]byte, error) { return cmd.CombinedOutput() }
+var launchSafari = func() error { return exec.Command("open", "-a", "Safari").Run() }
 
 func pressSafariMenuItem(title string) int {
 	cTitle := C.CString(title)
@@ -107,7 +108,7 @@ func launchSafariProfile(url string, profile string, dryRun bool) error {
 	slog.Debug("Opening url in Safari profile", "profile", profile, "url", url)
 	status := pressMenuItem(title)
 	if status == safariMenuNotRunning {
-		if err := exec.Command("open", "-a", "Safari").Run(); err != nil {
+		if err := launchSafari(); err != nil {
 			return fmt.Errorf("launching Safari failed: %v", err)
 		}
 		for attempt := 0; attempt < safariStartupAttempts; attempt++ {

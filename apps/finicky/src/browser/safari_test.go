@@ -4,6 +4,7 @@ import (
 	"os/exec"
 	"strings"
 	"testing"
+	"time"
 )
 
 func TestFindBrowserInfoIdentifiesSafari(t *testing.T) {
@@ -96,5 +97,32 @@ func TestLaunchSafariProfileDoesNotOpenTheURLWhenThePressIsRefused(t *testing.T)
 	}
 	if ran {
 		t.Error("the url was opened although no profile window was")
+	}
+}
+
+func TestLaunchSafariProfileRetriesARefusedPressWhileSafariStarts(t *testing.T) {
+	defer func(press func(string) int, run func(*exec.Cmd) ([]byte, error), launch func() error, delay time.Duration) {
+		pressMenuItem, runURLCommand, launchSafari, safariStartupDelay = press, run, launch, delay
+	}(pressMenuItem, runURLCommand, launchSafari, safariStartupDelay)
+
+	statuses := []int{safariMenuNotRunning, safariMenuPressFailed, safariMenuOK}
+	pressMenuItem = func(string) int {
+		status := statuses[0]
+		statuses = statuses[1:]
+		return status
+	}
+	launches, runs := 0, 0
+	launchSafari = func() error { launches++; return nil }
+	runURLCommand = func(*exec.Cmd) ([]byte, error) { runs++; return nil, nil }
+	safariStartupDelay = 0
+
+	if err := launchSafariProfile("https://example.com", "Work", false); err != nil {
+		t.Fatalf("launch returned %v, want success after the retry", err)
+	}
+	if launches != 1 || runs != 1 {
+		t.Errorf("Safari launched %d times and url opened %d times, want 1 and 1", launches, runs)
+	}
+	if len(statuses) != 0 {
+		t.Errorf("%d presses left unused, want all 3 used", len(statuses))
 	}
 }
