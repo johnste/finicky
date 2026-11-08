@@ -28,3 +28,26 @@ func TestMainThreadHandoffsNeverBlock(t *testing.T) {
 	}
 	<-windowClosed
 }
+
+func TestQueueURLNeverBlocksOnAFullQueue(t *testing.T) {
+	done := make(chan struct{})
+	go func() {
+		for i := 0; i <= cap(urlListener); i++ {
+			queueURL(URLInfo{URL: "https://example.com"})
+		}
+		close(done)
+	}()
+
+	select {
+	case <-done:
+	case <-time.After(2 * time.Second):
+		t.Fatal("queueing a url blocked on a full queue")
+	}
+
+	if len(urlListener) != cap(urlListener) {
+		t.Errorf("queued %d urls, want the queue full at %d", len(urlListener), cap(urlListener))
+	}
+	for len(urlListener) > 0 {
+		<-urlListener
+	}
+}

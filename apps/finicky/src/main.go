@@ -314,7 +314,12 @@ func HandleURL(url *C.char, name *C.char, bundleId *C.char, path *C.char, window
 		OpenInBackground: bool(openInBackground),
 	}
 
-	// This runs on the main thread, which must never block here: see urlListener.
+	queueURL(info)
+}
+
+// queueURL hands a url to the url loop. It runs on the main thread, which must
+// never block here: see urlListener.
+func queueURL(info URLInfo) {
 	select {
 	case urlListener <- info:
 	default:
@@ -323,7 +328,7 @@ func HandleURL(url *C.char, name *C.char, bundleId *C.char, path *C.char, window
 		// Dropping keeps the hand-off ordered and bounded; deferring the send to
 		// a goroutine instead would let it overtake urls that arrive later, and
 		// let goroutines accumulate for as long as the stream lasts.
-		slog.Warn("Url queue is full, dropping url", "url", urlString, "queued", len(urlListener))
+		slog.Warn("Url queue is full, dropping url", "url", info.URL, "queued", len(urlListener))
 	}
 }
 
