@@ -1,6 +1,7 @@
 package browser
 
 import (
+	"os/exec"
 	"strings"
 	"testing"
 )
@@ -74,5 +75,26 @@ func TestSafariMenuErrorExplainsEachFailure(t *testing.T) {
 func TestLaunchSafariProfileDryRunRunsNothing(t *testing.T) {
 	if err := launchSafariProfile("https://example.com", "Work", true); err != nil {
 		t.Errorf("dry run returned %v, want nil", err)
+	}
+}
+
+func TestLaunchSafariProfileDoesNotOpenTheURLWhenThePressIsRefused(t *testing.T) {
+	defer func(press func(string) int, run func(*exec.Cmd) ([]byte, error)) {
+		pressMenuItem, runURLCommand = press, run
+	}(pressMenuItem, runURLCommand)
+
+	pressMenuItem = func(string) int { return safariMenuPressFailed }
+	ran := false
+	runURLCommand = func(*exec.Cmd) ([]byte, error) {
+		ran = true
+		return nil, nil
+	}
+
+	err := launchSafariProfile("https://example.com", "Work", false)
+	if err == nil || !strings.Contains(err.Error(), "refused") {
+		t.Errorf("error = %v, want the refused press reported", err)
+	}
+	if ran {
+		t.Error("the url was opened although no profile window was")
 	}
 }

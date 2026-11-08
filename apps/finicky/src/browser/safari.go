@@ -83,6 +83,11 @@ func safariMenuError(status int, profile string) error {
 	}
 }
 
+// pressMenuItem and runURLCommand are variables so tests can stand in for
+// Safari.
+var pressMenuItem = pressSafariMenuItem
+var runURLCommand = func(cmd *exec.Cmd) ([]byte, error) { return cmd.CombinedOutput() }
+
 func pressSafariMenuItem(title string) int {
 	cTitle := C.CString(title)
 	defer C.free(unsafe.Pointer(cTitle))
@@ -100,15 +105,18 @@ func launchSafariProfile(url string, profile string, dryRun bool) error {
 	}
 
 	slog.Debug("Opening url in Safari profile", "profile", profile, "url", url)
-	status := pressSafariMenuItem(title)
+	status := pressMenuItem(title)
 	if status == safariMenuNotRunning {
 		if err := exec.Command("open", "-a", "Safari").Run(); err != nil {
 			return fmt.Errorf("launching Safari failed: %v", err)
 		}
 		for attempt := 0; attempt < safariStartupAttempts; attempt++ {
 			time.Sleep(safariStartupDelay)
-			status = pressSafariMenuItem(title)
-			if status != safariMenuNotRunning && status != safariMenuNoItem && status != safariMenuNoWindows {
+			status = pressMenuItem(title)
+			// A refused press opened nothing, so it is safe to retry while
+			// Safari starts. A timeout is not retried: its window may still
+			// appear, and a second press would open another.
+			if status != safariMenuNotRunning && status != safariMenuNoItem && status != safariMenuNoWindows && status != safariMenuPressFailed {
 				break
 			}
 		}
@@ -117,7 +125,7 @@ func launchSafariProfile(url string, profile string, dryRun bool) error {
 		return err
 	}
 
-	output, err := safariOpenURLCommand(url).CombinedOutput()
+	output, err := runURLCommand(safariOpenURLCommand(url))
 	if err != nil {
 		return fmt.Errorf("opening url in Safari profile %q failed: %v: %s", profile, err, strings.TrimSpace(string(output)))
 	}
