@@ -1,6 +1,7 @@
 package browser
 
 import (
+	"errors"
 	"os/exec"
 	"strings"
 	"testing"
@@ -124,7 +125,10 @@ func TestLaunchSafariProfileRetriesARefusedPressWhileSafariStarts(t *testing.T) 
 	}(pressMenuItem, runURLCommand, launchSafari, safariStartupDelay)
 
 	statuses := []int{safariMenuNotRunning, safariMenuPressFailed, safariMenuOK}
-	pressMenuItem = func(string) int {
+	pressMenuItem = func(title string) int {
+		if title != "New Work Window" {
+			t.Errorf("menu title = %q, want New Work Window", title)
+		}
 		status := statuses[0]
 		statuses = statuses[1:]
 		return status
@@ -170,5 +174,24 @@ func TestLaunchSafariProfileDoesNotRetryAPressThatMayStillOpenAWindow(t *testing
 	}
 	if runs != 0 {
 		t.Error("the url was opened although no profile window was")
+	}
+}
+
+func TestLaunchSafariProfileReportsAFailedSafariLaunch(t *testing.T) {
+	defer func(press func(string) int, run func(*exec.Cmd) ([]byte, error), launch func() error) {
+		pressMenuItem, runURLCommand, launchSafari = press, run, launch
+	}(pressMenuItem, runURLCommand, launchSafari)
+
+	presses, runs := 0, 0
+	pressMenuItem = func(string) int { presses++; return safariMenuNotRunning }
+	launchSafari = func() error { return errors.New("no Safari") }
+	runURLCommand = func(*exec.Cmd) ([]byte, error) { runs++; return nil, nil }
+
+	err := launchSafariProfile("https://example.com", "Work", false)
+	if err == nil || !strings.Contains(err.Error(), "no Safari") {
+		t.Errorf("error = %v, want the launch failure reported", err)
+	}
+	if presses != 1 || runs != 0 {
+		t.Errorf("menu pressed %d times and url opened %d times, want 1 and 0", presses, runs)
 	}
 }
