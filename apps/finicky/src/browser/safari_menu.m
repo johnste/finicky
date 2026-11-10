@@ -41,6 +41,16 @@ static CFIndex windowCount(AXUIElementRef app) {
     return count;
 }
 
+int safariPressResult(int axError) {
+    // kAXErrorCannotComplete means Safari did not answer in time, not that it
+    // refused, so the press may still run. Like an accepted press, it is
+    // followed by waiting for the window, and is never retried.
+    if (axError == kAXErrorSuccess || axError == kAXErrorCannotComplete) {
+        return SAFARI_MENU_TIMEOUT;
+    }
+    return SAFARI_MENU_PRESS_FAILED;
+}
+
 int safariOpenWindowFromMenu(const char *menuTitle, double timeoutSeconds) {
     @autoreleasepool {
         // Pressing the menu happens in this process so that Finicky's own
@@ -95,9 +105,7 @@ int safariOpenWindowFromMenu(const char *menuTitle, double timeoutSeconds) {
             CFIndex before = windowCount(app);
             result = SAFARI_MENU_NO_WINDOWS;
             if (before >= 0) {
-                result = AXUIElementPerformAction(item, kAXPressAction) == kAXErrorSuccess
-                             ? SAFARI_MENU_TIMEOUT
-                             : SAFARI_MENU_PRESS_FAILED;
+                result = safariPressResult(AXUIElementPerformAction(item, kAXPressAction));
             }
             for (double waited = 0; result == SAFARI_MENU_TIMEOUT && waited < timeoutSeconds; waited += 0.1) {
                 if (windowCount(app) > before) {

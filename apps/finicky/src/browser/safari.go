@@ -4,6 +4,7 @@ package browser
 #cgo CFLAGS: -x objective-c
 #cgo LDFLAGS: -framework Cocoa -framework ApplicationServices
 #include <stdlib.h>
+#include <ApplicationServices/ApplicationServices.h>
 #include "safari_menu.h"
 */
 import "C"
@@ -49,6 +50,19 @@ const (
 	safariMenuNoWindows   = C.SAFARI_MENU_NO_WINDOWS
 	safariMenuPressFailed = C.SAFARI_MENU_PRESS_FAILED
 )
+
+// Accessibility errors a menu press can return, mirrored so tests can name them.
+const (
+	axErrorSuccess           = C.kAXErrorSuccess
+	axErrorCannotComplete    = C.kAXErrorCannotComplete
+	axErrorActionUnsupported = C.kAXErrorActionUnsupported
+)
+
+// safariPressResult tells a press that surely failed from one that ran or may
+// still run, which must not be retried because it can still open a window.
+func safariPressResult(axError int) int {
+	return int(C.safariPressResult(C.int(axError)))
+}
 
 // safariMenuItemTitle is the File menu item Safari shows for a profile.
 func safariMenuItemTitle(profile string) string {
