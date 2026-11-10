@@ -66,6 +66,17 @@ func LaunchBrowser(config BrowserConfig, dryRun bool, openInBackgroundByDefault 
 		openArgs = append(openArgs, "-g")
 	}
 
+	// Safari cannot be pointed at a profile through command line arguments, so
+	// a Safari profile takes its own path entirely.
+	if config.Profile != "" {
+		if matched := findBrowserInfo(config.Name); matched != nil && matched.Type == "Safari" {
+			if openInBackground {
+				slog.Debug("Safari profiles always open in the foreground", "profile", config.Profile)
+			}
+			return launchSafariProfile(config.URL, config.Profile, dryRun)
+		}
+	}
+
 	// Handle profile and custom args
 	profileArgs, ok := resolveBrowserProfileArgs(config.Name, config.Profile)
 	hasCustomArgs := len(config.Args) > 0
@@ -147,22 +158,25 @@ func LaunchBrowser(config BrowserConfig, dryRun bool, openInBackgroundByDefault 
 	return nil
 }
 
-func resolveBrowserProfileArgs(identifier string, profile string) ([]string, bool) {
+// findBrowserInfo looks a browser up in browsers.json by bundle ID or app name,
+// returning nil when it is not a known browser.
+func findBrowserInfo(identifier string) *browserInfo {
 	var browsersJson []browserInfo
 	if err := json.Unmarshal(browsersJsonData, &browsersJson); err != nil {
 		slog.Info("Error parsing browsers.json", "error", err)
-		return nil, false
+		return nil
 	}
 
-	// Try to find matching browser by bundle ID
-	var matchedBrowser *browserInfo
 	for _, browser := range browsersJson {
 		if browser.ID == identifier || browser.AppName == identifier {
-			matchedBrowser = &browser
-			break
+			return &browser
 		}
 	}
+	return nil
+}
 
+func resolveBrowserProfileArgs(identifier string, profile string) ([]string, bool) {
+	matchedBrowser := findBrowserInfo(identifier)
 	if matchedBrowser == nil {
 		return nil, false
 	}
