@@ -3,17 +3,13 @@ package browser
 import (
 	_ "embed"
 	"encoding/json"
-	"fmt"
-	"io"
 	"log/slog"
 	"os"
-	"os/exec"
 	"path/filepath"
-	"strings"
 	"slices"
+	"strings"
 
 	"al.essio.dev/pkg/shellescape"
-	"finicky/util"
 )
 
 //go:embed browsers.json
@@ -34,10 +30,12 @@ type BrowserConfig struct {
 }
 
 type browserInfo struct {
-	ConfigDirRelative string `json:"config_dir_relative"`
-	ID                string `json:"id"`
-	AppName           string `json:"app_name"`
-	Type              string `json:"type"`
+	ConfigDirRelative string   `json:"config_dir_relative"`
+	ID                string   `json:"id"`
+	AppName           string   `json:"app_name"`
+	Type              string   `json:"type"`
+	LinuxConfigDirs   []string `json:"linux_config_dirs"`
+	LinuxDesktopIDs   []string `json:"linux_desktop_ids"`
 }
 
 func LaunchBrowser(config BrowserConfig, dryRun bool, openInBackgroundByDefault bool) error {
@@ -48,55 +46,18 @@ func LaunchBrowser(config BrowserConfig, dryRun bool, openInBackgroundByDefault 
 
 	slog.Info("Starting browser", "name", config.Name, "url", config.URL)
 
-	var openArgs []string
-
-	if config.AppType == "bundleId" {
-		openArgs = []string{"-b", config.Name}
-	} else {
-		openArgs = []string{"-a", config.Name}
-	}
-
 	var openInBackground bool = openInBackgroundByDefault
 
 	if config.OpenInBackground != nil {
 		openInBackground = *config.OpenInBackground
 	}
 
-	if openInBackground {
-		openArgs = append(openArgs, "-g")
+	profileArgs, hasProfile := resolveBrowserProfileArgs(config.Name, config.Profile)
+
+	cmd, err := browserCommand(config, openInBackground, profileArgs, hasProfile)
+	if err != nil {
+		return err
 	}
-
-	// Handle profile and custom args
-	profileArgs, ok := resolveBrowserProfileArgs(config.Name, config.Profile)
-	hasCustomArgs := len(config.Args) > 0
-
-	// Add -n flag if profile is used (required for profile switching)
-	if ok {
-		openArgs = append(openArgs, "-n")
-	}
-
-	// Add --args if we have profile args or custom args
-	if ok || hasCustomArgs {
-		if ! slices.Contains(config.Args, "--args") {
-			openArgs = append(openArgs, "--args")
-		}
-		// Add profile arguments first if present
-		if ok {
-			openArgs = append(openArgs, profileArgs...)
-		}
-
-		// Add custom args or URL
-		if hasCustomArgs {
-			openArgs = append(openArgs, config.Args...)
-		} else {
-			openArgs = append(openArgs, config.URL)
-		}
-	} else {
-		// No special args, just add the URL
-		openArgs = append(openArgs, config.URL)
-	}
-
-	cmd := exec.Command("open", openArgs...)
 
 	// Pretty print the command with proper escaping
 	prettyCmd := formatCommand(cmd.Path, cmd.Args)
@@ -108,90 +69,53 @@ func LaunchBrowser(config BrowserConfig, dryRun bool, openInBackgroundByDefault 
 		slog.Debug("Run command", "command", prettyCmd)
 	}
 
-	stderr, err := cmd.StderrPipe()
-	if err != nil {
-		return err
-	}
-	stdout, err := cmd.StdoutPipe()
-	if err != nil {
-		return err
-	}
-
-	if err := cmd.Start(); err != nil {
-		return err
-	}
-
-	stderrBytes, err := io.ReadAll(stderr)
-	if err != nil {
-		return fmt.Errorf("error reading stderr: %v", err)
-	}
-
-	stdoutBytes, err := io.ReadAll(stdout)
-	if err != nil {
-		return fmt.Errorf("error reading stdout: %v", err)
-	}
-
-	cmdErr := cmd.Wait()
-
-	if len(stderrBytes) > 0 {
-		slog.Error("Command returned error", "error", string(stderrBytes))
-	}
-	if len(stdoutBytes) > 0 {
-		slog.Debug("Command returned output", "output", string(stdoutBytes))
-	}
-
-	if cmdErr != nil {
-		return fmt.Errorf("command failed: %v", cmdErr)
-	}
-
-	return nil
+	return runBrowserCommand(cmd)
 }
 
-func resolveBrowserProfileArgs(identifier string, profile string) ([]string, bool) {
+// lookupBrowserInfo finds the browsers.json entry for a browser app name or
+// bundle ID (or, on Linux, its desktop entry).
+func lookupBrowserInfo(identifier string) (*browserInfo, bool) {
 	var browsersJson []browserInfo
 	if err := json.Unmarshal(browsersJsonData, &browsersJson); err != nil {
 		slog.Info("Error parsing browsers.json", "error", err)
 		return nil, false
 	}
 
-	// Try to find matching browser by bundle ID
-	var matchedBrowser *browserInfo
-	for _, browser := range browsersJson {
-		if browser.ID == identifier || browser.AppName == identifier {
-			matchedBrowser = &browser
-			break
+	for i := range browsersJson {
+		if browsersJson[i].ID == identifier || browsersJson[i].AppName == identifier {
+			return &browsersJson[i], true
 		}
 	}
+	for i := range browsersJson {
+		if platformBrowserMatches(browsersJson[i], identifier) {
+			return &browsersJson[i], true
+		}
+	}
+	return nil, false
+}
 
-	if matchedBrowser == nil {
+func resolveBrowserProfileArgs(identifier string, profile string) ([]string, bool) {
+	matchedBrowser, ok := lookupBrowserInfo(identifier)
+	if !ok {
 		return nil, false
 	}
 
 	slog.Debug("Browser found in browsers.json", "identifier", identifier, "type", matchedBrowser.Type)
 
 	if profile != "" {
+		root, ok := profileRoot(*matchedBrowser)
+		if !ok {
+			slog.Info("No profile directory known for browser on this platform", "identifier", identifier)
+			return nil, false
+		}
 		switch matchedBrowser.Type {
 		case "Chromium":
-			homeDir, err := util.UserHomeDir()
-			if err != nil {
-				slog.Info("Error getting home directory", "error", err)
-				return nil, false
-			}
-
-			localStatePath := filepath.Join(homeDir, "Library/Application Support", matchedBrowser.ConfigDirRelative, "Local State")
-			profilePath, ok := parseProfiles(localStatePath, profile)
+			profilePath, ok := parseProfiles(filepath.Join(root, "Local State"), profile)
 			if ok {
 				return []string{"--profile-directory=" + profilePath}, true
 			}
 		case "Firefox":
-			homeDir, err := util.UserHomeDir()
-			if err != nil {
-				slog.Info("Error getting home directory", "error", err)
-				return nil, false
-			}
-
-			profilesIniPath := filepath.Join(homeDir, "Library/Application Support", matchedBrowser.ConfigDirRelative, "profiles.ini")
-			profileName, ok := parseFirefoxProfiles(profilesIniPath, profile)
+			profileName, ok := parseFirefoxProfiles(filepath.Join(root, "profiles.ini"), profile)
 			if ok {
 				return []string{"-P", profileName}, true
 			}
@@ -341,37 +265,21 @@ func parseProfiles(localStatePath string, profile string) (string, bool) {
 // GetProfilesForBrowser returns available profile names for a given browser app name or bundle ID.
 // Returns empty slice if browser not in browsers.json, not supported, or profile files are unreadable.
 func GetProfilesForBrowser(identifier string) []string {
-	var browsersJson []browserInfo
-	if err := json.Unmarshal(browsersJsonData, &browsersJson); err != nil {
-		slog.Info("Error parsing browsers.json", "error", err)
+	matchedBrowser, ok := lookupBrowserInfo(identifier)
+	if !ok {
 		return []string{}
 	}
 
-	var matchedBrowser *browserInfo
-	for i := range browsersJson {
-		if browsersJson[i].ID == identifier || browsersJson[i].AppName == identifier {
-			matchedBrowser = &browsersJson[i]
-			break
-		}
-	}
-
-	if matchedBrowser == nil {
-		return []string{}
-	}
-
-	homeDir, err := util.UserHomeDir()
-	if err != nil {
-		slog.Info("Error getting home directory", "error", err)
+	root, ok := profileRoot(*matchedBrowser)
+	if !ok {
 		return []string{}
 	}
 
 	switch matchedBrowser.Type {
 	case "Chromium":
-		localStatePath := filepath.Join(homeDir, "Library/Application Support", matchedBrowser.ConfigDirRelative, "Local State")
-		return getAllChromiumProfiles(localStatePath)
+		return getAllChromiumProfiles(filepath.Join(root, "Local State"))
 	case "Firefox":
-		profilesIniPath := filepath.Join(homeDir, "Library/Application Support", matchedBrowser.ConfigDirRelative, "profiles.ini")
-		return readFirefoxProfileNames(profilesIniPath)
+		return readFirefoxProfileNames(filepath.Join(root, "profiles.ini"))
 	default:
 		return []string{}
 	}

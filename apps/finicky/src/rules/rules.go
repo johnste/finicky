@@ -2,6 +2,8 @@ package rules
 
 import (
 	"encoding/json"
+	"finicky/browser"
+	"finicky/util"
 	"fmt"
 	"os"
 	"path/filepath"
@@ -74,7 +76,8 @@ func SetCustomPath(path string) {
 
 // GetPath returns the path to the rules JSON file.
 // Returns the custom path if one was set via SetCustomPath, otherwise
-// ~/Library/Application Support/Finicky/rules.json.
+// ~/Library/Application Support/Finicky/rules.json on macOS and
+// ~/.config/finicky/rules.json on Linux.
 func GetPath() (string, error) {
 	if customPath != "" {
 		return customPath, nil
@@ -83,7 +86,7 @@ func GetPath() (string, error) {
 	if err != nil {
 		return "", err
 	}
-	return filepath.Join(configDir, "Finicky", "rules.json"), nil
+	return filepath.Join(configDir, util.AppDirName, "rules.json"), nil
 }
 
 // Load reads the rules file from the default path. Returns an empty RulesFile if it doesn't exist.
@@ -178,7 +181,7 @@ func ToJSHandlers(rules []Rule) []map[string]interface{} {
 func ToJSConfigScript(rf RulesFile, namespace string) (string, error) {
 	defaultBrowser := rf.DefaultBrowser
 	if defaultBrowser == "" {
-		defaultBrowser = "com.apple.Safari"
+		defaultBrowser, _ = browser.SystemDefault()
 	}
 
 	var defaultBrowserObj interface{}

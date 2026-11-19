@@ -7,11 +7,6 @@ package window
 #include "window.h"
 */
 import "C"
-import (
-	"finicky/rules"
-)
-
-var SaveRulesHandler func(rules.RulesFile)
 
 func ShowWindow() {
 	C.ShowWindow()

@@ -7,7 +7,7 @@ package util
 import "C"
 import (
 	"fmt"
-	"strings"
+	"path/filepath"
 	"unsafe"
 )
 
@@ -22,18 +22,6 @@ func UserHomeDir() (string, error) {
 	return dir, nil
 }
 
-// ShortenPath replaces the user's home directory prefix with ~.
-func ShortenPath(path string) string {
-	home, err := UserHomeDir()
-	if err != nil || home == "" {
-		return path
-	}
-	if path == home || strings.HasPrefix(path, home+"/") {
-		return "~" + path[len(home):]
-	}
-	return path
-}
-
 // UserCacheDir returns the user's cache directory using NSSearchPathForDirectoriesInDomains
 func UserCacheDir() (string, error) {
 	cDir := C.getNSCacheDirectory()
@@ -46,4 +34,17 @@ func UserCacheDir() (string, error) {
 		return "", fmt.Errorf("failed to get user cache directory")
 	}
 	return dir, nil
+}
+
+// AppDirName is the name of Finicky's directories inside the user's config
+// and cache directories.
+const AppDirName = "Finicky"
+
+// LogDir returns the directory for Finicky's log files.
+func LogDir() (string, error) {
+	home, err := UserHomeDir()
+	if err != nil {
+		return "", err
+	}
+	return filepath.Join(home, "Library", "Logs", "Finicky"), nil
 }

@@ -16,7 +16,6 @@ import type { RulesFile, ConfigInfo, UpdateInfo } from "../types";
 import styles from "./StartPage.module.css";
 
 const SAVE_DEBOUNCE = 500;
-const SAFARI = "Safari";
 
 interface Options {
   keepRunning: boolean;
@@ -42,9 +41,11 @@ function isProfileCustom(profile: string, browser: string, byBrowser: Record<str
   return profile !== "" && !(byBrowser[browser] ?? []).includes(profile);
 }
 
-function initialBp(rulesFile: RulesFile, config: ConfigInfo, hasJsConfig: boolean) {
+// systemDefault is the platform's fallback browser (Safari on macOS), shown
+// when no default browser is configured.
+function initialBp(rulesFile: RulesFile, config: ConfigInfo, hasJsConfig: boolean, systemDefault: string) {
   return {
-    browser: hasJsConfig ? (config.defaultBrowser ?? "") : (rulesFile.defaultBrowser || SAFARI),
+    browser: hasJsConfig ? (config.defaultBrowser ?? "") : (rulesFile.defaultBrowser || systemDefault),
     profile: rulesFile.defaultProfile ?? "",
     browserCustom: false,
     profileCustom: false,
@@ -100,13 +101,13 @@ function UpdateCard({ updateInfo }: { updateInfo: UpdateInfo }) {
 }
 
 export function StartPage() {
-  const { hasConfig, config, updateInfo, rulesFile, installedBrowsers, profilesByBrowser } =
+  const { hasConfig, config, updateInfo, rulesFile, installedBrowsers, profilesByBrowser, systemDefaultBrowser } =
     useSyncExternalStore(appStore.subscribe, appStore.getSnapshot);
   const hasJsConfig = config.hasJsConfig ?? false;
   const numErrors = appStore.getNumErrors();
 
   const [options, setOptions] = useState<Options>(() => resolveOptions(rulesFile, config));
-  const [bp, setBp] = useState(() => initialBp(rulesFile, config, hasJsConfig));
+  const [bp, setBp] = useState(() => initialBp(rulesFile, config, hasJsConfig, systemDefaultBrowser));
 
   const pendingRef = useRef({ options, bp });
   pendingRef.current = { options, bp };
@@ -129,8 +130,8 @@ export function StartPage() {
   useEffect(() => {
     if (isPending.current) return;
     setOptions(resolveOptions(rulesFile, config));
-    setBp(initialBp(rulesFile, config, hasJsConfig));
-  }, [rulesFile, config, hasJsConfig]);
+    setBp(initialBp(rulesFile, config, hasJsConfig, systemDefaultBrowser));
+  }, [rulesFile, config, hasJsConfig, systemDefaultBrowser]);
 
   const defaultBrowserIsCustom = resolveBrowserIsCustom(bp.browserCustom, bp.browser, installedBrowsers);
   const defaultProfileIsCustom = resolveProfileIsCustom(bp.profileCustom, bp.profile, bp.browser, profilesByBrowser);

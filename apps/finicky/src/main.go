@@ -1,13 +1,5 @@
 package main
 
-/*
-#cgo CFLAGS: -x objective-c
-#cgo LDFLAGS: -framework Cocoa -framework CoreServices
-#include <stdlib.h>
-#include "main.h"
-*/
-import "C"
-
 import (
 	_ "embed"
 	"encoding/base64"
@@ -195,6 +187,12 @@ func main() {
 
 	dryRun = *dryRunPtr
 
+	// With custom config or rules paths (as in development and tests), run as
+	// a separate instance rather than handing off to an already running one.
+	if platformPreflight(customConfigPath != "" || *rulesPathPtr != "") {
+		return
+	}
+
 	currentVersion := version.GetCurrentVersion()
 	commitHash, buildDate := version.GetBuildInfo()
 	slog.Info("Starting Finicky", "version", currentVersion)
@@ -356,7 +354,7 @@ func main() {
 				} else {
 					setVM(newVM)
 					lastError = nil
-					C.SetStatusItemError(false)
+					setStatusItemError(false)
 					keepRunning := true
 					if newVM != nil {
 						keepRunning = newVM.GetAllConfigOptions().KeepRunning
@@ -369,7 +367,7 @@ func main() {
 
 			case shouldShowWindow := <-queueWindowOpen:
 				if !showingWindow && shouldShowWindow {
-					go ShowConfigWindow()
+					go showConfigWindow()
 					showingWindow = true
 					timeoutChan = nil
 				}
@@ -397,80 +395,65 @@ func main() {
 	if v := getVM(); v != nil {
 		shouldHideIcon = v.GetAllConfigOptions().HideIcon
 	}
-	C.RunApp(C.bool(forceWindowOpen), C.bool(!shouldHideIcon), C.bool(getShouldKeepRunning()))
+	runApp(forceWindowOpen, !shouldHideIcon, getShouldKeepRunning())
 }
 
 func handleRuntimeError(err error) {
 	slog.Error("Failed evaluating url", "error", err)
 	lastError = err
-	C.SetStatusItemError(true)
+	setStatusItemError(true)
 }
 
-//export HandleURL
-func HandleURL(url *C.char, name *C.char, bundleId *C.char, path *C.char, windowTitle *C.char, openInBackground C.bool) {
-	var opener resolver.OpenerInfo
-
-	if name != nil && bundleId != nil && path != nil {
-		opener = resolver.OpenerInfo{
-			Name:     C.GoString(name),
-			BundleID: C.GoString(bundleId),
-			Path:     C.GoString(path),
-		}
-		if windowTitle != nil {
-			opener.WindowTitle = C.GoString(windowTitle)
-		}
-	}
-
-	urlString := C.GoString(url)
-
+// handleURL queues a URL to be opened. opener describes the app the URL came
+// from, if known.
+func handleURL(urlString string, opener *resolver.OpenerInfo, openInBackground bool) {
 	// Handle finicky:// protocol URLs by extracting and decoding the embedded URL
 	if strings.HasPrefix(urlString, "finicky://open/") {
 		encodedURL := strings.TrimPrefix(urlString, "finicky://open/")
 		if decodedBytes, err := base64.StdEncoding.DecodeString(encodedURL); err == nil {
+			slog.Debug("Decoded finicky protocol URL", "original", urlString, "decoded", string(decodedBytes))
 			urlString = string(decodedBytes)
-			slog.Debug("Decoded finicky protocol URL", "original", C.GoString(url), "decoded", urlString)
 		} else {
-			slog.Warn("Failed to decode finicky protocol URL", "error", err, "url", C.GoString(url))
+			slog.Warn("Failed to decode finicky protocol URL", "error", err, "url", urlString)
 		}
+	}
+
+	if opener == nil {
+		opener = &resolver.OpenerInfo{}
 	}
 
 	urlListener <- URLInfo{
 		URL:              urlString,
-		Opener:           &opener,
-		OpenInBackground: bool(openInBackground),
+		Opener:           opener,
+		OpenInBackground: openInBackground,
 	}
 }
 
 func handleFatalError(errorMessage string) {
 	slog.Error("Fatal error", "msg", errorMessage)
 	lastError = fmt.Errorf("%s", errorMessage)
-	C.SetStatusItemError(true)
+	setStatusItemError(true)
 }
 
-//export QueueWindowDisplay
-func QueueWindowDisplay(openWindow int32) {
-	queueWindowOpen <- openWindow != 0
+func queueWindowDisplay(openWindow bool) {
+	queueWindowOpen <- openWindow
 }
 
-//export ShowConfigWindow
-func ShowConfigWindow() {
+func showConfigWindow() {
 	slog.Debug("Showing window")
 	window.ShowWindow()
 }
 
-//export WindowDidClose
-func WindowDidClose() {
+func windowDidClose() {
 	windowClosed <- struct{}{}
 }
 
-//export GetCurrentConfigPath
-func GetCurrentConfigPath() *C.char {
-	if ci := getConfigInfo(); ci != nil && ci.ConfigPath != "" {
-		cPath := C.CString(ci.ConfigPath)
-		return cPath
-	} else {
-		return nil
+// currentConfigPath returns the path of the loaded config file, or "".
+func currentConfigPath() string {
+	if ci := getConfigInfo(); ci != nil {
+		return ci.ConfigPath
 	}
+	return ""
 }
 
 func checkForUpdates() {
@@ -514,6 +497,7 @@ func buildUpdateInfoPayload(ui UpdateInfo) map[string]interface{} {
 func tearDown() {
 	checkForUpdates()
 	slog.Info("Exiting...")
+	platformCleanup()
 	os.Exit(0)
 }
 
