@@ -31,6 +31,14 @@ Finicky is a macOS application that allows you to set up rules that decide which
 - Download from [releases](https://github.com/johnste/finicky/releases)
 - Or install via homebrew: `brew install --cask finicky`
 - Create a JavaScript or TypeScript configuration file at `~/.finicky.js`.  Have a look at the example configuration below, or in the `example-config` folder.
+
+  Finicky looks for a configuration file in the following locations (first match wins), where `$XDG_CONFIG_HOME` defaults to `~/.config` when unset:
+
+  - `~/.finicky.js` / `~/.finicky.ts`
+  - `$XDG_CONFIG_HOME/finicky.js` / `$XDG_CONFIG_HOME/finicky.ts`
+  - `$XDG_CONFIG_HOME/finicky/finicky.js` / `$XDG_CONFIG_HOME/finicky/finicky.ts`
+
+  Note: apps launched from Finder don't inherit shell environment variables, so a custom `$XDG_CONFIG_HOME` set only in your shell profile won't be seen by Finicky unless it's set via `launchctl setenv`. The `~/.config` fallback always works.
 - Start Finicky (in Applications, or through Spotlight/Alfred/Raycast) and allow it to be set as the default browser. Starting Finicky manually opens the configuration/troubleshooting window. 
 
 ## Basic configuration
