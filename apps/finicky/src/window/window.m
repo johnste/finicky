@@ -171,9 +171,6 @@ void SetFileContentWithLength(const char* path, const char* content, size_t leng
 
 - (void)userContentController:(WKUserContentController *)userContentController
       didReceiveScriptMessage:(WKScriptMessage *)message {
-    // Handle messages from JavaScript here
-    NSLog(@"Received message from WebView: %@", message.body);
-
     // Convert the message body to JSON string and forward to Go
     if ([message.body isKindOfClass:[NSString class]]) {
         extern void HandleWebViewMessage(const char* message);

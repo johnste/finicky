@@ -36,7 +36,7 @@ func init() {
 
 // ResolveURL resolves a potentially shortened URL to its final destination by following HTTP redirects, so
 // the matcher can match the final URL instead of the short URL.
-func ResolveURL(originalURL string) (string, error) {
+func ResolveURL(originalURL string, logRequests bool) (string, error) {
 	parsedURL, err := url.Parse(originalURL)
 	if err != nil {
 		return originalURL, fmt.Errorf("failed to parse URL: %v", err)
@@ -55,14 +55,18 @@ func ResolveURL(originalURL string) (string, error) {
 		return originalURL, nil
 	}
 
-	slog.Debug("URL host looks like a short URL", "host", parsedURL.Host)
+	if logRequests {
+		slog.Debug("URL host looks like a short URL", "host", parsedURL.Host)
+	}
 
 	var lastUrl string
 
 	// Helper to get the best available URL
 	getReturnUrl := func() string {
 		if lastUrl != "" && lastUrl != originalURL {
-			slog.Debug("Falling back to last known URL from redirects", "url", lastUrl)
+			if logRequests {
+				slog.Debug("Falling back to last known URL from redirects", "url", lastUrl)
+			}
 			return lastUrl
 		}
 		return originalURL
@@ -73,7 +77,9 @@ func ResolveURL(originalURL string) (string, error) {
 		Timeout: 750 * time.Millisecond,
 		CheckRedirect: func(req *http.Request, via []*http.Request) error {
 			lastUrl = req.URL.String()
-			slog.Debug("Redirected to", "url", lastUrl)
+			if logRequests {
+				slog.Debug("Redirected to", "url", lastUrl)
+			}
 			// Allow up to 3 redirects
 			if len(via) >= 3 {
 				return fmt.Errorf("stopped after 3 redirects")
@@ -98,7 +104,9 @@ func ResolveURL(originalURL string) (string, error) {
 	if resp != nil {
 		// If we got a successful response, return the final URL
 		if resp.StatusCode == http.StatusOK {
-			slog.Debug("Got a successful response", "url", resp.Request.URL.String())
+			if logRequests {
+				slog.Debug("Got a successful response", "url", resp.Request.URL.String())
+			}
 			return resp.Request.URL.String(), nil
 		}
 
@@ -122,7 +130,9 @@ func ResolveURL(originalURL string) (string, error) {
 
 	if resp != nil {
 		if resp.StatusCode == http.StatusOK {
-			slog.Debug("Got a successful response", "url", resp.Request.URL.String())
+			if logRequests {
+				slog.Debug("Got a successful response", "url", resp.Request.URL.String())
+			}
 			return resp.Request.URL.String(), nil
 		}
 

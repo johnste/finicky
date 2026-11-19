@@ -41,7 +41,6 @@
   // Function to handle messages from the native app
   function handleMessage(msg: any) {
     const parsedMsg = typeof msg === "string" ? JSON.parse(msg) : msg;
-    console.log("Received message:", parsedMsg.type, parsedMsg);
     switch (parsedMsg.type) {
       case "version":
         version = parsedMsg.message;

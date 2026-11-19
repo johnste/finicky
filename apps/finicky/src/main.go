@@ -40,6 +40,7 @@ type UpdateInfo struct {
 
 type URLInfo struct {
 	URL              string
+	OriginalURL      string
 	Opener           *resolver.OpenerInfo
 	OpenInBackground bool
 }
@@ -184,23 +185,7 @@ func main() {
 		for {
 			select {
 			case urlInfo := <-urlListener:
-				startTime := time.Now()
-
-				url := urlInfo.URL
-
-				slog.Info("URL received", "url", url)
-
-				config, err := resolver.ResolveURL(vm, url, urlInfo.Opener, urlInfo.OpenInBackground)
-				if err != nil {
-					handleRuntimeError(err)
-				} else {
-					lastError = nil
-				}
-				if launchErr := browser.LaunchBrowser(*config, dryRun, urlInfo.OpenInBackground); launchErr != nil {
-					slog.Error("Failed to start browser", "error", launchErr)
-				}
-
-				slog.Debug("Time taken evaluating URL and opening browser", "duration", fmt.Sprintf("%.2fms", float64(time.Since(startTime).Microseconds())/1000))
+				openURL(urlInfo)
 
 				if !showingWindow && !shouldKeepRunning {
 					timeoutChan = time.After(2 * time.Second)
@@ -264,6 +249,31 @@ func handleRuntimeError(err error) {
 	C.SetStatusItemError(true)
 }
 
+func openURL(urlInfo URLInfo) {
+	startTime := time.Now()
+	requestVM := vm
+	logRequests := requestVM.GetAllConfigOptions().LogRequests
+	if logRequests {
+		if urlInfo.OriginalURL != "" {
+			slog.Debug("Decoded finicky protocol URL", "original", urlInfo.OriginalURL, "decoded", urlInfo.URL)
+		}
+		slog.Info("URL received", "url", urlInfo.URL)
+	}
+
+	config, err := resolver.ResolveURL(requestVM, urlInfo.URL, urlInfo.Opener, urlInfo.OpenInBackground, logRequests)
+	if err != nil {
+		handleRuntimeError(err)
+	} else {
+		lastError = nil
+	}
+	if launchErr := browser.LaunchBrowser(*config, dryRun, urlInfo.OpenInBackground, logRequests); launchErr != nil {
+		slog.Error("Failed to start browser", "error", launchErr)
+	}
+	if logRequests {
+		slog.Debug("Time taken evaluating URL and opening browser", "duration", fmt.Sprintf("%.2fms", float64(time.Since(startTime).Microseconds())/1000))
+	}
+}
+
 //export HandleURL
 func HandleURL(url *C.char, name *C.char, bundleId *C.char, path *C.char, windowTitle *C.char, openInBackground C.bool) {
 	var opener resolver.OpenerInfo
@@ -279,23 +289,28 @@ func HandleURL(url *C.char, name *C.char, bundleId *C.char, path *C.char, window
 		}
 	}
 
-	urlString := C.GoString(url)
+	urlListener <- newURLInfo(C.GoString(url), &opener, bool(openInBackground))
+}
+
+func newURLInfo(urlString string, opener *resolver.OpenerInfo, openInBackground bool) URLInfo {
+	var originalURL string
 
 	// Handle finicky:// protocol URLs by extracting and decoding the embedded URL
 	if strings.HasPrefix(urlString, "finicky://open/") {
 		encodedURL := strings.TrimPrefix(urlString, "finicky://open/")
 		if decodedBytes, err := base64.StdEncoding.DecodeString(encodedURL); err == nil {
+			originalURL = urlString
 			urlString = string(decodedBytes)
-			slog.Debug("Decoded finicky protocol URL", "original", C.GoString(url), "decoded", urlString)
 		} else {
-			slog.Warn("Failed to decode finicky protocol URL", "error", err, "url", C.GoString(url))
+			slog.Warn("Failed to decode finicky protocol URL", "error", err, "url", urlString)
 		}
 	}
 
-	urlListener <- URLInfo{
+	return URLInfo{
 		URL:              urlString,
-		Opener:           &opener,
-		OpenInBackground: bool(openInBackground),
+		OriginalURL:      originalURL,
+		Opener:           opener,
+		OpenInBackground: openInBackground,
 	}
 }
 
@@ -306,9 +321,7 @@ func TestURL(url *C.char) {
 }
 
 func TestURLInternal(urlString string) {
-	slog.Debug("Testing URL", "url", urlString)
-
-	config, err := resolver.ResolveURL(vm, urlString, nil, false)
+	config, err := resolveTestURL(urlString)
 	if err != nil {
 		slog.Error("Failed to evaluate URL", "error", err)
 		window.SendMessageToWebView("testUrlResult", map[string]interface{}{
@@ -324,6 +337,15 @@ func TestURLInternal(urlString string) {
 		"profile":          config.Profile,
 		"args":             config.Args,
 	})
+}
+
+func resolveTestURL(urlString string) (*browser.BrowserConfig, error) {
+	requestVM := vm
+	logRequests := requestVM.GetAllConfigOptions().LogRequests
+	if logRequests {
+		slog.Debug("Testing URL", "url", urlString)
+	}
+	return resolver.ResolveURL(requestVM, urlString, nil, false, logRequests)
 }
 
 func handleFatalError(errorMessage string) {

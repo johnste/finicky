@@ -132,7 +132,7 @@ const HandlerRuleSchema = z
 const ConfigOptionsSchema = z
   .object({
     urlShorteners: z.array(z.string()).optional(),
-    logRequests: z.boolean().optional().describe("Log to file on disk"),
+    logRequests: z.boolean().optional().describe("Log routine URL and browser requests, and enable logging to file on disk"),
     checkForUpdates: z.boolean().optional().describe("Check for updates"),
     keepRunning: z.boolean().optional().describe("Keep the app running"),
     hideIcon: z.boolean().optional().describe("Hide the app icon")

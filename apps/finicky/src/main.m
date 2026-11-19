@@ -250,8 +250,6 @@
 - (bool)application:(NSApplication *)sender openFile:(NSString *)filename {
     self.receivedURL = true;
 
-    NSLog(@"Opening file: %@", filename);
-
     // Convert the file path to a file:// URL
     NSURL *fileURL = [NSURL fileURLWithPath:filename];
     NSString *urlString = [fileURL absoluteString];

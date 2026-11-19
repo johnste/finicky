@@ -46,9 +46,9 @@ func getCachedRules() rules.RulesFile {
 //
 // Always returns a non-nil config. Returns a non-nil error only when JS
 // evaluation failed.
-func ResolveURL(vm *config.VM, urlStr string, opener *OpenerInfo, openInBackground bool) (*browser.BrowserConfig, error) {
+func ResolveURL(vm *config.VM, urlStr string, opener *OpenerInfo, openInBackground bool, logRequests bool) (*browser.BrowserConfig, error) {
 	if vm != nil {
-		cfg, err := evaluateURL(vm, urlStr, opener)
+		cfg, err := evaluateURL(vm, urlStr, opener, logRequests)
 		if err != nil {
 			return defaultBrowserConfig(urlStr, openInBackground), err
 		}
@@ -65,10 +65,10 @@ func mergeBackground(fromConfig *bool, requested bool) *bool {
 	return &requested
 }
 
-func evaluateURL(vm *config.VM, url string, opener *OpenerInfo) (*browser.BrowserConfig, error) {
+func evaluateURL(vm *config.VM, url string, opener *OpenerInfo, logRequests bool) (*browser.BrowserConfig, error) {
 	runtime := vm.Runtime()
 
-	resolvedURL, err := shorturl.ResolveURL(url)
+	resolvedURL, err := shorturl.ResolveURL(url, logRequests)
 	runtime.Set("originalUrl", url)
 	if err != nil {
 		slog.Info("Failed to resolve short URL", "error", err, "url", url, "using", resolvedURL)
@@ -86,10 +86,14 @@ func evaluateURL(vm *config.VM, url string, opener *OpenerInfo) (*browser.Browse
 			openerMap["windowTitle"] = opener.WindowTitle
 		}
 		runtime.Set("opener", openerMap)
-		slog.Debug("Setting opener", "name", opener.Name, "bundleId", opener.BundleID, "path", opener.Path, "windowTitle", opener.WindowTitle)
+		if logRequests {
+			slog.Debug("Setting opener", "name", opener.Name, "bundleId", opener.BundleID, "path", opener.Path, "windowTitle", opener.WindowTitle)
+		}
 	} else {
 		runtime.Set("opener", nil)
-		slog.Debug("No opener detected")
+		if logRequests {
+			slog.Debug("No opener detected")
+		}
 	}
 
 	// When there is a JS config, append cached JSON rules as lower-priority handlers.
@@ -120,13 +124,15 @@ func evaluateURL(vm *config.VM, url string, opener *OpenerInfo) (*browser.Browse
 		return nil, fmt.Errorf("failed to parse browser configuration: %v", err)
 	}
 
-	slog.Debug("Final browser options",
-		"name", browserResult.Browser.Name,
-		"openInBackground", browserResult.Browser.OpenInBackground,
-		"profile", browserResult.Browser.Profile,
-		"args", browserResult.Browser.Args,
-		"appType", browserResult.Browser.AppType,
-	)
+	if logRequests {
+		slog.Debug("Final browser options",
+			"name", browserResult.Browser.Name,
+			"openInBackground", browserResult.Browser.OpenInBackground,
+			"profile", browserResult.Browser.Profile,
+			"args", browserResult.Browser.Args,
+			"appType", browserResult.Browser.AppType,
+		)
+	}
 
 	var resultErr error
 	if browserResult.Error != "" {
@@ -145,4 +151,3 @@ func defaultBrowserConfig(urlStr string, openInBackground bool) *browser.Browser
 		URL:              urlStr,
 	}
 }
-
