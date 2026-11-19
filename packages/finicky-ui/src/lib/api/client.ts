@@ -1,24 +1,14 @@
-const BASE_URL: string = (() => {
-  const port = new URLSearchParams(window.location.search).get("apiPort");
-  if (port) {
-    const url = `http://127.0.0.1:${port}/api`;
-    localStorage.setItem("devApiUrl", url);
-    return url;
-  }
-  return (
-    window.__FINICKY_API__ ??
-    import.meta.env.VITE_API_URL ??
-    localStorage.getItem("devApiUrl") ??
-    "http://127.0.0.1:0/api"
-  );
-})();
+// The UI is served by the app's own local HTTP server, so the API is on the
+// same origin. In development, Vite proxies /api to a running instance (see
+// vite.config.ts).
+const BASE_URL = "/api";
 
 // The native app injects a per-process secret into the WebView so the local
 // REST/SSE API can reject requests from anything else (e.g. a website
 // scanning localhost ports). Dev builds can pass the same token as a query
-// param when pointed at a real running instance via VITE_API_URL. It's never
-// persisted to localStorage — that secret shouldn't outlive the page/process
-// that generated it.
+// param when proxying to a real running instance. It's never persisted to
+// localStorage — that secret shouldn't outlive the page/process that
+// generated it.
 const API_TOKEN: string = (() => {
   const token = new URLSearchParams(window.location.search).get("apiToken");
   if (token) return token;

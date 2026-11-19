@@ -5,10 +5,12 @@ import (
 	"crypto/subtle"
 	"encoding/hex"
 	"encoding/json"
+	"finicky/assets"
 	"finicky/browser"
 	"finicky/rules"
 	"finicky/util"
 	"fmt"
+	"io/fs"
 	"log/slog"
 	"net"
 	"net/http"
@@ -25,18 +27,6 @@ var (
 	GetUpdateInfoFunc func() interface{}
 	TestURLFunc       func(url string) (interface{}, error)
 )
-
-// trustedOrigins are the Origin headers the WebView may send. The UI is loaded
-// from the custom "finicky-assets://local/" base URL (see window.m). Unlike the
-// URL living standard, which would make that an opaque "null" origin, WebKit
-// gives custom schemes a tuple origin and sends "finicky-assets://local".
-// "null" is kept in case a WebKit version does treat it as opaque. A regular
-// website always has a real http(s) origin, so restricting CORS to these
-// values keeps other sites from reading responses from this loopback API.
-var trustedOrigins = map[string]bool{
-	"finicky-assets://local": true,
-	"null":                   true,
-}
 
 func init() {
 	b := make([]byte, 32)
@@ -130,38 +120,54 @@ func BroadcastSSERaw(event string, rawJSON []byte) {
 	hub.broadcastRaw(event, rawJSON)
 }
 
-// StartAPIServer binds to a random local port and serves the REST + SSE API.
+// StartAPIServer binds to a random local port and serves the UI at / and the
+// REST + SSE API under /api. Serving both from one origin means the WebView's
+// requests are same-origin, so no CORS rules are needed.
 func StartAPIServer() error {
 	ln, err := net.Listen("tcp", "127.0.0.1:0")
 	if err != nil {
 		return fmt.Errorf("failed to start API server: %w", err)
 	}
 	apiPort = ln.Addr().(*net.TCPAddr).Port
-	slog.Debug("API server listening", "url", fmt.Sprintf("http://127.0.0.1:%d/api", apiPort))
+	slog.Debug("API server listening", "url", UIURL())
+
+	ui, err := fs.Sub(assets.GetFileSystem(), "templates")
+	if err != nil {
+		return fmt.Errorf("failed to load UI assets: %w", err)
+	}
+
+	api := http.NewServeMux()
+	api.HandleFunc("GET /api/initial-data", handleInitialData)
+	api.HandleFunc("GET /api/rules", handleGetRulesHTTP)
+	api.HandleFunc("POST /api/rules", handleSaveRulesHTTP)
+	api.HandleFunc("GET /api/browsers", handleGetBrowsersHTTP)
+	api.HandleFunc("GET /api/browser-profiles", handleGetBrowserProfilesHTTP)
+	api.HandleFunc("POST /api/test-url", handleTestURLHTTP)
+	api.HandleFunc("GET /api/events", handleSSE)
 
 	mux := http.NewServeMux()
-	mux.HandleFunc("GET /api/initial-data", handleInitialData)
-	mux.HandleFunc("GET /api/rules", handleGetRulesHTTP)
-	mux.HandleFunc("POST /api/rules", handleSaveRulesHTTP)
-	mux.HandleFunc("GET /api/browsers", handleGetBrowsersHTTP)
-	mux.HandleFunc("GET /api/browser-profiles", handleGetBrowserProfilesHTTP)
-	mux.HandleFunc("POST /api/test-url", handleTestURLHTTP)
-	mux.HandleFunc("GET /api/events", handleSSE)
+	mux.Handle("/api/", authMiddleware(api))
+	// The UI's static files hold no secrets (the token is injected into the
+	// WebView separately), so they're served without the token.
+	mux.Handle("/", http.FileServerFS(ui))
 
-	go http.Serve(ln, corsMiddleware(authMiddleware(mux))) //nolint:errcheck
+	go http.Serve(ln, hostMiddleware(mux)) //nolint:errcheck
 	return nil
 }
 
-func corsMiddleware(next http.Handler) http.Handler {
+// UIURL is the address the WebView loads the UI from.
+func UIURL() string {
+	return fmt.Sprintf("http://127.0.0.1:%d/", apiPort)
+}
+
+// hostMiddleware rejects requests whose Host header isn't this server's own
+// address. Without it, a website could use DNS rebinding (pointing its own
+// domain at 127.0.0.1) to make requests that the browser treats as
+// same-origin with that site.
+func hostMiddleware(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		if origin := r.Header.Get("Origin"); trustedOrigins[origin] {
-			w.Header().Set("Access-Control-Allow-Origin", origin)
-			w.Header().Set("Vary", "Origin")
-			w.Header().Set("Access-Control-Allow-Methods", "GET, POST, OPTIONS")
-			w.Header().Set("Access-Control-Allow-Headers", "Content-Type, X-Finicky-Token")
-		}
-		if r.Method == http.MethodOptions {
-			w.WriteHeader(http.StatusNoContent)
+		if r.Host != fmt.Sprintf("127.0.0.1:%d", apiPort) {
+			http.Error(w, "invalid host", http.StatusForbidden)
 			return
 		}
 		next.ServeHTTP(w, r)
@@ -175,10 +181,6 @@ func corsMiddleware(next http.Handler) http.Handler {
 // token the native app injected into the WebView, regardless of origin.
 func authMiddleware(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		if r.Method == http.MethodOptions {
-			next.ServeHTTP(w, r)
-			return
-		}
 		token := r.Header.Get("X-Finicky-Token")
 		if token == "" {
 			token = r.URL.Query().Get("token")
