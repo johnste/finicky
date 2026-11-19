@@ -3,25 +3,51 @@
     "config_dir_relative": "BraveSoftware/Brave-Browser",
     "id": "com.brave.Browser",
     "type": "Chromium",
-    "app_name": "Brave Browser"
+    "app_name": "Brave Browser",
+    "linux_config_dirs": [
+      ".config/BraveSoftware/Brave-Browser"
+    ],
+    "linux_desktop_ids": [
+      "brave-browser.desktop",
+      "com.brave.Browser.desktop"
+    ]
   },
   {
     "config_dir_relative": "BraveSoftware/Brave-Browser-Nightly",
     "id": "com.brave.Browser.nightly",
     "type": "Chromium",
-    "app_name": "Brave Browser Nightly"
+    "app_name": "Brave Browser Nightly",
+    "linux_config_dirs": [
+      ".config/BraveSoftware/Brave-Browser-Nightly"
+    ],
+    "linux_desktop_ids": [
+      "brave-browser-nightly.desktop"
+    ]
   },
   {
     "config_dir_relative": "Google/Chrome",
     "id": "com.google.Chrome",
     "type": "Chromium",
-    "app_name": "Google Chrome"
+    "app_name": "Google Chrome",
+    "linux_config_dirs": [
+      ".config/google-chrome"
+    ],
+    "linux_desktop_ids": [
+      "google-chrome.desktop",
+      "com.google.Chrome.desktop"
+    ]
   },
   {
     "config_dir_relative": "Google/Chrome Beta",
     "id": "com.google.Chrome.beta",
     "type": "Chromium",
-    "app_name": "Google Chrome Beta"
+    "app_name": "Google Chrome Beta",
+    "linux_config_dirs": [
+      ".config/google-chrome-beta"
+    ],
+    "linux_desktop_ids": [
+      "google-chrome-beta.desktop"
+    ]
   },
   {
     "config_dir_relative": "Google/Chrome Canary",
@@ -33,19 +59,41 @@
     "config_dir_relative": "Chromium",
     "id": "org.chromium.Chromium",
     "type": "Chromium",
-    "app_name": "Chromium"
+    "app_name": "Chromium",
+    "linux_config_dirs": [
+      ".config/chromium"
+    ],
+    "linux_desktop_ids": [
+      "chromium.desktop",
+      "chromium-browser.desktop",
+      "org.chromium.Chromium.desktop"
+    ]
   },
   {
     "config_dir_relative": "Microsoft Edge",
     "id": "com.microsoft.edgemac",
     "type": "Chromium",
-    "app_name": "Microsoft Edge"
+    "app_name": "Microsoft Edge",
+    "linux_config_dirs": [
+      ".config/microsoft-edge"
+    ],
+    "linux_desktop_ids": [
+      "microsoft-edge.desktop",
+      "com.microsoft.Edge.desktop"
+    ]
   },
   {
     "config_dir_relative": "Vivaldi",
     "id": "com.vivaldi.Vivaldi",
     "type": "Chromium",
-    "app_name": "Vivaldi"
+    "app_name": "Vivaldi",
+    "linux_config_dirs": [
+      ".config/vivaldi"
+    ],
+    "linux_desktop_ids": [
+      "vivaldi-stable.desktop",
+      "vivaldi.desktop"
+    ]
   },
   {
     "config_dir_relative": "WaveboxApp",
@@ -69,13 +117,25 @@
     "config_dir_relative": "Yandex/YandexBrowser",
     "id": "ru.yandex.desktop.yandex-browser",
     "type": "Chromium",
-    "app_name": "Yandex"
+    "app_name": "Yandex",
+    "linux_config_dirs": [
+      ".config/yandex-browser"
+    ],
+    "linux_desktop_ids": [
+      "yandex-browser.desktop"
+    ]
   },
   {
     "config_dir_relative": "com.operasoftware.Opera",
     "id": "com.operasoftware.Opera",
     "type": "Chromium",
-    "app_name": "Opera"
+    "app_name": "Opera",
+    "linux_config_dirs": [
+      ".config/opera"
+    ],
+    "linux_desktop_ids": [
+      "opera.desktop"
+    ]
   },
   {
     "config_dir_relative": "com.operasoftware.OperaGX",
@@ -93,19 +153,42 @@
     "config_dir_relative": "Firefox",
     "id": "org.mozilla.firefox",
     "type": "Firefox",
-    "app_name": "Firefox"
+    "app_name": "Firefox",
+    "linux_config_dirs": [
+      ".mozilla/firefox",
+      ".config/mozilla/firefox"
+    ],
+    "linux_desktop_ids": [
+      "firefox.desktop",
+      "org.mozilla.firefox.desktop"
+    ]
   },
   {
     "config_dir_relative": "Firefox",
     "id": "org.mozilla.firefoxdeveloperedition",
     "type": "Firefox",
-    "app_name": "Firefox Developer Edition"
+    "app_name": "Firefox Developer Edition",
+    "linux_config_dirs": [
+      ".mozilla/firefox",
+      ".config/mozilla/firefox"
+    ],
+    "linux_desktop_ids": [
+      "firefox-developer-edition.desktop"
+    ]
   },
   {
     "config_dir_relative": "zen",
     "id": "app.zen-browser.zen",
     "type": "Firefox",
-    "app_name": "Zen"
+    "app_name": "Zen",
+    "linux_config_dirs": [
+      ".zen"
+    ],
+    "linux_desktop_ids": [
+      "zen.desktop",
+      "zen-browser.desktop",
+      "app.zen_browser.zen.desktop"
+    ]
   },
   {
     "config_dir_relative": "EcosiaBrowser",

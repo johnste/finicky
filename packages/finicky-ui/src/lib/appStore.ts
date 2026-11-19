@@ -7,6 +7,7 @@ interface AppState {
   updateInfo: UpdateInfo | null;
   rulesFile: RulesFile;
   installedBrowsers: string[];
+  systemDefaultBrowser: string;
   profilesByBrowser: Record<string, string[]>;
   messageBuffer: LogEntry[];
 }
@@ -18,6 +19,7 @@ const initialState: AppState = {
   updateInfo: null,
   rulesFile: { defaultBrowser: "", rules: [] },
   installedBrowsers: [],
+  systemDefaultBrowser: "",
   profilesByBrowser: {},
   messageBuffer: [],
 };

@@ -26,6 +26,7 @@ var (
 	GetConfigFunc     func() interface{}
 	GetUpdateInfoFunc func() interface{}
 	TestURLFunc       func(url string) (interface{}, error)
+	SaveRulesHandler  func(rules.RulesFile)
 )
 
 func init() {
@@ -204,6 +205,8 @@ func handleInitialData(w http.ResponseWriter, _ *http.Request) {
 	result := map[string]interface{}{
 		"rules":             getRulesData(),
 		"installedBrowsers": browser.GetInstalledBrowsers(),
+		// Shown as the default browser when none is configured.
+		"systemDefaultBrowser": browser.SystemDefaultDisplayName(),
 	}
 	if GetVersionFunc != nil {
 		result["version"] = GetVersionFunc()

@@ -6,6 +6,7 @@ import (
 	"sync"
 	"testing"
 
+	"finicky/browser"
 	"finicky/config"
 	. "finicky/resolver"
 	"finicky/rules"
@@ -57,8 +58,8 @@ func TestResolveURL_NoConfig(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	if result.Name != "com.apple.Safari" {
-		t.Errorf("got %q, want %q", result.Name, "com.apple.Safari")
+	if want, _ := browser.SystemDefault(); result.Name != want {
+		t.Errorf("got %q, want %q", result.Name, want)
 	}
 }
 

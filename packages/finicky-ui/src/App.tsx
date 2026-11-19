@@ -45,6 +45,7 @@ export default function App() {
         appStore.update({
           version: (data.version as string) ?? "v0.0.0",
           installedBrowsers: (data.installedBrowsers as string[]) ?? [],
+          systemDefaultBrowser: (data.systemDefaultBrowser as string) ?? "",
           rulesFile: (data.rules as any) ?? { defaultBrowser: "", rules: [] },
           ...(data.config ? { hasConfig: true, config: data.config as any } : {}),
           ...(data.updateInfo ? { updateInfo: data.updateInfo as any } : {}),
