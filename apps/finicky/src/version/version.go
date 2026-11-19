@@ -194,6 +194,11 @@ func checkForUpdates() (releaseInfo *ReleaseInfo) {
 	}
 	defer resp.Body.Close()
 
+	if resp.StatusCode != http.StatusOK {
+		slog.Error("Unexpected update check response", "status", resp.Status)
+		return nil
+	}
+
 	// Read response
 	body, err := io.ReadAll(resp.Body)
 	if err != nil {
@@ -204,6 +209,10 @@ func checkForUpdates() (releaseInfo *ReleaseInfo) {
 	// Parse releases
 	if err := json.Unmarshal(body, &releaseInfo); err != nil {
 		slog.Error("Error parsing release info", "error", err, "response", string(body))
+		return nil
+	}
+	if releaseInfo == nil {
+		slog.Error("Empty release info", "response", string(body))
 		return nil
 	}
 
