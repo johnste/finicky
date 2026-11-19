@@ -97,7 +97,7 @@ See [Building Finicky from source](https://github.com/johnste/finicky/wiki/Build
 
 ### Works well with
 
-If you are looking for something that lets you pick the browser to activate in a graphical interface, check out [Browserosaurus](https://browserosaurus.com/) by Will Stone, an open source browser prompter for macOS. It works really well together with Finicky!
+If you are looking for something that lets you pick the browser to activate in a graphical interface, check out [Browserosaurus](https://github.com/will-stone/browserosaurus) by Will Stone, an open source browser prompter for macOS. It works really well together with Finicky!
 
 ### Questions
 
