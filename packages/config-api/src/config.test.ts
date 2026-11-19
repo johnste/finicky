@@ -1,6 +1,48 @@
-import { describe, it, expect, vi } from "vitest";
-import { openUrl } from "./index";
+import { describe, it, expect, vi, afterEach } from "vitest";
+import { getConfiguration, openUrl } from "./index";
 import { Config, ProcessInfo } from "./configSchema";
+
+describe("getConfiguration", () => {
+  afterEach(() => {
+    vi.unstubAllGlobals();
+    vi.restoreAllMocks();
+  });
+
+  const loadConfig = (config: object) => {
+    const warn = vi.spyOn(console, "warn").mockImplementation(() => {});
+    vi.stubGlobal("self", { finickyConfig: { default: config } });
+    getConfiguration("finickyConfig");
+    return warn.mock.calls.map(([message]) => message);
+  };
+
+  it("warns about options set at the top level", () => {
+    const warnings = loadConfig({ defaultBrowser: "Safari", hideIcon: true });
+    expect(warnings).toHaveLength(1);
+    expect(warnings[0]).toContain('Ignoring "hideIcon" at the top level');
+  });
+
+  it("warns about unknown properties and options", () => {
+    const warnings = loadConfig({
+      defaultBrowser: "Safari",
+      handler: [],
+      options: { checkForUpdate: false },
+    });
+    expect(warnings).toEqual([
+      'Ignoring unknown configuration property "handler".',
+      'Ignoring unknown option "options.checkForUpdate".',
+    ]);
+  });
+
+  it("doesn't warn about a valid configuration", () => {
+    const warnings = loadConfig({
+      defaultBrowser: "Safari",
+      options: { hideIcon: true, keepRunning: true },
+      rewrite: [],
+      handlers: [],
+    });
+    expect(warnings).toEqual([]);
+  });
+});
 
 describe("openUrl", () => {
   const mockProcessInfo: ProcessInfo = {

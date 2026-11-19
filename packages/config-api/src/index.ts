@@ -2,6 +2,7 @@ import "core-js/features/url";
 import "core-js/features/url-search-params";
 import {
   ConfigSchema,
+  ConfigOptionsSchema,
   Config,
   OpenUrlOptions,
   ProcessInfo,
@@ -44,11 +45,13 @@ export function getConfiguration(namespace: string): Config {
   const namespaceObj = (self as any)[namespace];
   if (namespaceObj) {
     if (namespaceObj.default) {
+      warnAboutUnknownKeys(namespaceObj.default);
       return namespaceObj.default;
     } else {
       console.warn(
         "No default export found for configuration namespace, using legacy configuration. Please update your configuration to use `export default { ... }` instead of `module.exports = { ... }` syntax. https://github.com/johnste/finicky/wiki/Use-Modern-ECMAScript-Module-Syntax"
       );
+      warnAboutUnknownKeys(namespaceObj);
       return namespaceObj;
     }
   }
@@ -56,6 +59,38 @@ export function getConfiguration(namespace: string): Config {
   throw new Error(
     "Could not find configuration object, please check your config file and make sure it has a default export."
   );
+}
+
+// Zod strips unknown keys silently, so a misplaced option (like a top-level
+// `hideIcon`) would otherwise just be ignored.
+function warnAboutUnknownKeys(config: unknown) {
+  if (!config || typeof config !== "object") {
+    return;
+  }
+
+  const configKeys = new Set(Object.keys(ConfigSchema.shape));
+  // `.identifier()` types the options schema as a plain ZodType, so read its
+  // keys from the definition instead of `.shape`
+  const optionKeys = new Set(Object.keys(ConfigOptionsSchema._def.shape()));
+
+  for (const key of Object.keys(config)) {
+    if (optionKeys.has(key)) {
+      console.warn(
+        `Ignoring "${key}" at the top level of the configuration, it needs to be inside \`options\`. https://github.com/johnste/finicky/wiki/Configuration-(v4)#general-options`
+      );
+    } else if (!configKeys.has(key)) {
+      console.warn(`Ignoring unknown configuration property "${key}".`);
+    }
+  }
+
+  const options = "options" in config ? config.options : undefined;
+  if (options && typeof options === "object") {
+    for (const key of Object.keys(options)) {
+      if (!optionKeys.has(key)) {
+        console.warn(`Ignoring unknown option "options.${key}".`);
+      }
+    }
+  }
 }
 
 export function getOption<T, K extends keyof Config["options"]>(
