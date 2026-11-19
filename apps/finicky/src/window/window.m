@@ -1,40 +1,6 @@
 #import "window.h"
 
 static WindowController* windowController = nil;
-static NSString* htmlContent = nil;
-static NSMutableDictionary* fileContents = nil;
-
-void SetHTMLContent(const char* content) {
-    if (content) {
-        htmlContent = [NSString stringWithUTF8String:content];
-    }
-}
-
-void SetFileContent(const char* path, const char* content) {
-    if (!fileContents) {
-        fileContents = [[NSMutableDictionary alloc] init];
-    }
-    if (path && content) {
-        NSString* pathStr = [NSString stringWithUTF8String:path];
-        if ([pathStr hasSuffix:@".png"]) {
-            SetFileContentWithLength(path, content, strlen(content));
-        } else {
-            NSString* contentStr = [NSString stringWithUTF8String:content];
-            fileContents[pathStr] = contentStr;
-        }
-    }
-}
-
-void SetFileContentWithLength(const char* path, const char* content, size_t length) {
-    if (!fileContents) {
-        fileContents = [[NSMutableDictionary alloc] init];
-    }
-    if (path && content) {
-        NSString* pathStr = [NSString stringWithUTF8String:path];
-        NSData* data = [[NSData alloc] initWithBytes:content length:length];
-        fileContents[pathStr] = data;
-    }
-}
 
 @implementation WindowController {
     NSWindow* window;
@@ -74,20 +40,19 @@ void SetFileContentWithLength(const char* path, const char* content, size_t leng
     [window setMaxSize:NSMakeSize(1200, 900)];
 
     WKWebViewConfiguration *config = [[WKWebViewConfiguration alloc] init];
-    [config setURLSchemeHandler:self forURLScheme:@"finicky-assets"];
 
-    // Inject the API base URL and per-process auth token so the UI can reach
-    // the local HTTP server. The token must be freed since it crosses the
-    // CGo boundary as a copy (see GetAPIToken in window.go).
-    extern int GetAPIPort(void);
-    extern char* GetAPIToken(void);
-    int port = GetAPIPort();
+    // The UI is served by the same local HTTP server as the API (see
+    // StartAPIServer in server.go), so its requests are same-origin. Inject the
+    // per-process auth token so the UI can call the API. Both strings must be
+    // freed since they cross the CGo boundary as copies (see window.go).
+    char* urlCStr = GetUIURL();
+    NSURL *uiURL = [NSURL URLWithString:[NSString stringWithUTF8String:urlCStr]];
+    free(urlCStr);
     char* tokenCStr = GetAPIToken();
     NSString *token = [NSString stringWithUTF8String:tokenCStr];
     free(tokenCStr);
     NSString *apiScript = [NSString stringWithFormat:
-        @"window.__FINICKY_API__ = 'http://127.0.0.1:%d/api'; window.__FINICKY_API_TOKEN__ = '%@';",
-        port, token];
+        @"window.__FINICKY_API_TOKEN__ = '%@';", token];
     WKUserScript *apiUserScript = [[WKUserScript alloc]
         initWithSource:apiScript
          injectionTime:WKUserScriptInjectionTimeAtDocumentStart
@@ -102,12 +67,7 @@ void SetFileContentWithLength(const char* path, const char* content, size_t leng
 
     [webView.configuration.preferences setValue:@true forKey:@"developerExtrasEnabled"];
 
-    if (htmlContent) {
-        NSURL* baseURL = [NSURL URLWithString:@"finicky-assets://local/"];
-        [webView loadHTMLString:htmlContent baseURL:baseURL];
-    } else {
-        NSLog(@"Warning: HTML content not set");
-    }
+    [webView loadRequest:[NSURLRequest requestWithURL:uiURL]];
 
     [[NSNotificationCenter defaultCenter] addObserver:self
                                          selector:@selector(windowWillClose:)
@@ -139,54 +99,6 @@ void SetFileContentWithLength(const char* path, const char* content, size_t leng
     }
 }
 
-#pragma mark - WKURLSchemeHandler
-
-- (void)webView:(WKWebView *)webView startURLSchemeTask:(id<WKURLSchemeTask>)urlSchemeTask {
-    NSURLRequest *request = urlSchemeTask.request;
-    NSString *path = request.URL.path;
-    if ([path hasPrefix:@"/"]) {
-        path = [path substringFromIndex:1];
-    }
-    if ([path hasPrefix:@"local/"]) {
-        path = [path substringFromIndex:6];
-    }
-
-    id content = fileContents[path];
-    if (content) {
-        NSData *data;
-        if ([content isKindOfClass:[NSData class]]) {
-            data = (NSData *)content;
-        } else {
-            data = [(NSString *)content dataUsingEncoding:NSUTF8StringEncoding];
-        }
-
-        NSString *mimeType = @"text/plain";
-        if ([path hasSuffix:@".css"]) {
-            mimeType = @"text/css";
-        } else if ([path hasSuffix:@".js"]) {
-            mimeType = @"application/javascript";
-        } else if ([path hasSuffix:@".png"]) {
-            mimeType = @"image/png";
-        }
-
-        NSURLResponse *response = [[NSURLResponse alloc] initWithURL:request.URL
-                                                          MIMEType:mimeType
-                                             expectedContentLength:data.length
-                                                  textEncodingName:nil];
-        [urlSchemeTask didReceiveResponse:response];
-        [urlSchemeTask didReceiveData:data];
-        [urlSchemeTask didFinish];
-    } else {
-        NSLog(@"Asset not found: %@", path);
-        [urlSchemeTask didFailWithError:[NSError errorWithDomain:NSURLErrorDomain
-                                                          code:NSURLErrorResourceUnavailable
-                                                      userInfo:nil]];
-    }
-}
-
-- (void)webView:(WKWebView *)webView stopURLSchemeTask:(id<WKURLSchemeTask>)urlSchemeTask {
-}
-
 #pragma mark - WKNavigationDelegate
 
 - (void)webView:(WKWebView *)webView didFinishNavigation:(WKNavigation *)navigation {
@@ -194,10 +106,6 @@ void SetFileContentWithLength(const char* path, const char* content, size_t leng
 
 - (void)webView:(WKWebView *)webView decidePolicyForNavigationAction:(WKNavigationAction *)navigationAction decisionHandler:(void (^)(WKNavigationActionPolicy))decisionHandler {
     NSURL *url = navigationAction.request.URL;
-    if ([url.scheme isEqualToString:@"finicky-assets"]) {
-        decisionHandler(WKNavigationActionPolicyAllow);
-        return;
-    }
     if (navigationAction.navigationType == WKNavigationTypeLinkActivated) {
         [[NSWorkspace sharedWorkspace] openURL:url];
         decisionHandler(WKNavigationActionPolicyCancel);
