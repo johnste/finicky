@@ -5,6 +5,8 @@ import (
 	"fmt"
 	"os"
 	"path/filepath"
+
+	"finicky/browser"
 )
 
 type Rule struct {
@@ -180,7 +182,7 @@ func ToJSHandlers(rules []Rule) []map[string]interface{} {
 func ToJSConfigScript(rf RulesFile, namespace string) (string, error) {
 	defaultBrowser := rf.DefaultBrowser
 	if defaultBrowser == "" {
-		defaultBrowser = "com.apple.Safari"
+		defaultBrowser = browser.DefaultBrowserName
 	}
 
 	var defaultBrowserObj interface{}

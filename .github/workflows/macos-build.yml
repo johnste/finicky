@@ -1,9 +1,13 @@
 # This workflow builds the Finicky macOS app for both Silicon (ARM64) and Intel (x86_64) architectures
-name: macOS Build
+name: macOS Build (cross-platform regression check)
+
+# Least-privilege GITHUB_TOKEN: nothing here writes to the repo.
+permissions:
+  contents: read
 
 on:
     push:
-      branches: [main]
+      branches: [main, windows-support, windows-smoke]
     pull_request:
       branches: [main]
     workflow_dispatch:

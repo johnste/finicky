@@ -138,8 +138,8 @@ func evaluateURL(vm *config.VM, url string, opener *OpenerInfo) (*browser.Browse
 func defaultBrowserConfig(urlStr string, openInBackground bool) *browser.BrowserConfig {
 	bg := openInBackground
 	return &browser.BrowserConfig{
-		Name:             "com.apple.Safari",
-		AppType:          "bundleId",
+		Name:             browser.DefaultBrowserName,
+		AppType:          browser.DefaultBrowserAppType,
 		OpenInBackground: &bg,
 		Args:             []string{},
 		URL:              urlStr,

@@ -7,7 +7,6 @@ import (
 	"log/slog"
 	"net/http"
 	"os"
-	"os/exec"
 	"path/filepath"
 	"strings"
 	"time"
@@ -37,7 +36,22 @@ var (
 	commitHash = "dev"
 	buildDate  = "unknown"
 	apiHost    = ""
+	// version is the authoritative build version, injected via
+	// -X 'finicky/version.version=$(git describe --tags --match v*)'.
+	// When empty (e.g. a bare `go build`), GetCurrentVersion falls back to
+	// platform metadata: Info.plist on macOS, the PE version resource on
+	// Windows — both of which may lag the real version, hence the override.
+	version = ""
 )
+
+// GetCurrentVersion returns the running build's version: the ldflags-injected
+// value when present, otherwise the platform fallback.
+func GetCurrentVersion() string {
+	if version != "" {
+		return version
+	}
+	return getCurrentVersionPlatform()
+}
 
 // GetBuildInfo returns the commit hash and build date
 func GetBuildInfo() (string, string) {
@@ -94,37 +108,6 @@ func setLastUpdateCheck(info UpdateCheckInfo) {
 	if err := os.WriteFile(cacheFile, data, 0644); err != nil {
 		slog.Error("Error saving last update check info", "error", err)
 	}
-}
-
-func GetCurrentVersion() string {
-	// Get the bundle path
-	bundlePath := os.Getenv("BUNDLE_PATH")
-	if bundlePath == "" {
-		execPath, err := os.Executable()
-		if err != nil {
-			slog.Error("Error getting executable path", "error", err)
-			return ""
-		}
-
-		bundlePath = filepath.Join(filepath.Dir(execPath), "..", "Info.plist")
-	}
-
-	// Read and parse Info.plist
-	cmd := exec.Command("defaults", "read", bundlePath, "CFBundleVersion")
-	output, err := cmd.Output()
-	if err != nil {
-		slog.Error("Error reading version from Info.plist", "error", err)
-		return ""
-	}
-
-	version := strings.TrimSpace(string(output))
-
-	if version == "" {
-		slog.Error("Could not determine current version")
-		return "dev"
-	}
-
-	return version
 }
 
 func checkForUpdates() (releaseInfo *ReleaseInfo) {

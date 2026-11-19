@@ -33,9 +33,10 @@
   let logRequests = rulesFile.options?.logRequests ?? config.options?.logRequests ?? false;
   let checkForUpdates = rulesFile.options?.checkForUpdates ?? config.options?.checkForUpdates ?? true;
 
-  const SAFARI = "Safari";
-
-  let defaultBrowser = isJSConfig ? (config.defaultBrowser ?? "") : (rulesFile.defaultBrowser || SAFARI);
+  // No hard-coded browser fallback — that seeded "Safari" (macOS-only) on every
+  // platform. When no default is set, show the placeholder; the Go layer applies
+  // the platform-appropriate default (Edge on Windows, Safari on macOS) at runtime.
+  let defaultBrowser = isJSConfig ? (config.defaultBrowser ?? "") : (rulesFile.defaultBrowser ?? "");
   let defaultProfile = rulesFile.defaultProfile ?? "";
   let defaultBrowserIsCustom = false;
   let defaultProfileIsCustom = false;
@@ -47,7 +48,7 @@
     hideIcon = rulesFile.options?.hideIcon ?? config.options?.hideIcon ?? false;
     logRequests = rulesFile.options?.logRequests ?? config.options?.logRequests ?? false;
     checkForUpdates = rulesFile.options?.checkForUpdates ?? config.options?.checkForUpdates ?? true;
-    defaultBrowser = isJSConfig ? (config.defaultBrowser ?? "") : (rulesFile.defaultBrowser || SAFARI);
+    defaultBrowser = isJSConfig ? (config.defaultBrowser ?? "") : (rulesFile.defaultBrowser ?? "");
     defaultProfile = rulesFile.defaultProfile ?? "";
   }
   // Separate statements so browser/profile list updates only affect these derived

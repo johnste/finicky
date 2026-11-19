@@ -19,8 +19,8 @@
 
   <div class="section">
     <p>
-      Finicky is a macOS application that lets you set up rules to decide which
-      browser to open for every link.
+      Finicky lets you set up rules to decide which browser to open for every
+      link. Available on macOS and Windows.
     </p>
     <a
       href="https://github.com/johnste/finicky"

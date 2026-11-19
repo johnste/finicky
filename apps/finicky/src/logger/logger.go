@@ -69,12 +69,10 @@ func SetupFile(shouldLog bool) error {
 		return nil
 	}
 
-	homeDir, err := util.UserHomeDir()
+	logDir, err := util.LogDir()
 	if err != nil {
-		return fmt.Errorf("failed to get user home directory: %w", err)
+		return fmt.Errorf("failed to get log directory: %w", err)
 	}
-
-	logDir := filepath.Join(homeDir, "Library", "Logs", "Finicky")
 	err = os.MkdirAll(logDir, 0755) // Create directory if it doesn't exist
 	if err != nil {
 		return fmt.Errorf("failed to create log directory: %v", err)

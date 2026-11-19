@@ -42,6 +42,8 @@ declare global {
         };
       };
     };
+    /** JS→Go bridge bound by the Windows WebView2 host (absent on macOS). */
+    __finicky_send?: (msg: string) => void;
   }
 }
 

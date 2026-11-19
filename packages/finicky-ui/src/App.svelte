@@ -91,12 +91,19 @@
   // Capture any messages buffered by the WKUserScript stub before Svelte loaded.
   const _preloadQueue: any[] = window.finicky._queue ?? [];
 
-  // Replace the stub with the real implementation.
+  // Replace the stub with the real implementation. Route outbound messages to
+  // whichever native bridge the host provides: WKWebView on macOS
+  // (window.webkit.messageHandlers.finicky) or the WebView2 binding on Windows
+  // (window.__finicky_send). Without the Windows branch, sendMessage is a silent
+  // no-op there and no UI request ever reaches Go.
   window.finicky = {
     sendMessage: (msg: any) => {
-      window.webkit?.messageHandlers?.finicky?.postMessage(
-        JSON.stringify(msg)
-      );
+      const json = JSON.stringify(msg);
+      if (window.webkit?.messageHandlers?.finicky) {
+        window.webkit.messageHandlers.finicky.postMessage(json);
+      } else if (typeof window.__finicky_send === "function") {
+        window.__finicky_send(json);
+      }
     },
     receiveMessage: handleMessage,
   };

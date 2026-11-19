@@ -7,6 +7,7 @@ import (
 	"strings"
 	"testing"
 
+	"finicky/browser"
 	. "finicky/rules"
 )
 
@@ -92,12 +93,11 @@ func TestToJSConfigScript_DefaultBrowserFallback(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	// Should fall back to com.apple.Safari when no defaultBrowser is set
+	// Should fall back to the platform default browser when no defaultBrowser is set
 	if script == "" {
 		t.Error("expected non-empty script")
 	}
-	// com.apple.Safari should appear as the default
-	if !contains(script, "com.apple.Safari") {
+	if !contains(script, browser.DefaultBrowserName) {
 		t.Errorf("expected fallback default browser in script, got: %s", script)
 	}
 }
