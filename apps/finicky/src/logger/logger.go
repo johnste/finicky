@@ -35,11 +35,11 @@ func createHandler(writer io.Writer) slog.Handler {
 		Level:     slog.LevelDebug,
 		AddSource: false,
 		ReplaceAttr: func(groups []string, a slog.Attr) slog.Attr {
-			// Format time as ISO string with microseconds
+			// Format time as RFC 3339 with microseconds so JS Date can parse it
 			if a.Key == slog.TimeKey {
 				return slog.Attr{
 					Key:   slog.TimeKey,
-					Value: slog.StringValue(a.Value.Time().Format("2006-01-02 15:04:05.000000")),
+					Value: slog.StringValue(a.Value.Time().Format("2006-01-02T15:04:05.000000Z07:00")),
 				}
 			}
 			return a
