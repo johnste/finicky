@@ -40,6 +40,16 @@ type browserInfo struct {
 	Type              string `json:"type"`
 }
 
+// configDir returns the browser's directory under ~/Library/Application Support.
+func (b *browserInfo) configDir() (string, bool) {
+	homeDir, err := util.UserHomeDir()
+	if err != nil {
+		slog.Info("Error getting home directory", "error", err)
+		return "", false
+	}
+	return filepath.Join(homeDir, "Library/Application Support", b.ConfigDirRelative), true
+}
+
 func LaunchBrowser(config BrowserConfig, dryRun bool, openInBackgroundByDefault bool) error {
 	if config.AppType == "none" {
 		slog.Info("AppType is 'none', not launching any browser")
@@ -172,28 +182,22 @@ func resolveBrowserProfileArgs(identifier string, profile string) ([]string, boo
 	if profile != "" {
 		switch matchedBrowser.Type {
 		case "Chromium":
-			homeDir, err := util.UserHomeDir()
-			if err != nil {
-				slog.Info("Error getting home directory", "error", err)
+			configDir, ok := matchedBrowser.configDir()
+			if !ok {
 				return nil, false
 			}
-
-			localStatePath := filepath.Join(homeDir, "Library/Application Support", matchedBrowser.ConfigDirRelative, "Local State")
-			profilePath, ok := parseProfiles(localStatePath, profile)
+			profilePath, ok := parseProfiles(filepath.Join(configDir, "Local State"), profile)
 			if ok {
 				return []string{"--profile-directory=" + profilePath}, true
 			}
 		case "Firefox":
-			homeDir, err := util.UserHomeDir()
-			if err != nil {
-				slog.Info("Error getting home directory", "error", err)
+			configDir, ok := matchedBrowser.configDir()
+			if !ok {
 				return nil, false
 			}
-
-			profilesIniPath := filepath.Join(homeDir, "Library/Application Support", matchedBrowser.ConfigDirRelative, "profiles.ini")
-			profileName, ok := parseFirefoxProfiles(profilesIniPath, profile)
+			profileArgs, ok := resolveFirefoxProfileArgs(configDir, profile)
 			if ok {
-				return []string{"-P", profileName}, true
+				return profileArgs, true
 			}
 		default:
 			slog.Info("Browser is not a supported browser type, skipping profile detection", "identifier", identifier)
@@ -201,34 +205,6 @@ func resolveBrowserProfileArgs(identifier string, profile string) ([]string, boo
 	}
 
 	return nil, false
-}
-
-func readFirefoxProfileNames(profilesIniPath string) []string {
-	data, err := os.ReadFile(profilesIniPath)
-	if err != nil {
-		slog.Info("Error reading profiles.ini", "path", profilesIniPath, "error", err)
-		return []string{}
-	}
-
-	names := []string{}
-	for _, line := range strings.Split(string(data), "\n") {
-		line = strings.TrimSpace(line)
-		if name, ok := strings.CutPrefix(line, "Name="); ok {
-			names = append(names, name)
-		}
-	}
-	return names
-}
-
-func parseFirefoxProfiles(profilesIniPath string, profile string) (string, bool) {
-	names := readFirefoxProfileNames(profilesIniPath)
-	for _, name := range names {
-		if name == profile {
-			return name, true
-		}
-	}
-	slog.Warn("Could not find profile in Firefox profiles.", "Expected profile", profile, "Available profiles", strings.Join(names, ", "))
-	return "", false
 }
 
 func chromiumInfoCache(localStatePath string) (map[string]interface{}, bool) {
@@ -359,19 +335,17 @@ func GetProfilesForBrowser(identifier string) []string {
 		return []string{}
 	}
 
-	homeDir, err := util.UserHomeDir()
-	if err != nil {
-		slog.Info("Error getting home directory", "error", err)
+	configDir, ok := matchedBrowser.configDir()
+	if !ok {
 		return []string{}
 	}
 
 	switch matchedBrowser.Type {
 	case "Chromium":
-		localStatePath := filepath.Join(homeDir, "Library/Application Support", matchedBrowser.ConfigDirRelative, "Local State")
-		return getAllChromiumProfiles(localStatePath)
+		return getAllChromiumProfiles(filepath.Join(configDir, "Local State"))
 	case "Firefox":
-		profilesIniPath := filepath.Join(homeDir, "Library/Application Support", matchedBrowser.ConfigDirRelative, "profiles.ini")
-		return readFirefoxProfileNames(profilesIniPath)
+		profiles, _ := readFirefoxProfiles(configDir)
+		return firefoxProfileNames(profiles)
 	default:
 		return []string{}
 	}
