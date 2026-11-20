@@ -78,6 +78,16 @@ Finicky has extensive support for matching, rewriting and starting browsers or o
 - The wiki has some good [configuration ideas](https://github.com/johnste/finicky/wiki/Configuration-ideas).
 - Visit [discussions](https://github.com/johnste/finicky/discussions) to discuss supporting specific apps.
 
+### Focus a Chrome profile window
+
+Set `focusWindow: true` to focus the Chrome window that receives the link. This works across Spaces and fullscreen.
+
+```js
+export default { defaultBrowser: { name: "Google Chrome", profile: "Work", focusWindow: true } };
+```
+
+This option is off by default and ignored for background links. Allow Finicky access to Chrome and System Events under Automation, and enable Accessibility access in System Settings → Privacy & Security.
+
 ## Migrating from Finicky 3
 
 Please see the [wiki page](https://github.com/johnste/finicky/wiki/Migrating-from-Finicky-3) for updating info and migrating your configuration
