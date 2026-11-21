@@ -148,12 +148,14 @@ export function openUrl(
 export function createBrowserConfig(
   browser: string | BrowserConfig | null
 ): Omit<BrowserConfigStrict, "url"> {
-  const defaults = {
+  const optionDefaults = {
     appType: "appName" as const,
     openInBackground: undefined,
     profile: "",
     args: [],
+    title: "",
   };
+  const defaults = { ...optionDefaults, options: [] };
 
   if (browser === null) {
     return {
@@ -172,7 +174,21 @@ export function createBrowserConfig(
     };
   }
 
-  return { ...defaults, ...browser };
+  // Picker options accept the same shorthands as any other browser value, so
+  // "Google Chrome:Profile 2" and { name, profile } both work.
+  return {
+    ...defaults,
+    ...browser,
+    options: (browser.options ?? []).map((option) =>
+      typeof option === "string"
+        ? { ...optionDefaults, ...resolveBrowserInfo(option) }
+        : {
+            ...optionDefaults,
+            ...option,
+            appType: option.appType ?? autodetectAppStringType(option.name),
+          }
+    ),
+  };
 }
 
 export function resolveBrowserInfo(

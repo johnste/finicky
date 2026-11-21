@@ -31,6 +31,11 @@ type BrowserConfig struct {
 	Profile          string   `json:"profile"`
 	Args             []string `json:"args"`
 	URL              string   `json:"url"`
+	// Title labels this destination in an "ask" picker. When AppType is "ask"
+	// it is the picker's heading instead.
+	Title string `json:"title"`
+	// Options are the destinations offered when AppType is "ask".
+	Options []BrowserConfig `json:"options"`
 }
 
 type browserInfo struct {
