@@ -473,10 +473,25 @@ func GetCurrentConfigPath() *C.char {
 	}
 }
 
+// updateRetryDelays spaces out retries of a failed update check. Right after
+// login the network is often not up yet, so the first attempt fails.
+var updateRetryDelays = []time.Duration{15 * time.Second, time.Minute, 5 * time.Minute}
+
 func checkForUpdates() {
+	checkForUpdatesWithRetry(updateRetryDelays)
+}
+
+func checkForUpdatesWithRetry(retryDelays []time.Duration) {
 	// GetAllConfigOptions returns defaults (checkForUpdates on) for a nil VM.
-	enabled := getVM().GetAllConfigOptions().CheckForUpdates
-	releaseInfo, updateCheckEnabled, err := version.CheckForUpdatesIfEnabled(enabled)
+	releaseInfo, updateCheckEnabled, err := version.CheckForUpdatesIfEnabled(getVM().GetAllConfigOptions().CheckForUpdates)
+	for _, delay := range retryDelays {
+		if err == nil {
+			break
+		}
+		slog.Debug("Update check failed, retrying", "error", err, "delay", delay)
+		time.Sleep(delay)
+		releaseInfo, updateCheckEnabled, err = version.CheckForUpdatesIfEnabled(getVM().GetAllConfigOptions().CheckForUpdates)
+	}
 	if err != nil {
 		slog.Error("Error checking for updates", "error", err)
 	}
@@ -512,7 +527,7 @@ func buildUpdateInfoPayload(ui UpdateInfo) map[string]interface{} {
 }
 
 func tearDown() {
-	checkForUpdates()
+	checkForUpdatesWithRetry(nil)
 	slog.Info("Exiting...")
 	os.Exit(0)
 }
