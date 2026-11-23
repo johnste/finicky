@@ -42,22 +42,17 @@ func ResolveURL(originalURL string) (string, error) {
 		return originalURL, fmt.Errorf("failed to parse URL: %v", err)
 	}
 
-	// Check if the domain is a known URL shortener
-	isShortURL := false
-	for _, domain := range shortenerDomains {
-		if strings.HasSuffix(parsedURL.Host, domain) {
-			isShortURL = true
-			break
-		}
-	}
-
-	if !isShortURL {
+	if !isShortenerHost(parsedURL) {
 		return originalURL, nil
 	}
 
 	slog.Debug("URL host looks like a short URL", "host", parsedURL.Host)
 
 	var lastUrl string
+	// Set once a redirect leaves the shortener domains. That URL is the
+	// shortener's destination; any further redirects belong to the target
+	// site (e.g. a login page) and would lose the original link.
+	leftShortener := false
 
 	// Helper to get the best available URL
 	getReturnUrl := func() string {
@@ -74,6 +69,10 @@ func ResolveURL(originalURL string) (string, error) {
 		CheckRedirect: func(req *http.Request, via []*http.Request) error {
 			lastUrl = req.URL.String()
 			slog.Debug("Redirected to", "url", lastUrl)
+			if !isShortenerHost(req.URL) {
+				leftShortener = true
+				return http.ErrUseLastResponse
+			}
 			// Allow up to 3 redirects
 			if len(via) >= 3 {
 				return fmt.Errorf("stopped after 3 redirects")
@@ -96,14 +95,18 @@ func ResolveURL(originalURL string) (string, error) {
 	}
 
 	if resp != nil {
+		if resp.Body != nil {
+			resp.Body.Close()
+		}
+
+		if leftShortener {
+			return lastUrl, nil
+		}
+
 		// If we got a successful response, return the final URL
 		if resp.StatusCode == http.StatusOK {
 			slog.Debug("Got a successful response", "url", resp.Request.URL.String())
 			return resp.Request.URL.String(), nil
-		}
-
-		if resp.Body != nil {
-			resp.Body.Close()
 		}
 	}
 
@@ -121,17 +124,31 @@ func ResolveURL(originalURL string) (string, error) {
 	}
 
 	if resp != nil {
+		if resp.Body != nil {
+			resp.Body.Close()
+		}
+
+		if leftShortener {
+			return lastUrl, nil
+		}
+
 		if resp.StatusCode == http.StatusOK {
 			slog.Debug("Got a successful response", "url", resp.Request.URL.String())
 			return resp.Request.URL.String(), nil
-		}
-
-		if resp.Body != nil {
-			resp.Body.Close()
 		}
 	}
 
 	// If both HEAD and GET failed, return original URL
 	return getReturnUrl(), fmt.Errorf("failed to resolve URL: no response received")
 
+}
+
+func isShortenerHost(u *url.URL) bool {
+	host := u.Hostname()
+	for _, domain := range shortenerDomains {
+		if strings.HasSuffix(host, domain) {
+			return true
+		}
+	}
+	return false
 }
