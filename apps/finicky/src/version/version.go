@@ -126,11 +126,13 @@ func GetCurrentVersion() string {
 	return version
 }
 
-func checkForUpdates() (releaseInfo *ReleaseInfo) {
+// checkForUpdates returns an error only when the request itself fails (e.g.
+// no network yet), so callers can retry; other problems are logged.
+func checkForUpdates() (releaseInfo *ReleaseInfo, err error) {
 	currentVersion := GetCurrentVersion()
 	if currentVersion == "" {
 		slog.Info("Could not determine current version")
-		return nil
+		return nil, nil
 	}
 
 	slog.Debug("Checking update schedule...")
@@ -143,21 +145,21 @@ func checkForUpdates() (releaseInfo *ReleaseInfo) {
 
 			if updateCheckInfo.ReleaseInfo.LatestVersion == "" {
 				slog.Debug("No latest version found from last check")
-				return nil
+				return nil, nil
 			}
 
 			updateAvailable, err := isUpdateAvailable(currentVersion, updateCheckInfo.ReleaseInfo.LatestVersion)
 			if err != nil {
 				slog.Warn("Error checking version", "error", err)
-				return nil
+				return nil, nil
 			}
 
 			if updateAvailable {
 				slog.Debug("Update available", "currentVersion", currentVersion, "latestVersion", updateCheckInfo.ReleaseInfo.LatestVersion)
-				return &updateCheckInfo.ReleaseInfo
+				return &updateCheckInfo.ReleaseInfo, nil
 			} else {
 				slog.Debug("Current version is up to date", "currentVersion", currentVersion, "latestVersion", updateCheckInfo.ReleaseInfo.LatestVersion)
-				return nil
+				return nil, nil
 			}
 		}
 	}
@@ -171,7 +173,7 @@ func checkForUpdates() (releaseInfo *ReleaseInfo) {
 
 	if apiHost == "" {
 		slog.Warn("apiHost is not set, won't check for updates")
-		return nil
+		return nil, nil
 	}
 
 	// Create request
@@ -179,7 +181,7 @@ func checkForUpdates() (releaseInfo *ReleaseInfo) {
 	req, err := http.NewRequest("GET", apiUrl, nil)
 	if err != nil {
 		slog.Error("Error creating request", "error", err)
-		return nil
+		return nil, nil
 	}
 
 	// Set User-Agent header
@@ -188,31 +190,30 @@ func checkForUpdates() (releaseInfo *ReleaseInfo) {
 	// Make request
 	resp, err := client.Do(req)
 	if err != nil {
-		slog.Error("Error making request", "error", err)
-		return nil
+		return nil, fmt.Errorf("error making request: %w", err)
 	}
 	defer resp.Body.Close()
 
 	if resp.StatusCode != http.StatusOK {
 		slog.Error("Unexpected update check response", "status", resp.Status)
-		return nil
+		return nil, nil
 	}
 
 	// Read response
 	body, err := io.ReadAll(resp.Body)
 	if err != nil {
 		slog.Error("Error reading response", "error", err)
-		return nil
+		return nil, nil
 	}
 
 	// Parse releases
 	if err := json.Unmarshal(body, &releaseInfo); err != nil {
 		slog.Error("Error parsing release info", "error", err, "response", string(body))
-		return nil
+		return nil, nil
 	}
 	if releaseInfo == nil {
 		slog.Error("Empty release info", "response", string(body))
-		return nil
+		return nil, nil
 	}
 
 	// Update the last check time
@@ -223,23 +224,23 @@ func checkForUpdates() (releaseInfo *ReleaseInfo) {
 
 	if releaseInfo.LatestVersion == "" {
 		slog.Debug("No latest version found")
-		return nil
+		return nil, nil
 	}
 
 	updateAvailable, err := isUpdateAvailable(currentVersion, releaseInfo.LatestVersion)
 	if err != nil {
 		slog.Error("Error checking version", "error", err)
-		return nil
+		return nil, nil
 	}
 
 	if updateAvailable {
 		slog.Debug("Update available", "currentVersion", currentVersion, "latestVersion", releaseInfo.LatestVersion)
 	} else {
 		slog.Debug("Current version is up to date", "currentVersion", currentVersion, "latestVersion", releaseInfo.LatestVersion)
-		return nil
+		return nil, nil
 	}
 
-	return releaseInfo
+	return releaseInfo, nil
 }
 
 // CheckForUpdatesIfEnabled checks for updates when enabled is true (the
@@ -257,8 +258,8 @@ func CheckForUpdatesIfEnabled(enabled bool) (releaseInfo *ReleaseInfo, updateChe
 	}
 
 	if enabled {
-		releaseInfo := checkForUpdates()
-		return releaseInfo, true, nil
+		releaseInfo, err := checkForUpdates()
+		return releaseInfo, true, err
 	}
 	slog.Debug("Skipping update check")
 	return nil, false, nil
