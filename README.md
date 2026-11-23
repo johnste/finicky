@@ -78,6 +78,16 @@ Finicky has extensive support for matching, rewriting and starting browsers or o
 - The wiki has some good [configuration ideas](https://github.com/johnste/finicky/wiki/Configuration-ideas).
 - Visit [discussions](https://github.com/johnste/finicky/discussions) to discuss supporting specific apps.
 
+### Browser profiles on macOS 27 and later
+
+Opening a URL in a specific browser profile means reading that browser's data under `~/Library/Application Support`, and macOS 27 protects those directories from other apps. If a handler starts opening URLs in the wrong profile, or the profile list in the Finicky window is empty, that is why.
+
+Fix it in System Settings > Privacy & Security > **Files & Folders**: find Finicky and switch on the browser you want it to read. macOS creates that entry, switched off, the first time it refuses a read, and mentions it once in a "Data Access Blocked" notification that is easy to miss. There is no prompt at the time, and the pane has no Add button, so nothing is listed until a denial has already happened. Full Disk Access also works, but grants far more than this needs.
+
+Until then Finicky does what it can without reading anything: the profile is handed to the browser unresolved, so Firefox resolves it from its own `profiles.ini` and opens the profile manager if the name is unknown. For Chromium browsers the value has to be the profile *directory* name, such as `Profile 1`, rather than the name shown in the browser, since the mapping between the two is in the file that cannot be read. A Firefox profile can also be given as an absolute path to its profile directory, which needs no access at all.
+
+The permission is tied to the app's code signature, so a locally built Finicky is a separate entry from a release build. See `scripts/build.sh` for signing local builds with a stable identity, without which the grant is lost on every rebuild.
+
 ## Migrating from Finicky 3
 
 Please see the [wiki page](https://github.com/johnste/finicky/wiki/Migrating-from-Finicky-3) for updating info and migrating your configuration
